@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Lodestone.Cli</RootNamespace>
+    <AssemblyName>lodestone</AssemblyName>
+  </PropertyGroup>
+
+  <!--
+    A small headless surface over the same Application/Infrastructure layers.
+    Useful for scripting, CI smoke tests, and proving the core is UI-agnostic.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\Lodestone.Domain\Lodestone.Domain.csproj" />
+    <ProjectReference Include="..\Lodestone.Application\Lodestone.Application.csproj" />
+    <ProjectReference Include="..\Lodestone.Infrastructure\Lodestone.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+
+</Project>

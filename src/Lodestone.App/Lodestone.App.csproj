@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Lodestone.App</RootNamespace>
+    <AssemblyName>Lodestone</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Velopack updates ship as framework-dependent by default; self-contained is toggled in release.yml. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lodestone.Domain\Lodestone.Domain.csproj" />
+    <ProjectReference Include="..\Lodestone.Application\Lodestone.Application.csproj" />
+    <ProjectReference Include="..\Lodestone.Infrastructure\Lodestone.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Velopack" />
+    <PackageReference Include="H.NotifyIcon.Wpf" />
+  </ItemGroup>
+
+</Project>

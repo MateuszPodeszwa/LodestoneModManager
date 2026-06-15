@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Lodestone.Domain</RootNamespace>
+  </PropertyGroup>
+
+  <!-- The domain has ZERO external dependencies, by design. -->
+
+</Project>

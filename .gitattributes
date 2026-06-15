@@ -1,0 +1,23 @@
+# Normalize all text to LF in the repository (deterministic across Windows/macOS/Linux).
+* text=auto eol=lf
+
+# Explicit text types
+*.cs        text eol=lf
+*.csproj    text eol=lf
+*.props     text eol=lf
+*.targets   text eol=lf
+*.xaml      text eol=lf
+*.manifest  text eol=lf
+*.json      text eol=lf
+*.yml       text eol=lf
+*.md        text eol=lf
+*.slnx      text eol=lf
+
+# Binary assets — never convert
+*.ico   binary
+*.png   binary
+*.jpg   binary
+*.jar   binary
+*.zip   binary
+*.pfx   binary
+*.snk   binary

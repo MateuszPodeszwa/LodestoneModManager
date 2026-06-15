@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Lodestone.Application</RootNamespace>
+  </PropertyGroup>
+
+  <!-- Application depends only on the Domain. Ports use BCL types only (Task, CancellationToken, IProgress). -->
+  <ItemGroup>
+    <ProjectReference Include="..\Lodestone.Domain\Lodestone.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

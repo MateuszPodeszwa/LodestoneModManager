@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Lodestone.App/Lodestone.App.csproj" />
+    <Project Path="src/Lodestone.Application/Lodestone.Application.csproj" />
+    <Project Path="src/Lodestone.Cli/Lodestone.Cli.csproj" />
+    <Project Path="src/Lodestone.Domain/Lodestone.Domain.csproj" />
+    <Project Path="src/Lodestone.Infrastructure/Lodestone.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Lodestone.Application.Tests/Lodestone.Application.Tests.csproj" />
+    <Project Path="tests/Lodestone.Domain.Tests/Lodestone.Domain.Tests.csproj" />
+    <Project Path="tests/Lodestone.Infrastructure.Tests/Lodestone.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>
