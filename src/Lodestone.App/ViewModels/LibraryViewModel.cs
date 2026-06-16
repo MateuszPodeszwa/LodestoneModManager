@@ -76,7 +76,7 @@ public sealed partial class LibraryViewModel : ObservableObject
 
         GameVersion? activeVersion = _mcVersion is "all" or ""
             ? null
-            : GameVersion.Create(_mcVersion).Match(v => v, _ => null);
+            : GameVersion.Create(_mcVersion).Match<GameVersion?>(v => v, _ => null);
 
         _reports = _compatibility.Analyze(new CompatibilityContext(_all, activeVersion, _settings.Current.DefaultLoader));
         Rebuild();
@@ -92,7 +92,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         };
 
         bool allVersions = _mcVersion is "all" or "";
-        GameVersion? version = allVersions ? null : GameVersion.Create(_mcVersion).Match(v => v, _ => null);
+        GameVersion? version = allVersions ? null : GameVersion.Create(_mcVersion).Match<GameVersion?>(v => v, _ => null);
 
         var filter = new LibraryFilter(type, version, string.IsNullOrWhiteSpace(LibSearch) ? null : LibSearch);
         IReadOnlyList<InstalledContent> filtered = LibraryQuery.Apply(_all, filter);

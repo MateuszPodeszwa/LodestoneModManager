@@ -75,7 +75,7 @@ public sealed class VelopackAppUpdater : IAppUpdater
                 return Result.Success();
             }
 
-            await manager.DownloadUpdatesAsync(info, progress is null ? null : p => progress.Report(p)).ConfigureAwait(false);
+            await manager.DownloadUpdatesAsync(info, progress is null ? null : p => progress.Report(p), ct).ConfigureAwait(false);
             manager.ApplyUpdatesAndRestart(info);
             return Result.Success();
         }

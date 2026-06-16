@@ -160,6 +160,6 @@ public sealed partial class MainViewModel : ObservableObject
     private GameVersion? ActiveVersion()
     {
         string selected = _settings.Current.SelectedVersion;
-        return selected is "all" or "" ? null : GameVersion.Create(selected).Match(v => v, _ => null);
+        return selected is "all" or "" ? null : GameVersion.Create(selected).Match<GameVersion?>(v => v, _ => null);
     }
 }

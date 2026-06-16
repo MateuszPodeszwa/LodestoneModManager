@@ -11,7 +11,7 @@ using Lodestone.Domain.Common;
 namespace Lodestone.App.ViewModels;
 
 /// <summary>The Browse screen: faceted Modrinth search with debounced input and one-click install.</summary>
-public sealed partial class BrowseViewModel : ObservableObject
+public sealed partial class BrowseViewModel : ObservableObject, IDisposable
 {
     private readonly IModSourceRegistry _registry;
     private readonly InstallFromCatalogUseCase _install;
@@ -69,9 +69,12 @@ public sealed partial class BrowseViewModel : ObservableObject
         await SearchAsync(CancellationToken.None).ConfigureAwait(true);
     }
 
+    public void Dispose() => _debounce?.Dispose();
+
     private void QueueSearch()
     {
         _debounce?.Cancel();
+        _debounce?.Dispose();
         _debounce = new CancellationTokenSource();
         CancellationToken token = _debounce.Token;
 

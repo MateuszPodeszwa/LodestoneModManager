@@ -29,7 +29,7 @@ Thumbs.db
 *.snk
 *.pfx
 secrets/
-keys/private*
+keys/
 
 # ----- Coverage -----
 coverage/
