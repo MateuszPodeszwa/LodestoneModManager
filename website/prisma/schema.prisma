@@ -1,0 +1,60 @@
+// Prisma schema for the Lodestone website.
+// Provider is PostgreSQL (Railway provides a managed instance + DATABASE_URL).
+// The app degrades gracefully if no DATABASE_URL is set (see server/utils/db.ts).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// One row per Patreon user who has signed in. Tracks tier/pledge and how many
+/// supporter keys they've generated. We deliberately do NOT store the generated
+/// code strings — only counts/timestamps (patrons are told keys aren't kept).
+model Supporter {
+  id            String   @id @default(cuid())
+  patreonUserId String   @unique
+
+  // Profile (from Patreon identity)
+  fullName String?
+  email    String?
+  imageUrl String?
+
+  // Membership snapshot (refreshed on each login)
+  patronStatus           String? // active_patron | declined_patron | former_patron | null
+  tierTitle              String?
+  currentlyEntitledCents Int     @default(0)
+  lifetimeSupportCents   Int     @default(0)
+
+  // Entitlements
+  // Effective beta access = betaOverride ?? (currentlyEntitledCents >= threshold).
+  // Set betaOverride to grant/deny beta manually regardless of tier.
+  betaOverride Boolean?
+
+  // Key-generation accounting (drives the 1-hour regen lock + your analytics)
+  keyGenCount  Int       @default(0)
+  lastKeyGenAt DateTime?
+
+  firstSeenAt DateTime @default(now())
+  lastLoginAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  generations KeyGeneration[]
+
+  @@index([patronStatus])
+}
+
+/// Audit trail of key generations (timestamps + holder only — never the code).
+model KeyGeneration {
+  id          String    @id @default(cuid())
+  supporterId String
+  holder      String
+  createdAt   DateTime  @default(now())
+  supporter   Supporter @relation(fields: [supporterId], references: [id], onDelete: Cascade)
+
+  @@index([supporterId])
+  @@index([createdAt])
+}

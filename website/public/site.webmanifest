@@ -1,0 +1,13 @@
+{
+  "name": "Lodestone — Minecraft Mod Manager",
+  "short_name": "Lodestone",
+  "description": "The friendly, lightweight mod manager for Minecraft.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#141519",
+  "theme_color": "#141519",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

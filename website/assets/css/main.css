@@ -1,0 +1,165 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base ─────────────────────────────────────────────────────────────── */
+:root {
+  scroll-behavior: smooth;
+  scroll-padding-top: 72px;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 72px;
+}
+
+body {
+  margin: 0;
+  background: #141519;
+  color: #e6e6ea;
+  font-family: 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(90, 194, 109, 0.32);
+}
+
+*::-webkit-scrollbar {
+  width: 11px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+a {
+  color: inherit;
+}
+
+/* ── Reusable components ──────────────────────────────────────────────── */
+@layer components {
+  /* The chamfered "Minecraft" button shape used for primary CTAs. */
+  .mc-clip {
+    clip-path: polygon(
+      0 6px, 6px 6px, 6px 0,
+      calc(100% - 6px) 0, calc(100% - 6px) 6px, 100% 6px,
+      100% calc(100% - 6px), calc(100% - 6px) calc(100% - 6px), calc(100% - 6px) 100%,
+      6px 100%, 6px calc(100% - 6px), 0 calc(100% - 6px)
+    );
+  }
+  .mc-clip-sm {
+    clip-path: polygon(
+      0 5px, 5px 5px, 5px 0,
+      calc(100% - 5px) 0, calc(100% - 5px) 5px, 100% 5px,
+      100% calc(100% - 5px), calc(100% - 5px) calc(100% - 5px), calc(100% - 5px) 100%,
+      5px 100%, 5px calc(100% - 5px), 0 calc(100% - 5px)
+    );
+  }
+
+  /* Primary green gradient CTA. */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 font-bold text-brand-ink no-underline mc-clip transition;
+    background: linear-gradient(140deg, #6fce80, #46a85a);
+    filter: drop-shadow(0 14px 26px rgba(90, 194, 109, 0.5));
+  }
+  .btn-primary:hover {
+    filter: brightness(1.07) drop-shadow(0 14px 28px rgba(90, 194, 109, 0.6));
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg font-semibold no-underline transition;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.03);
+    color: #ededf0;
+  }
+  .btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.22);
+  }
+
+  .card {
+    background: rgba(28, 28, 32, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    @apply rounded-2xl;
+  }
+
+  .eyebrow {
+    @apply font-pixel font-semibold uppercase;
+    font-size: 13px;
+    letter-spacing: 2.4px;
+    color: #5ac26d;
+  }
+
+  /* Faint grid backdrop used in hero/headers. */
+  .grid-backdrop {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+    background-size: 46px 46px;
+  }
+}
+
+/* ── GSAP reveal (elements start hidden, JS reveals on scroll) ─────────── */
+/* Only hide when JS is present (`has-js` is set synchronously in <head>), so
+   no-JS visitors and search engines always see fully-rendered content. */
+.has-js .reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  will-change: opacity, transform;
+}
+
+/* Above-the-fold entrance items (hero). Hidden only when JS is present, then
+   animated in on mount by GSAP. */
+.has-js .hero-rise {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+/* ── Page transition (themed fade/slide) ──────────────────────────────── */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.32s ease, transform 0.32s ease;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* ── Custom Minecraft cursor ──────────────────────────────────────────── */
+/* When the JS cursor is active we hide the native one on pointer devices. */
+html.mc-cursor-on,
+html.mc-cursor-on * {
+  cursor: none !important;
+}
+
+/* Respect users who prefer reduced motion: kill long-running animations. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* On touch devices there's no pointer to follow — never hide the cursor. */
+@media (pointer: coarse) {
+  html.mc-cursor-on,
+  html.mc-cursor-on * {
+    cursor: auto !important;
+  }
+}
