@@ -121,11 +121,11 @@ a blue **"Windows protected your PC"** SmartScreen dialog. It is **not an error*
 **More info → Run anyway** once, and it never asks again on that machine. Worth a one‑line note on your
 download page so people aren't scared off.
 
-To remove the warning entirely you need a **code‑signing certificate** (an OV or EV cert from a CA,
-roughly $100–400/year — there is no free option that satisfies SmartScreen). When you have one, the
-wiring is already stubbed: add the cert as a CI secret and uncomment the `--signParams` line in
-`.github/workflows/release.yml`. Until then, unsigned releases work fine; SmartScreen reputation also
-improves on its own as more people install.
+To remove the warning entirely you need a CA‑trusted **code‑signing certificate**. Because Lodestone is
+open source, you can get one **free** from **SignPath Foundation** — the full plan, the required public
+signing policy, and the ready‑to‑apply workflow steps are in **[CODE-SIGNING.md](CODE-SIGNING.md)**.
+(A self‑signed cert does **not** work — Windows treats it as unsigned.) Until signing is switched on,
+unsigned releases work fine; SmartScreen reputation also improves on its own as more people install.
 
 ---
 
