@@ -20,6 +20,17 @@ conflict, and keep everything up to date — all without ever touching a config 
 > Lodestone is **free, and always will be**. Every feature is available to everyone; supporters get
 > a few cosmetic perks and our thanks. See [Supporters](#-supporters).
 
+## ⬇️ Download
+
+**[⬇ Get the latest release →](https://github.com/MateuszPodeszwa/LodestoneModManager/releases/latest)**
+
+- **`Lodestone-win-Setup.exe`** — recommended installer; **updates itself automatically**.
+- **`Lodestone-win-Portable.zip`** — standalone, no install (update by re-downloading).
+
+No prerequisites — the build is self-contained. On first run Windows may show a one-time SmartScreen
+prompt (the build isn't code-signed yet); click **More info → Run anyway**. How releases and
+auto-update work is documented in **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+
 ## ✨ Features
 
 - **Drag & drop install** — drop `.jar` / `.zip` / `.litemod` / `.mcpack` anywhere on the window;
@@ -71,8 +82,9 @@ dotnet run --project src/Lodestone.App        # launches the app
 ## 📦 Releases & auto-update
 
 Tagging a commit `v*` triggers the release workflow, which packages a Velopack installer and
-publishes it to GitHub Releases. Installed clients update themselves from that feed. Optional
-code-signing is documented in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#deployment--auto-update).
+publishes it to GitHub Releases. Installed clients update themselves from that feed. A plain-English,
+first-timer's walkthrough — cutting a release, how auto-update works, SmartScreen, troubleshooting —
+is in **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 
 **Maintainer setup** (Patreon link, supporter keys, CurseForge key, signing, cutting a release):
 see **[docs/HANDOFF.md](docs/HANDOFF.md)**.

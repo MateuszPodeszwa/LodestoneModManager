@@ -32,6 +32,9 @@ jobs:
         run: |
           $v = if ($env:GITHUB_REF_NAME -like 'v*') { $env:GITHUB_REF_NAME.TrimStart('v') } else { '${{ github.event.inputs.version }}' }
           "version=$v" >> $env:GITHUB_OUTPUT
+          # Canonical tag used for the GitHub Release, consistent whether triggered by a tag push
+          # (ref_name already "vX.Y.Z") or a manual run (only the bare version is supplied).
+          "tag=v$v" >> $env:GITHUB_OUTPUT
 
       - name: Restore & test
         run: dotnet test Lodestone.slnx --configuration Release
@@ -43,7 +46,9 @@ jobs:
           -o publish /p:Version=${{ steps.ver.outputs.version }}
 
       - name: Install Velopack CLI
-        run: dotnet tool install -g vpk
+        # Pin vpk to the same version as the Velopack library (Directory.Packages.props) to avoid
+        # CLI/runtime drift in the packaged update metadata.
+        run: dotnet tool install -g vpk --version 1.2.0
 
       - name: Package with Velopack
         run: >
@@ -66,5 +71,5 @@ jobs:
           --repoUrl https://github.com/MateuszPodeszwa/LodestoneModManager
           --publish
           --releaseName "Lodestone ${{ steps.ver.outputs.version }}"
-          --tag ${{ github.ref_name }}
+          --tag ${{ steps.ver.outputs.tag }}
           --token $env:GITHUB_TOKEN

@@ -35,6 +35,9 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
+A full, beginner-friendly walkthrough of releasing and auto-update lives in
+[DEPLOYMENT.md](DEPLOYMENT.md).
+
 ## 6. App icon (cosmetic polish)
 No custom `.ico` ships yet (the exe uses the default). Add one and set `<ApplicationIcon>` in
 `Lodestone.App.csproj`; it will also become the title-bar/tray icon.
