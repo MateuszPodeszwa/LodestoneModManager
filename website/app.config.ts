@@ -64,12 +64,26 @@ export default defineAppConfig({
     title: 'Free — and always will be',
     subtitle:
       'No ads, no paywalls, no locked features. If Lodestone saves you time, a Patreon membership keeps development and hosting alive — and unlocks a few thank-you perks.',
-    // Keep these in sync with your real Patreon tiers.
-    tiers: [
-      { name: 'Coffee', tagline: 'A small thanks', price: '$3', popular: false, perks: ['Supporter badge in the app', 'Our sincere gratitude'] },
-      { name: 'Supporter', tagline: 'Keep the lights on', price: '$7', popular: true, perks: ['Everything in Coffee', 'Early access to beta builds', 'Your name in the credits'] },
-      { name: 'Champion', tagline: 'Power the roadmap', price: '$15', popular: false, perks: ['Everything in Supporter', 'Vote on what we build next', 'Priority support'] },
-    ],
+    // By DEFAULT this is empty, so the support section shows a single, nice
+    // "Support on Patreon" widget (your real tiers live on Patreon, so there's
+    // nothing to keep in sync here). If you'd rather show pricing cards on the
+    // site, add entries like:
+    //   { name: 'Supporter', tagline: 'Keep the lights on', price: '$5', popular: true,
+    //     perks: ['Supporter badge', 'Early beta access'] }
+    tiers: [] as Array<{ name: string; tagline: string; price: string; popular: boolean; perks: string[] }>,
+    // The Patreon widget shown when `tiers` above is empty.
+    patreon: {
+      heading: 'Back Lodestone on Patreon',
+      blurb:
+        'Lodestone is free and open source, built by one person. A Patreon membership keeps development and hosting alive — pick whatever tier feels right and unlock a few thank-you perks.',
+      perks: [
+        'Supporter badge in the app',
+        'Exclusive accent themes',
+        'Early access to beta builds',
+        'Your name in the credits',
+      ],
+      cta: 'Become a patron',
+    },
     // Step-by-step shown under the tiers: how to turn a pledge into unlocked perks.
     claim: {
       title: 'Already supporting? Claim your code',

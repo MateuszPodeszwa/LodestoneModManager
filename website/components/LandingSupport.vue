@@ -20,7 +20,44 @@ const app = useAppConfig()
         <p class="mx-auto mt-4 max-w-[560px] text-[17px] leading-relaxed text-muted">{{ app.support.subtitle }}</p>
       </Reveal>
 
-      <div class="mt-12 grid items-start gap-[18px] md:grid-cols-3">
+      <!-- Patreon widget (default — shown when no tiers are configured) -->
+      <Reveal v-if="!app.support.tiers.length" class="mx-auto mt-12 max-w-[680px]">
+        <div
+          class="group relative overflow-hidden rounded-3xl border border-pink/30 p-8 text-center transition-transform duration-300 hover:-translate-y-1 sm:p-10"
+          style="background: linear-gradient(135deg, rgba(226,113,154,0.12), rgba(90,194,109,0.06))"
+        >
+          <div class="pointer-events-none absolute -top-24 left-1/2 h-60 w-60 -translate-x-1/2 rounded-full opacity-70 transition-opacity duration-300 group-hover:opacity-100" style="background: radial-gradient(circle, rgba(226,113,154,0.28), transparent 70%)" />
+          <div class="relative">
+            <div class="mx-auto flex h-16 w-16 animate-floatY items-center justify-center rounded-2xl shadow-[0_12px_28px_-8px_rgba(236,95,91,0.6)]" style="background: linear-gradient(140deg, #ec5f5b, #e2719a)">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="#fff"><circle cx="15" cy="9.2" r="6.2" /><rect x="2.5" y="2.6" width="3.6" height="18.8" rx="0.4" /></svg>
+            </div>
+            <h3 class="mt-5 font-pixel text-2xl font-bold text-white">{{ app.support.patreon.heading }}</h3>
+            <p class="mx-auto mt-3 max-w-[460px] text-[15px] leading-relaxed text-muted">{{ app.support.patreon.blurb }}</p>
+
+            <div class="mt-6 flex flex-wrap justify-center gap-2.5">
+              <span v-for="perk in app.support.patreon.perks" :key="perk" class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-[13px] text-soft">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5ac26d" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4 10-10" /></svg>
+                {{ perk }}
+              </span>
+            </div>
+
+            <a
+              :href="app.links.patreon"
+              target="_blank"
+              rel="noopener"
+              class="mt-7 inline-flex items-center gap-2.5 rounded-xl px-7 py-3.5 text-[15px] font-bold text-white no-underline transition hover:brightness-110"
+              style="background: linear-gradient(140deg, #ec5f5b, #d85691); box-shadow: 0 16px 34px -12px rgba(236,95,91,0.6)"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><circle cx="15" cy="9.2" r="6.2" /><rect x="2.5" y="2.6" width="3.6" height="18.8" rx="0.4" /></svg>
+              {{ app.support.patreon.cta }} →
+            </a>
+            <div class="mt-3 text-[12.5px] text-faint">Choose the tier that suits you on Patreon — every bit helps.</div>
+          </div>
+        </div>
+      </Reveal>
+
+      <!-- Optional pricing cards (only if you fill in `support.tiers`) -->
+      <div v-else class="mt-12 grid items-start gap-[18px] md:grid-cols-3">
         <Reveal
           v-for="(t, i) in app.support.tiers"
           :key="t.name"
