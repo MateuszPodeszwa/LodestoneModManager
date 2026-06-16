@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Lodestone.Application.Abstractions;
+using Lodestone.Application.Catalog;
 using Lodestone.Application.Settings;
 using Lodestone.Domain;
 using Lodestone.Domain.Common;
@@ -19,37 +20,55 @@ public sealed class MetaLoaderInstaller : ILoaderInstaller
     private readonly HttpClient _http;
     private readonly ISettingsStore _settings;
     private readonly IGameLocator _locator;
+    private readonly IGameInventory _inventory;
 
-    public MetaLoaderInstaller(HttpClient http, ISettingsStore settings, IGameLocator locator)
+    public MetaLoaderInstaller(HttpClient http, ISettingsStore settings, IGameLocator locator, IGameInventory inventory)
     {
         _http = http;
         _settings = settings;
         _locator = locator;
+        _inventory = inventory;
     }
 
     public bool Supports(Loader loader) => loader is Loader.Fabric or Loader.Quilt;
 
-    public bool IsInstalled(Loader loader, GameVersion gameVersion)
+    public bool IsInstalled(Loader loader, GameVersion gameVersion) => InstalledVersion(loader, gameVersion) is not null;
+
+    public string? InstalledVersion(Loader loader, GameVersion gameVersion)
     {
         string? game = _settings.Current.GameDirectory;
         if (string.IsNullOrWhiteSpace(game) || !Supports(loader))
         {
-            return false;
+            return null;
         }
 
         string versions = Path.Combine(game, "versions");
         if (!Directory.Exists(versions))
         {
-            return false;
+            return null;
         }
 
         string prefix = loader == Loader.Fabric ? "fabric-loader-" : "quilt-loader-";
         string suffix = "-" + gameVersion.Value;
-        return Directory.EnumerateDirectories(versions).Any(d =>
+        string? newest = null;
+        foreach (string directory in Directory.EnumerateDirectories(versions))
         {
-            string n = Path.GetFileName(d);
-            return n.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && n.EndsWith(suffix, StringComparison.OrdinalIgnoreCase);
-        });
+            string name = Path.GetFileName(directory);
+            if (name.Length <= prefix.Length + suffix.Length ||
+                !name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
+                !name.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            string version = name[prefix.Length..^suffix.Length];
+            if (newest is null || VersionComparer.IsNewer(version, newest))
+            {
+                newest = version;
+            }
+        }
+
+        return newest;
     }
 
     public async Task<Result> EnsureInstalledAsync(Loader loader, GameVersion gameVersion, CancellationToken ct = default)
@@ -71,16 +90,54 @@ public sealed class MetaLoaderInstaller : ILoaderInstaller
             return Result.Success();
         }
 
+        Result<LoaderUpdate> installed = await InstallLatestAsync(loader, gameVersion, game, ct).ConfigureAwait(false);
+        return installed.IsSuccess ? Result.Success() : Result.Failure(installed.Error);
+    }
+
+    public async Task<Result<LoaderUpdate>> UpdateAsync(Loader loader, GameVersion gameVersion, CancellationToken ct = default)
+    {
+        if (!Supports(loader))
+        {
+            return Result.Failure<LoaderUpdate>("loader.unsupported",
+                $"{loader.ToDisplayName()} must be updated with its official installer; Lodestone manages Fabric and Quilt directly.");
+        }
+
+        string? game = _settings.Current.GameDirectory;
+        if (string.IsNullOrWhiteSpace(game) || !_locator.IsValid(game))
+        {
+            return Result.Failure<LoaderUpdate>("game.dir_missing", "Set your Minecraft folder before updating a loader.");
+        }
+
+        return await InstallLatestAsync(loader, gameVersion, game, ct).ConfigureAwait(false);
+    }
+
+    // Resolves the latest stable build and writes it, unless an equal-or-newer one is already present.
+    // A superseded build is left in place (as the official installers do), so launcher profiles pointing
+    // at it keep working; InstalledVersion always reports the newest.
+    private async Task<Result<LoaderUpdate>> InstallLatestAsync(Loader loader, GameVersion gameVersion, string gameDir, CancellationToken ct)
+    {
+        // A loader profile inherits from the vanilla version; without that base installed the profile
+        // can't launch, so refuse rather than write a dangling entry the launcher will choke on.
+        if (!_inventory.IsVersionInstalled(gameVersion))
+        {
+            return Result.Failure<LoaderUpdate>("loader.base_missing",
+                $"Minecraft {gameVersion} isn't installed yet — install it in your launcher first, then add {loader.ToDisplayName()}.");
+        }
+
         try
         {
-            (string metaBase, string versionsPath) = loader == Loader.Fabric
-                ? ("https://meta.fabricmc.net", "v2/versions/loader")
-                : ("https://meta.quiltmc.org", "v3/versions/loader");
+            (string metaBase, string versionsPath) = MetaEndpoints(loader);
 
             string? loaderVersion = await ResolveLatestLoaderAsync(metaBase, versionsPath, gameVersion.Value, ct).ConfigureAwait(false);
             if (loaderVersion is null)
             {
-                return Result.Failure("loader.no_version", $"No {loader.ToDisplayName()} build is available for {gameVersion}.");
+                return Result.Failure<LoaderUpdate>("loader.no_version", $"No {loader.ToDisplayName()} build is available for {gameVersion}.");
+            }
+
+            string? current = InstalledVersion(loader, gameVersion);
+            if (current is not null && !VersionComparer.IsNewer(loaderVersion, current))
+            {
+                return new LoaderUpdate(Changed: false, current, current);
             }
 
             string profileJson = await _http
@@ -90,26 +147,30 @@ public sealed class MetaLoaderInstaller : ILoaderInstaller
             using JsonDocument doc = JsonDocument.Parse(profileJson);
             if (!doc.RootElement.TryGetProperty("id", out JsonElement idEl) || idEl.GetString() is not { Length: > 0 } versionId)
             {
-                return Result.Failure("loader.bad_profile", "The loader profile was missing an id.");
+                return Result.Failure<LoaderUpdate>("loader.bad_profile", "The loader profile was missing an id.");
             }
 
-            WriteVersionProfile(game, versionId, profileJson);
-            UpdateLauncherProfiles(game, versionId, $"{loader.ToDisplayName()} {gameVersion.Value}");
-            return Result.Success();
+            WriteVersionProfile(gameDir, versionId, profileJson);
+            UpdateLauncherProfiles(gameDir, versionId, $"{loader.ToDisplayName()} {gameVersion.Value}");
+            return new LoaderUpdate(Changed: true, current, loaderVersion);
         }
         catch (HttpRequestException ex)
         {
-            return Result.Failure("loader.network", ex.Message);
+            return Result.Failure<LoaderUpdate>("loader.network", ex.Message);
         }
         catch (JsonException ex)
         {
-            return Result.Failure("loader.parse", ex.Message);
+            return Result.Failure<LoaderUpdate>("loader.parse", ex.Message);
         }
         catch (IOException ex)
         {
-            return Result.Failure("loader.io", ex.Message);
+            return Result.Failure<LoaderUpdate>("loader.io", ex.Message);
         }
     }
+
+    private static (string MetaBase, string VersionsPath) MetaEndpoints(Loader loader) => loader == Loader.Fabric
+        ? ("https://meta.fabricmc.net", "v2/versions/loader")
+        : ("https://meta.quiltmc.org", "v3/versions/loader");
 
     private async Task<string?> ResolveLatestLoaderAsync(string metaBase, string versionsPath, string game, CancellationToken ct)
     {

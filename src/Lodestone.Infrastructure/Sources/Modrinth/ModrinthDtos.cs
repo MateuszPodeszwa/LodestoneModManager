@@ -5,12 +5,14 @@ namespace Lodestone.Infrastructure.Sources.Modrinth;
 
 // Tolerant DTOs mirroring the Modrinth v2 API (https://docs.modrinth.com). Unknown fields are ignored.
 
+/// <summary>The search endpoint response: a page of hits plus the total match count (for pagination).</summary>
 internal sealed class ModrinthSearchResponse
 {
     [JsonPropertyName("hits")] public List<ModrinthHit> Hits { get; set; } = [];
     [JsonPropertyName("total_hits")] public int TotalHits { get; set; }
 }
 
+/// <summary>One search hit — a condensed project summary used to build a Browse card.</summary>
 internal sealed class ModrinthHit
 {
     [JsonPropertyName("project_id")] public string ProjectId { get; set; } = string.Empty;
@@ -28,6 +30,7 @@ internal sealed class ModrinthHit
     [JsonPropertyName("latest_version")] public string? LatestVersion { get; set; }
 }
 
+/// <summary>A full project (the detail endpoint), adding the long Markdown body and image gallery.</summary>
 internal sealed class ModrinthProject
 {
     [JsonPropertyName("id")] public string Id { get; set; } = string.Empty;
@@ -45,12 +48,14 @@ internal sealed class ModrinthProject
     [JsonPropertyName("gallery")] public List<ModrinthGalleryItem> Gallery { get; set; } = [];
 }
 
+/// <summary>One gallery image; <c>featured</c> images are preferred when picking the banner.</summary>
 internal sealed class ModrinthGalleryItem
 {
     [JsonPropertyName("url")] public string Url { get; set; } = string.Empty;
     [JsonPropertyName("featured")] public bool Featured { get; set; }
 }
 
+/// <summary>One published version (build) of a project, with its files, loaders and dependencies.</summary>
 internal sealed class ModrinthVersion
 {
     [JsonPropertyName("id")] public string Id { get; set; } = string.Empty;
@@ -63,6 +68,7 @@ internal sealed class ModrinthVersion
     [JsonPropertyName("date_published")] public DateTimeOffset? DatePublished { get; set; }
 }
 
+/// <summary>A dependency a version declares on another project/version (required, optional, …).</summary>
 internal sealed class ModrinthDependency
 {
     [JsonPropertyName("project_id")] public string? ProjectId { get; set; }
@@ -70,6 +76,7 @@ internal sealed class ModrinthDependency
     [JsonPropertyName("dependency_type")] public string DependencyType { get; set; } = "required";
 }
 
+/// <summary>A downloadable file attached to a version; <c>primary</c> marks the main artifact.</summary>
 internal sealed class ModrinthFile
 {
     [JsonPropertyName("url")] public string Url { get; set; } = string.Empty;
@@ -79,6 +86,7 @@ internal sealed class ModrinthFile
     [JsonPropertyName("hashes")] public ModrinthHashes Hashes { get; set; } = new();
 }
 
+/// <summary>Content hashes for a file; the SHA-512 is preferred for download verification.</summary>
 internal sealed class ModrinthHashes
 {
     [JsonPropertyName("sha512")] public string? Sha512 { get; set; }
@@ -147,7 +155,8 @@ internal static class ModrinthMapper
             GalleryUrls: gallery);
     }
 
-    // Modrinth bodies are long markdown; show a trimmed, plain-text-ish preview in the modal.
+    // Modrinth bodies are full Markdown (with embedded HTML). The detail modal renders and scrolls
+    // them, so we keep the whole document and only guard against a pathologically large payload.
     private static string? NormalizeBody(string? body)
     {
         if (string.IsNullOrWhiteSpace(body))
@@ -155,8 +164,9 @@ internal static class ModrinthMapper
             return null;
         }
 
+        const int maxLength = 60_000;
         string text = body.Replace("\r", string.Empty, StringComparison.Ordinal).Trim();
-        return text.Length > 1200 ? text[..1200] + "…" : text;
+        return text.Length > maxLength ? text[..maxLength] + "…" : text;
     }
 
     public static ProjectVersion? ToProjectVersion(ModrinthVersion version)

@@ -73,9 +73,17 @@ internal sealed class QuiltModParser : IArchiveFormatParser
                 ? element.GetString()
                 : element.TryGetProperty("id", out JsonElement idEl) ? idEl.GetString() : null;
 
+            // Object form may carry a "version" constraint string; a single string is captured for
+            // enforcement, anything more complex (array/object) is left unconstrained (safe default).
+            string? range = element.ValueKind == JsonValueKind.Object &&
+                            element.TryGetProperty("version", out JsonElement verEl) &&
+                            verEl.ValueKind == JsonValueKind.String
+                ? verEl.GetString()
+                : null;
+
             if (id is not null && ArchiveReadHelpers.IsRealMod(id))
             {
-                into.Add(new Dependency(id, kind));
+                into.Add(new Dependency(id, kind, VersionRange: range));
             }
         }
     }

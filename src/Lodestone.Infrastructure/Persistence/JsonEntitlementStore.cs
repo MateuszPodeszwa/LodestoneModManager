@@ -2,24 +2,29 @@ using Lodestone.Application.Supporter;
 
 namespace Lodestone.Infrastructure.Persistence;
 
-/// <summary>File-backed store for the redeemed supporter entitlement.</summary>
+/// <summary>
+/// File-backed store for the redeemed supporter token. Persists the signed code itself (not a trusted
+/// flag); <see cref="SupporterService"/> re-verifies its signature on load, so a hand-edited file can't
+/// fabricate supporter status.
+/// </summary>
 public sealed class JsonEntitlementStore : IEntitlementStore
 {
     private readonly string _path;
 
     public JsonEntitlementStore(string? path = null) => _path = path ?? LodestonePaths.EntitlementsFile;
 
-    public SupporterEntitlement? Current { get; private set; }
+    public StoredEntitlement? Current { get; private set; }
 
     public event EventHandler? Changed;
 
-    public async Task<SupporterEntitlement?> LoadAsync(CancellationToken ct = default)
+    public async Task<StoredEntitlement?> LoadAsync(CancellationToken ct = default)
     {
-        Current = await JsonStore.ReadAsync<SupporterEntitlement>(_path, ct).ConfigureAwait(false);
+        Current = await JsonStore.ReadAsync<StoredEntitlement>(_path, ct).ConfigureAwait(false);
+        Changed?.Invoke(this, EventArgs.Empty); // let the service derive status once state is loaded
         return Current;
     }
 
-    public async Task SaveAsync(SupporterEntitlement entitlement, CancellationToken ct = default)
+    public async Task SaveAsync(StoredEntitlement entitlement, CancellationToken ct = default)
     {
         await JsonStore.WriteAsync(_path, entitlement, ct).ConfigureAwait(false);
         Current = entitlement;

@@ -24,12 +24,14 @@ internal sealed class InstalledContentDto
     public bool UpdateAvailable { get; set; }
 }
 
+/// <summary>Serialization shape for one declared dependency of an installed item.</summary>
 internal sealed class DependencyDto
 {
     public string Identifier { get; set; } = string.Empty;
     public string Kind { get; set; } = nameof(DependencyKind.Required);
     public string? VersionId { get; set; }
     public string? DisplayName { get; set; }
+    public string? VersionRange { get; set; }
 }
 
 /// <summary>Maps between the persistence DTO and the domain entity (Adapter).</summary>
@@ -56,6 +58,7 @@ internal static class InstalledContentMapper
             Kind = d.Kind.ToString(),
             VersionId = d.VersionId,
             DisplayName = d.DisplayName,
+            VersionRange = d.VersionRange,
         }).ToList(),
         ProvidedIds = c.ProvidedIds.ToList(),
         IsLibrary = c.IsLibrary,
@@ -85,7 +88,8 @@ internal static class InstalledContentMapper
             d.Identifier,
             Enum.TryParse(d.Kind, out DependencyKind kind) ? kind : DependencyKind.Required,
             d.VersionId,
-            d.DisplayName)).ToList();
+            d.DisplayName,
+            d.VersionRange)).ToList();
 
         return new InstalledContent(dto.Id, dto.Name, type)
         {

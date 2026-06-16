@@ -10,33 +10,33 @@ public class SupporterCodeTests
     public void A_freshly_issued_code_verifies_against_its_public_key()
     {
         (string priv, string pub) = SupporterCodeIssuer.GenerateKeyPair();
-        string code = SupporterCodeIssuer.Issue(priv, "Supporter", "patron@example.com");
+        string code = SupporterCodeIssuer.Issue(priv, "patron@example.com");
 
-        Result<SupporterEntitlement> result = new SignedSupporterCodeVerifier(pub).Verify(code);
+        Result<SupporterCode> result = new SignedSupporterCodeVerifier(pub).Verify(code);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Tier.ShouldBe("Supporter");
         result.Value.Holder.ShouldBe("patron@example.com");
     }
 
     [Fact]
-    public void Issued_expiry_is_carried_through()
+    public void The_issued_timestamp_is_carried_through()
     {
         (string priv, string pub) = SupporterCodeIssuer.GenerateKeyPair();
-        DateTimeOffset expires = DateTimeOffset.Parse("2027-01-01T00:00:00Z");
-        string code = SupporterCodeIssuer.Issue(priv, "Champion", "me", expires);
+        // Whole seconds: the code stores unix seconds, so compare against a truncated value.
+        DateTimeOffset issued = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.Parse("2026-06-16T12:00:00Z").ToUnixTimeSeconds());
+        string code = SupporterCodeIssuer.Issue(priv, "me", issued);
 
-        SupporterEntitlement entitlement = new SignedSupporterCodeVerifier(pub).Verify(code).Value;
+        SupporterCode claims = new SignedSupporterCodeVerifier(pub).Verify(code).Value;
 
-        entitlement.Expires.ShouldBe(expires);
-        entitlement.Tier.ShouldBe("Champion");
+        claims.IssuedAt.ShouldBe(issued);
+        claims.Holder.ShouldBe("me");
     }
 
     [Fact]
     public void A_tampered_code_is_rejected()
     {
         (string priv, string pub) = SupporterCodeIssuer.GenerateKeyPair();
-        string code = SupporterCodeIssuer.Issue(priv, "Supporter", "me");
+        string code = SupporterCodeIssuer.Issue(priv, "me");
         string tampered = code[..^2] + (code[^1] == 'A' ? "B" : "A");
 
         new SignedSupporterCodeVerifier(pub).Verify(tampered).IsFailure.ShouldBeTrue();
@@ -47,7 +47,7 @@ public class SupporterCodeTests
     {
         (string priv, _) = SupporterCodeIssuer.GenerateKeyPair();
         (_, string otherPub) = SupporterCodeIssuer.GenerateKeyPair();
-        string code = SupporterCodeIssuer.Issue(priv, "Supporter", "me");
+        string code = SupporterCodeIssuer.Issue(priv, "me");
 
         new SignedSupporterCodeVerifier(otherPub).Verify(code).IsFailure.ShouldBeTrue();
     }

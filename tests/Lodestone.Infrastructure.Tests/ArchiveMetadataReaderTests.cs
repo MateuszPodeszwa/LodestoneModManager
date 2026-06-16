@@ -19,7 +19,7 @@ public class ArchiveMetadataReaderTests
               "id": "sodium",
               "name": "Sodium",
               "version": "0.5.8",
-              "depends": { "fabricloader": ">=0.15", "minecraft": "1.21.4", "fabric-api": "*" },
+              "depends": { "fabricloader": ">=0.15", "minecraft": "1.21.4", "fabric-api": ">=0.100.0" },
               "breaks": { "optifabric": "*" }
             }
             """));
@@ -32,8 +32,8 @@ public class ArchiveMetadataReaderTests
         meta.ModId.ShouldBe("sodium");
         meta.Name.ShouldBe("Sodium");
         meta.LoadersOrEmpty.ShouldContain(Loader.Fabric);
-        // The loader/game pseudo-deps are skipped; the real one is kept.
-        meta.DependenciesOrEmpty.ShouldContain(d => d.Identifier == "fabric-api" && d.Kind == DependencyKind.Required);
+        // The loader/game pseudo-deps are skipped; the real one is kept, with its version range.
+        meta.DependenciesOrEmpty.ShouldContain(d => d.Identifier == "fabric-api" && d.Kind == DependencyKind.Required && d.VersionRange == ">=0.100.0");
         meta.DependenciesOrEmpty.ShouldContain(d => d.Identifier == "optifabric" && d.Kind == DependencyKind.Incompatible);
         meta.DependenciesOrEmpty.ShouldNotContain(d => d.Identifier == "minecraft");
     }
@@ -80,7 +80,7 @@ public class ArchiveMetadataReaderTests
                 "id": "examplemod",
                 "version": "1.0.0",
                 "metadata": { "name": "Example Mod" },
-                "depends": [ { "id": "quilted_fabric_api" } ]
+                "depends": [ { "id": "quilted_fabric_api", "version": ">=11.0.0" } ]
               }
             }
             """));
@@ -90,7 +90,7 @@ public class ArchiveMetadataReaderTests
         meta.ModId.ShouldBe("examplemod");
         meta.Name.ShouldBe("Example Mod");
         meta.LoadersOrEmpty.ShouldContain(Loader.Quilt);
-        meta.DependenciesOrEmpty.ShouldContain(d => d.Identifier == "quilted_fabric_api");
+        meta.DependenciesOrEmpty.ShouldContain(d => d.Identifier == "quilted_fabric_api" && d.VersionRange == ">=11.0.0");
     }
 
     [Fact]

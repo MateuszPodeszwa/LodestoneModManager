@@ -7,16 +7,22 @@ using Lodestone.Domain.Common;
 
 namespace Lodestone.Infrastructure.Supporter;
 
-/// <summary>The signed body of a supporter code.</summary>
+/// <summary>
+/// The signed body of a supporter code. <c>iat</c> (issued-at, UTC unix seconds) drives the app-side
+/// 1-hour activation window; <c>k</c> is the kind (always "supporter" for now — all patrons are equal).
+/// </summary>
 internal sealed record SupporterCodePayload(
-    [property: JsonPropertyName("t")] string Tier,
+    [property: JsonPropertyName("v")] int Version,
+    [property: JsonPropertyName("k")] string? Kind,
     [property: JsonPropertyName("h")] string Holder,
-    [property: JsonPropertyName("e")] DateTimeOffset? Expires);
+    [property: JsonPropertyName("iat")] long IssuedAtUnix);
 
 /// <summary>
 /// Verifies offline supporter codes of the form <c>base64url(payload).base64url(signature)</c> using
 /// an embedded ECDSA P-256 public key. No payment processing or network call is involved; the private
-/// key never ships. Because the unlocked perks are cosmetic, signature verification is sufficient.
+/// key never ships. Verification only checks the signature and decodes the claims — the 1-hour
+/// activation window is enforced by <see cref="SupporterService"/> so the policy can't be smuggled in
+/// (or extended) by a leaked code.
 /// </summary>
 public sealed class SignedSupporterCodeVerifier : ISupporterCodeVerifier
 {
@@ -26,23 +32,23 @@ public sealed class SignedSupporterCodeVerifier : ISupporterCodeVerifier
 
     public SignedSupporterCodeVerifier(string publicKeyBase64) => _publicKeyBase64 = publicKeyBase64;
 
-    public Result<SupporterEntitlement> Verify(string code)
+    public Result<SupporterCode> Verify(string code)
     {
         if (string.IsNullOrWhiteSpace(_publicKeyBase64))
         {
-            return Result.Failure<SupporterEntitlement>("supporter.unavailable",
+            return Result.Failure<SupporterCode>("supporter.unavailable",
                 "Supporter codes aren't configured in this build.");
         }
 
         if (string.IsNullOrWhiteSpace(code))
         {
-            return Result.Failure<SupporterEntitlement>("supporter.invalid", "Enter your supporter code.");
+            return Result.Failure<SupporterCode>("supporter.invalid", "Enter your supporter code.");
         }
 
         string[] parts = code.Trim().Split('.');
         if (parts.Length != 2)
         {
-            return Result.Failure<SupporterEntitlement>("supporter.invalid", "That code doesn't look right.");
+            return Result.Failure<SupporterCode>("supporter.invalid", "That code doesn't look right.");
         }
 
         byte[] payload;
@@ -54,7 +60,7 @@ public sealed class SignedSupporterCodeVerifier : ISupporterCodeVerifier
         }
         catch (FormatException)
         {
-            return Result.Failure<SupporterEntitlement>("supporter.invalid", "That code doesn't look right.");
+            return Result.Failure<SupporterCode>("supporter.invalid", "That code doesn't look right.");
         }
 
         try
@@ -63,28 +69,29 @@ public sealed class SignedSupporterCodeVerifier : ISupporterCodeVerifier
             ecdsa.ImportSubjectPublicKeyInfo(Convert.FromBase64String(_publicKeyBase64), out _);
             if (!ecdsa.VerifyData(payload, signature, HashAlgorithmName.SHA256))
             {
-                return Result.Failure<SupporterEntitlement>("supporter.invalid", "This code couldn't be verified.");
+                return Result.Failure<SupporterCode>("supporter.invalid", "This code couldn't be verified.");
             }
         }
         catch (CryptographicException)
         {
-            return Result.Failure<SupporterEntitlement>("supporter.invalid", "This code couldn't be verified.");
+            return Result.Failure<SupporterCode>("supporter.invalid", "This code couldn't be verified.");
         }
 
         try
         {
             SupporterCodePayload? body = JsonSerializer.Deserialize<SupporterCodePayload>(payload, PayloadOptions);
-            if (body is null || string.IsNullOrWhiteSpace(body.Tier))
+            if (body is null || body.IssuedAtUnix <= 0)
             {
-                return Result.Failure<SupporterEntitlement>("supporter.invalid", "This code is missing its tier.");
+                return Result.Failure<SupporterCode>("supporter.invalid", "This code is missing its issue time.");
             }
 
             string holder = string.IsNullOrWhiteSpace(body.Holder) ? "Supporter" : body.Holder;
-            return Result.Success(new SupporterEntitlement(body.Tier, holder, body.Expires));
+            DateTimeOffset issuedAt = DateTimeOffset.FromUnixTimeSeconds(body.IssuedAtUnix);
+            return Result.Success(new SupporterCode(holder, issuedAt));
         }
         catch (JsonException)
         {
-            return Result.Failure<SupporterEntitlement>("supporter.invalid", "This code couldn't be read.");
+            return Result.Failure<SupporterCode>("supporter.invalid", "This code couldn't be read.");
         }
     }
 }
@@ -106,11 +113,13 @@ public static class SupporterCodeIssuer
             Convert.ToBase64String(ecdsa.ExportSubjectPublicKeyInfo()));
     }
 
-    /// <summary>Signs and encodes a redeemable code for a tier/holder, optionally with an expiry.</summary>
-    public static string Issue(string privateKeyBase64, string tier, string holder, DateTimeOffset? expires = null)
+    /// <summary>Signs and encodes a redeemable code for a patron. <paramref name="issuedAt"/> defaults to
+    /// now; the app accepts the code for one hour after it.</summary>
+    public static string Issue(string privateKeyBase64, string holder, DateTimeOffset? issuedAt = null)
     {
+        long iat = (issuedAt ?? DateTimeOffset.UtcNow).ToUnixTimeSeconds();
         byte[] payload = JsonSerializer.SerializeToUtf8Bytes(
-            new SupporterCodePayload(tier, holder, expires), PayloadOptions);
+            new SupporterCodePayload(Version: 1, Kind: "supporter", holder, iat), PayloadOptions);
 
         using ECDsa ecdsa = ECDsa.Create();
         ecdsa.ImportPkcs8PrivateKey(Convert.FromBase64String(privateKeyBase64), out _);

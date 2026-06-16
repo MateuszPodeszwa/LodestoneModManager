@@ -38,21 +38,21 @@ static int KeyGen()
 static int Issue(string[] args)
 {
     string? key = ResolveKey(GetOption(args, "--key"));
-    string? tier = GetOption(args, "--tier");
     string? holder = GetOption(args, "--holder");
-    string? expires = GetOption(args, "--expires");
+    string? issued = GetOption(args, "--issued");
 
-    if (key is null || string.IsNullOrWhiteSpace(tier) || string.IsNullOrWhiteSpace(holder))
+    if (key is null || string.IsNullOrWhiteSpace(holder))
     {
-        Console.Error.WriteLine("usage: lodestone issue --key <base64|@file> --tier <Tier> --holder <name> [--expires <ISO-8601>]");
+        Console.Error.WriteLine("usage: lodestone issue --key <base64|@file> --holder <name> [--issued <ISO-8601>]");
         return 1;
     }
 
-    DateTimeOffset? expiry = string.IsNullOrWhiteSpace(expires)
+    // Codes are valid to redeem for one hour after issuance; default to now (the website will do the same).
+    DateTimeOffset? issuedAt = string.IsNullOrWhiteSpace(issued)
         ? null
-        : DateTimeOffset.Parse(expires, System.Globalization.CultureInfo.InvariantCulture);
+        : DateTimeOffset.Parse(issued, System.Globalization.CultureInfo.InvariantCulture);
 
-    Console.WriteLine(SupporterCodeIssuer.Issue(key, tier!, holder!, expiry));
+    Console.WriteLine(SupporterCodeIssuer.Issue(key, holder!, issuedAt));
     return 0;
 }
 
@@ -66,10 +66,10 @@ static int Verify(string[] args)
         return 1;
     }
 
-    Result<Lodestone.Application.Supporter.SupporterEntitlement> result = new SignedSupporterCodeVerifier(pub).Verify(code!);
+    Result<Lodestone.Application.Supporter.SupporterCode> result = new SignedSupporterCodeVerifier(pub).Verify(code!);
     if (result.IsSuccess)
     {
-        Console.WriteLine($"VALID  tier={result.Value.Tier}  holder={result.Value.Holder}  expires={result.Value.Expires?.ToString("u") ?? "never"}");
+        Console.WriteLine($"VALID  holder={result.Value.Holder}  issued={result.Value.IssuedAt:u}  (redeemable for 1h after issue)");
         return 0;
     }
 
@@ -81,7 +81,7 @@ static int PrintUsage()
 {
     Console.WriteLine("Lodestone CLI");
     Console.WriteLine("  keygen                                   generate an ECDSA key pair");
-    Console.WriteLine("  issue  --key <b64|@file> --tier <T> --holder <name> [--expires <ISO>]");
+    Console.WriteLine("  issue  --key <b64|@file> --holder <name> [--issued <ISO>]");
     Console.WriteLine("  verify --pub <b64|@file> --code <code>");
     return 0;
 }

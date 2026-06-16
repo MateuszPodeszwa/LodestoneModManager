@@ -23,7 +23,7 @@ namespace Lodestone.Infrastructure.DependencyInjection;
 /// <summary>Options for wiring Lodestone's services (overridable in tests and at startup).</summary>
 public sealed class LodestoneOptions
 {
-    public string UserAgent { get; set; } = "MateuszPodeszwa/lodestone-mod-manager/0.1.0 (podinatubie@gmail.com)";
+    public string UserAgent { get; set; } = "MateuszPodeszwa/LodestoneModManager/0.1.0 (podinatubie@gmail.com)";
     public string SupporterPublicKey { get; set; } = SupporterKeys.DefaultPublicKey;
     public string? CurseForgeApiKey { get; set; }
     public TimeSpan SearchCacheTtl { get; set; } = TimeSpan.FromMinutes(5);
@@ -50,6 +50,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IInstalledContentRepository, JsonInstalledContentRepository>();
         services.AddSingleton<IEntitlementStore, JsonEntitlementStore>();
         services.AddSingleton<IGameLocator, MinecraftGameLocator>();
+        services.AddSingleton<IGameInventory, MinecraftGameInventory>();
         services.AddSingleton<IContentInstaller, FileSystemContentInstaller>();
         services.AddSingleton<IArchiveMetadataReader, ArchiveMetadataReader>();
 
@@ -88,7 +89,8 @@ public static class ServiceCollectionExtensions
             new MetaLoaderInstaller(
                 sp.GetRequiredService<IHttpClientFactory>().CreateClient("downloads"),
                 sp.GetRequiredService<ISettingsStore>(),
-                sp.GetRequiredService<IGameLocator>()));
+                sp.GetRequiredService<IGameLocator>(),
+                sp.GetRequiredService<IGameInventory>()));
 
         // ---- Supporter (offline signed codes) ----
         services.AddSingleton<ISupporterCodeVerifier>(_ => new SignedSupporterCodeVerifier(options.SupporterPublicKey));
@@ -97,8 +99,10 @@ public static class ServiceCollectionExtensions
         // ---- Compatibility engine (Chain of Responsibility) ----
         services.AddSingleton<ICompatibilityRule, MissingRequiredDependencyRule>();
         services.AddSingleton<ICompatibilityRule, DisabledDependencyRule>();
+        services.AddSingleton<ICompatibilityRule, DependencyVersionRule>();
         services.AddSingleton<ICompatibilityRule, IncompatibleModRule>();
         services.AddSingleton<ICompatibilityRule, GameVersionMismatchRule>();
+        services.AddSingleton<ICompatibilityRule, GameVersionNotInstalledRule>();
         services.AddSingleton<ICompatibilityRule, LoaderMismatchRule>();
         services.AddSingleton<ICompatibilityRule, DuplicateRule>();
         services.AddSingleton<ICompatibilityRule, OrphanLibraryRule>();
