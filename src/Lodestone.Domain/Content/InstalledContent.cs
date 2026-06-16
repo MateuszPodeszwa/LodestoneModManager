@@ -1,0 +1,79 @@
+using Lodestone.Domain.Common;
+
+namespace Lodestone.Domain;
+
+/// <summary>
+/// A piece of content present in the user's library. This is the aggregate the app reasons about:
+/// it knows which game versions it targets, which loader it needs, what it depends on, and which
+/// mod-ids it itself provides (used to resolve other items' dependencies).
+/// </summary>
+public sealed class InstalledContent
+{
+    public InstalledContent(string id, string name, ContentType type)
+    {
+        Id = Guard.NotNullOrWhiteSpace(id);
+        Name = Guard.NotNullOrWhiteSpace(name);
+        Type = type;
+    }
+
+    /// <summary>Stable identity — a source project id, or a generated slug for local files.</summary>
+    public string Id { get; }
+
+    public string Name { get; set; }
+
+    public ContentType Type { get; }
+
+    public string Author { get; set; } = "Unknown";
+
+    public string Version { get; set; } = "1.0.0";
+
+    /// <summary><see cref="Loader.None"/> for packs/shaders.</summary>
+    public Loader Loader { get; set; } = Loader.None;
+
+    /// <summary>Game versions this item declares support for.</summary>
+    public IReadOnlyList<GameVersion> GameVersions { get; set; } = [];
+
+    public bool Enabled { get; set; } = true;
+
+    public double SizeMb { get; set; }
+
+    /// <summary>Source project id (e.g. Modrinth) when the item came from a catalog; otherwise null.</summary>
+    public string? ProjectId { get; set; }
+
+    /// <summary>Origin: <c>modrinth</c>, <c>curseforge</c> or <c>local</c>.</summary>
+    public string Source { get; set; } = "local";
+
+    /// <summary>The on-disk file name (e.g. <c>sodium-fabric-0.5.8.jar</c>).</summary>
+    public string? FileName { get; set; }
+
+    /// <summary>SHA-512 of the installed file, used for update/duplicate detection and verification.</summary>
+    public string? Sha512 { get; set; }
+
+    /// <summary>Relationships this item declares (required libs, conflicts, etc.).</summary>
+    public IReadOnlyList<Dependency> Dependencies { get; set; } = [];
+
+    /// <summary>Mod-ids/slugs this item itself provides, so other items' dependencies can resolve to it.</summary>
+    public IReadOnlyList<string> ProvidedIds { get; set; } = [];
+
+    public bool UpdateAvailable { get; set; }
+
+    /// <summary>True if this item declares support for <paramref name="version"/>.</summary>
+    public bool SupportsVersion(GameVersion version) => GameVersions.Any(v => v.Equals(version));
+
+    /// <summary>Whether any identifier (id, project id or provided id) matches <paramref name="identifier"/>.</summary>
+    public bool Provides(string identifier)
+    {
+        if (string.IsNullOrWhiteSpace(identifier))
+        {
+            return false;
+        }
+
+        if (string.Equals(Id, identifier, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(ProjectId, identifier, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return ProvidedIds.Any(p => string.Equals(p, identifier, StringComparison.OrdinalIgnoreCase));
+    }
+}

@@ -40,3 +40,10 @@ dotnet_naming_style.underscore_prefix.required_prefix = _
 dotnet_diagnostic.CA1031.severity = none   # we deliberately catch broad exceptions at boundaries
 dotnet_diagnostic.CA1303.severity = none   # localized exception strings not required
 dotnet_diagnostic.CA1062.severity = none   # internal guard style preferred over ArgumentNullException spam
+dotnet_diagnostic.CA1716.severity = none   # 'Error' type name is fine; this is a C#-only codebase
+dotnet_diagnostic.CA1000.severity = none   # static factory methods on Result<T> are intentional
+
+[tests/**/*.cs]
+# Underscored test names are the intended, readable xUnit convention.
+dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.CA1515.severity = none   # test classes are public by necessity
