@@ -1,8 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Lodestone.App.Services;
 using Lodestone.Application.Abstractions;
 using Lodestone.Application.Settings;
 using Lodestone.Domain;
+using Lodestone.Domain.Common;
 
 namespace Lodestone.App.ViewModels;
 
@@ -11,12 +13,17 @@ public sealed partial class OnboardingViewModel : ObservableObject
 {
     private readonly ISettingsStore _settings;
     private readonly IGameLocator _locator;
+    private readonly IDialogService _dialog;
 
-    public OnboardingViewModel(ISettingsStore settings, IGameLocator locator)
+    public OnboardingViewModel(ISettingsStore settings, IGameLocator locator, IDialogService dialog)
     {
         _settings = settings;
         _locator = locator;
-        _gameDir = _locator.Detect().Match(path => path, _ => "Not found — you can set it in Settings");
+        _dialog = dialog;
+
+        Result<string> detected = _locator.Detect();
+        _isGameDetected = detected.IsSuccess;
+        _gameDir = detected.IsSuccess ? detected.Value : "Not found — choose your .minecraft folder";
     }
 
     /// <summary>Raised when onboarding finishes so the shell can dismiss the overlay.</summary>
@@ -26,6 +33,7 @@ public sealed partial class OnboardingViewModel : ObservableObject
     [ObservableProperty] private string _obLoader = "fabric";
     [ObservableProperty] private bool _obAuto = true;
     [ObservableProperty] private string _gameDir;
+    [ObservableProperty] private bool _isGameDetected;
 
     public bool IsStep0 => Step == 0;
     public bool IsStep1 => Step == 1;
@@ -53,33 +61,55 @@ public sealed partial class OnboardingViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void Next()
+    private void Locate()
     {
-        if (Step < 3)
+        string? picked = _dialog.PickFolder(_isGameDetected ? GameDir : null);
+        if (picked is null)
         {
-            Step++;
+            return;
+        }
+
+        if (_locator.IsValid(picked))
+        {
+            GameDir = picked;
+            IsGameDetected = true;
         }
         else
         {
-            Finish();
+            GameDir = "That folder doesn't look like a Minecraft install — try again.";
+            IsGameDetected = false;
         }
     }
 
     [RelayCommand]
-    private void Skip() => Finish();
+    private Task NextAsync()
+    {
+        if (Step < 3)
+        {
+            Step++;
+            return Task.CompletedTask;
+        }
 
-    private void Finish()
+        return FinishAsync();
+    }
+
+    [RelayCommand]
+    private Task SkipAsync() => FinishAsync();
+
+    private async Task FinishAsync()
     {
         LodestoneSettings s = _settings.Current.Clone();
         s.DefaultLoader = ObLoader.ParseLoader();
         s.AutoUpdate = ObAuto;
         s.OnboardingCompleted = true;
-        if (_locator.IsValid(GameDir))
+        if (IsGameDetected && _locator.IsValid(GameDir))
         {
             s.GameDirectory = GameDir;
         }
 
-        _ = _settings.SaveAsync(s);
+        // Awaited so the "onboarding completed" flag is durably written before we dismiss the overlay —
+        // this is what guarantees onboarding only ever runs once.
+        await _settings.SaveAsync(s).ConfigureAwait(true);
         Completed?.Invoke();
     }
 }

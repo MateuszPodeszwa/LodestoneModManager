@@ -14,8 +14,22 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
                     <Grid>
-                        <!-- gallery -->
-                        <UniformGrid Columns="4" Height="120" Margin="16,16,16,0">
+                        <!-- gallery (real screenshots when available) -->
+                        <ScrollViewer Height="150" Margin="16,16,16,0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                                      Visibility="{Binding HasGallery, Converter={StaticResource BoolToVis}}">
+                            <ItemsControl ItemsSource="{Binding GalleryUrls}">
+                                <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Width="250" Height="140" CornerRadius="10" Margin="0,0,8,0" ClipToBounds="True" Background="#FF2E2E35">
+                                            <Image Source="{Binding}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality" />
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                        <!-- gradient placeholders when a project has no gallery -->
+                        <UniformGrid Columns="4" Height="120" Margin="16,16,16,0" Visibility="{Binding HasGallery, Converter={StaticResource InvBoolToVis}}">
                             <Border CornerRadius="10" Margin="0,0,5,0"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#5AC26D" Offset="0" /><GradientStop Color="#232328" Offset="1" /></LinearGradientBrush></Border.Background></Border>
                             <Border CornerRadius="10" Margin="5,0"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#3A3A42" Offset="0" /><GradientStop Color="#232328" Offset="1" /></LinearGradientBrush></Border.Background></Border>
                             <Border CornerRadius="10" Margin="5,0"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#5A91C2" Offset="0" /><GradientStop Color="#232328" Offset="1" /></LinearGradientBrush></Border.Background></Border>
@@ -28,8 +42,12 @@
 
                     <StackPanel Margin="24,20,24,24">
                         <StackPanel Orientation="Horizontal">
-                            <Border Width="58" Height="58" CornerRadius="14" Background="{Binding Name, Converter={StaticResource NameToColor}}">
-                                <TextBlock Text="{Binding AvatarLetter}" Foreground="White" FontWeight="Bold" FontSize="23" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Border Width="58" Height="58" CornerRadius="14" ClipToBounds="True" Background="{Binding Name, Converter={StaticResource NameToColor}}">
+                                <Grid>
+                                    <TextBlock Text="{Binding AvatarLetter}" Foreground="White" FontWeight="Bold" FontSize="23" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <Image Source="{Binding IconUrl}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"
+                                           Visibility="{Binding HasIcon, Converter={StaticResource BoolToVis}}" />
+                                </Grid>
                             </Border>
                             <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding Name}" FontSize="21" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />

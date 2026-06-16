@@ -128,8 +128,9 @@ public partial class App : System.Windows.Application
             return;
         }
 
+        Lodestone.Infrastructure.Persistence.LodestoneLog.Error("Unhandled UI exception", e.Exception);
         MessageBox.Show(
-            $"Something went wrong:\n\n{e.Exception.Message}",
+            $"Something went wrong:\n\n{e.Exception.Message}\n\nDetails were logged to %AppData%\\Lodestone\\logs.",
             "Lodestone",
             MessageBoxButton.OK,
             MessageBoxImage.Warning);

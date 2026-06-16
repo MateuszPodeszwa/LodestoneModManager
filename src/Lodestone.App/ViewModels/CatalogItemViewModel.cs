@@ -31,6 +31,10 @@ public sealed partial class CatalogItemViewModel : ObservableObject
 
     public string AvatarLetter => char.ToUpperInvariant(Name.Length > 0 ? Name[0] : '?').ToString();
 
+    public string? IconUrl => Project.IconUrl;
+
+    public bool HasIcon => !string.IsNullOrWhiteSpace(Project.IconUrl);
+
     public string AuthorLabel => "by " + Project.Author;
 
     public string Description => Project.Description;

@@ -8,6 +8,7 @@ using Lodestone.Application.Supporter;
 using Lodestone.Application.UseCases;
 using Lodestone.Infrastructure.Archives;
 using Lodestone.Infrastructure.FileSystem;
+using Lodestone.Infrastructure.Loaders;
 using Lodestone.Infrastructure.Messaging;
 using Lodestone.Infrastructure.Net;
 using Lodestone.Infrastructure.Persistence;
@@ -83,6 +84,12 @@ public static class ServiceCollectionExtensions
                 sp.GetRequiredService<IHttpClientFactory>().CreateClient("downloads"),
                 sp.GetRequiredService<ISettingsStore>()));
 
+        services.AddSingleton<ILoaderInstaller>(sp =>
+            new MetaLoaderInstaller(
+                sp.GetRequiredService<IHttpClientFactory>().CreateClient("downloads"),
+                sp.GetRequiredService<ISettingsStore>(),
+                sp.GetRequiredService<IGameLocator>()));
+
         // ---- Supporter (offline signed codes) ----
         services.AddSingleton<ISupporterCodeVerifier>(_ => new SignedSupporterCodeVerifier(options.SupporterPublicKey));
         services.AddSingleton<SupporterService>();
@@ -106,6 +113,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<UninstallContentUseCase>();
         services.AddTransient<RefreshUpdatesUseCase>();
         services.AddTransient<UpdateAllUseCase>();
+        services.AddTransient<ReconcileLibraryUseCase>();
 
         return services;
     }

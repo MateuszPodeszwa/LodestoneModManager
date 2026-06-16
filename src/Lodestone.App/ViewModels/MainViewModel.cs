@@ -22,6 +22,11 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly InstallFromCatalogUseCase _install;
     private readonly IInstalledContentRepository _repository;
     private readonly RefreshUpdatesUseCase _refresh;
+    private readonly IGameLocator _locator;
+    private readonly IDialogService _dialog;
+    private readonly ReconcileLibraryUseCase _reconcile;
+    private readonly ILoaderInstaller _loaderInstaller;
+    private readonly IModSourceRegistry _registry;
 
     public MainViewModel(
         HomeViewModel home,
@@ -38,7 +43,12 @@ public sealed partial class MainViewModel : ObservableObject
         IUiDispatcher ui,
         InstallFromCatalogUseCase install,
         IInstalledContentRepository repository,
-        RefreshUpdatesUseCase refresh)
+        RefreshUpdatesUseCase refresh,
+        IGameLocator locator,
+        IDialogService dialog,
+        ReconcileLibraryUseCase reconcile,
+        ILoaderInstaller loaderInstaller,
+        IModSourceRegistry registry)
     {
         Home = home;
         Library = library;
@@ -55,10 +65,16 @@ public sealed partial class MainViewModel : ObservableObject
         _install = install;
         _repository = repository;
         _refresh = refresh;
+        _locator = locator;
+        _dialog = dialog;
+        _reconcile = reconcile;
+        _loaderInstaller = loaderInstaller;
+        _registry = registry;
 
         Browse.OpenDetailRequested = OpenDetail;
         Onboarding.Completed += OnOnboardingCompleted;
         _entitlements.Changed += (_, _) => _ui.Post(RefreshSupporter);
+        _settings.Changed += (_, _) => _ui.Post(() => OnPropertyChanged(nameof(IsGameReady)));
         _currentScreen = home;
     }
 
@@ -77,6 +93,9 @@ public sealed partial class MainViewModel : ObservableObject
 
     public bool IsSupporter => _supporter.IsSupporter;
 
+    /// <summary>True once a valid Minecraft folder is configured; gates all install actions.</summary>
+    public bool IsGameReady => _locator.IsValid(_settings.Current.GameDirectory);
+
     public bool IsModalOpen => CurrentDetail is not null;
 
     partial void OnCurrentDetailChanged(DetailViewModel? value) => OnPropertyChanged(nameof(IsModalOpen));
@@ -85,6 +104,13 @@ public sealed partial class MainViewModel : ObservableObject
     {
         ShowOnboarding = !_settings.Current.OnboardingCompleted;
         RefreshSupporter();
+        OnPropertyChanged(nameof(IsGameReady));
+
+        // Auto-discovery: import any mods already sitting in the game folders before showing the library.
+        if (IsGameReady)
+        {
+            await _reconcile.ExecuteAsync(ActiveVersion() ?? GameVersion.Parse("1.21.4")).ConfigureAwait(true);
+        }
 
         // Local state loads fast; await it so the first screen is populated.
         await Home.LoadAsync().ConfigureAwait(true);
@@ -95,6 +121,39 @@ public sealed partial class MainViewModel : ObservableObject
 
         // Per spec: the mod updater runs on app start (and on manual refresh) — never on a timer.
         _ = RunStartupRefreshAsync();
+
+        // Make sure the configured loader is actually installed (Fabric/Quilt), quietly, on start.
+        if (IsGameReady)
+        {
+            _ = _loaderInstaller.EnsureInstalledAsync(_settings.Current.DefaultLoader, ActiveVersion() ?? GameVersion.Parse("1.21.4"));
+        }
+    }
+
+    [RelayCommand]
+    private async Task LocateGameAsync()
+    {
+        string? picked = _dialog.PickFolder(_settings.Current.GameDirectory);
+        if (picked is null)
+        {
+            return;
+        }
+
+        if (!_locator.IsValid(picked))
+        {
+            _bus.Publish(new ToastMessage("That doesn't look right", "Pick the folder that holds your mods/ and versions/.", ToastKind.Warning));
+            return;
+        }
+
+        LodestoneSettings s = _settings.Current.Clone();
+        s.GameDirectory = picked;
+        await _settings.SaveAsync(s).ConfigureAwait(true);
+        OnPropertyChanged(nameof(IsGameReady));
+        _bus.Publish(new ToastMessage("Minecraft folder set", picked));
+
+        GameVersion version = ActiveVersion() ?? GameVersion.Parse("1.21.4");
+        await _reconcile.ExecuteAsync(version).ConfigureAwait(true);
+        _ = _loaderInstaller.EnsureInstalledAsync(_settings.Current.DefaultLoader, version);
+        _bus.Publish(new LibraryChanged());
     }
 
     [RelayCommand] private void GoHome() => Navigate("home", Home);
@@ -122,11 +181,27 @@ public sealed partial class MainViewModel : ObservableObject
     private async void OpenDetail(CatalogProject project)
     {
         bool installed = await _repository.FindAsync(project.Id).ConfigureAwait(true) is not null;
-        CurrentDetail = new DetailViewModel(project, installed, InstallFromDetailAsync, () => CurrentDetail = null);
+        var detail = new DetailViewModel(project, installed, InstallFromDetailAsync, () => CurrentDetail = null);
+        CurrentDetail = detail;
+
+        // Enrich with the full project (long description + screenshot gallery) once it loads.
+        IModSource source = _registry.Find(project.Source) ?? _registry.Primary;
+        Result<CatalogProject> full = await source.GetProjectAsync(project.Id).ConfigureAwait(true);
+        if (full.IsSuccess && ReferenceEquals(CurrentDetail, detail))
+        {
+            CatalogProject merged = project with { Body = full.Value.Body, GalleryUrls = full.Value.GalleryUrls };
+            CurrentDetail = new DetailViewModel(merged, installed, InstallFromDetailAsync, () => CurrentDetail = null);
+        }
     }
 
     private async Task InstallFromDetailAsync(DetailViewModel detail)
     {
+        if (!IsGameReady)
+        {
+            _bus.Publish(new ToastMessage("Set your Minecraft folder first", "Lodestone needs to know where to install. Use “Locate Minecraft”.", ToastKind.Warning));
+            return;
+        }
+
         detail.Installing = true;
         var progress = new Progress<TransferProgress>(p =>
             _ui.Post(() => detail.InstallPercent = (int)Math.Round((p.Fraction ?? 0) * 100)));

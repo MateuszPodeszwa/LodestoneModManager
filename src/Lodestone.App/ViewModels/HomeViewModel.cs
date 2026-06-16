@@ -58,6 +58,7 @@ public sealed partial class HomeViewModel : ObservableObject
     private readonly IMessageBus _bus;
     private readonly IUiDispatcher _ui;
     private readonly IDialogService _dialog;
+    private readonly IGameLocator _locator;
 
     public HomeViewModel(
         IInstalledContentRepository repository,
@@ -66,7 +67,8 @@ public sealed partial class HomeViewModel : ObservableObject
         ISettingsStore settings,
         IMessageBus bus,
         IUiDispatcher ui,
-        IDialogService dialog)
+        IDialogService dialog,
+        IGameLocator locator)
     {
         _repository = repository;
         _installLocal = installLocal;
@@ -75,6 +77,7 @@ public sealed partial class HomeViewModel : ObservableObject
         _bus = bus;
         _ui = ui;
         _dialog = dialog;
+        _locator = locator;
         bus.Subscribe<LibraryChanged>(m => _ui.Post(() => _ = LoadAsync()));
     }
 
@@ -124,10 +127,18 @@ public sealed partial class HomeViewModel : ObservableObject
     }
 
     /// <summary>Installs a batch of dropped/picked files into the active version.</summary>
+    public bool IsGameReady => _locator.IsValid(_settings.Current.GameDirectory);
+
     public async Task HandleFilesAsync(IReadOnlyList<string> paths)
     {
         if (paths.Count == 0)
         {
+            return;
+        }
+
+        if (!IsGameReady)
+        {
+            _bus.Publish(new ToastMessage("Set your Minecraft folder first", "Lodestone needs a game folder before installing. Use the banner's “Locate Minecraft”.", ToastKind.Warning));
             return;
         }
 

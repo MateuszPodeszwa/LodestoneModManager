@@ -41,6 +41,14 @@ internal sealed class ModrinthProject
     [JsonPropertyName("game_versions")] public List<string> GameVersions { get; set; } = [];
     [JsonPropertyName("project_type")] public string ProjectType { get; set; } = "mod";
     [JsonPropertyName("icon_url")] public string? IconUrl { get; set; }
+    [JsonPropertyName("body")] public string? Body { get; set; }
+    [JsonPropertyName("gallery")] public List<ModrinthGalleryItem> Gallery { get; set; } = [];
+}
+
+internal sealed class ModrinthGalleryItem
+{
+    [JsonPropertyName("url")] public string Url { get; set; } = string.Empty;
+    [JsonPropertyName("featured")] public bool Featured { get; set; }
 }
 
 internal sealed class ModrinthVersion
@@ -125,10 +133,30 @@ internal static class ModrinthMapper
         List<Loader> loaders = project.Loaders.Select(l => l.ParseLoader()).Where(l => l != Loader.None).ToList();
         List<string> categories = project.Categories.Where(c => c.ParseLoader() == Loader.None).ToList();
 
+        List<string> gallery = project.Gallery
+            .OrderByDescending(g => g.Featured)
+            .Select(g => g.Url)
+            .Where(u => !string.IsNullOrWhiteSpace(u))
+            .ToList();
+
         return new CatalogProject(
             project.Id, project.Slug, project.Title, "Unknown", ToContentType(project.ProjectType),
             project.Description, project.Downloads, project.Followers, categories, loaders,
-            ParseVersions(project.GameVersions), "modrinth", project.IconUrl);
+            ParseVersions(project.GameVersions), "modrinth", project.IconUrl,
+            Body: NormalizeBody(project.Body),
+            GalleryUrls: gallery);
+    }
+
+    // Modrinth bodies are long markdown; show a trimmed, plain-text-ish preview in the modal.
+    private static string? NormalizeBody(string? body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+        {
+            return null;
+        }
+
+        string text = body.Replace("\r", string.Empty, StringComparison.Ordinal).Trim();
+        return text.Length > 1200 ? text[..1200] + "…" : text;
     }
 
     public static ProjectVersion? ToProjectVersion(ModrinthVersion version)

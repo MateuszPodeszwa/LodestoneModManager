@@ -47,7 +47,15 @@ public sealed partial class DetailViewModel : ObservableObject
 
     public string Latest => string.IsNullOrWhiteSpace(_project.LatestVersion) ? "—" : _project.LatestVersion!;
 
-    public string Description => _project.Description;
+    public string Description => string.IsNullOrWhiteSpace(_project.Body) ? _project.Description : _project.Body!;
+
+    public string? IconUrl => _project.IconUrl;
+
+    public bool HasIcon => !string.IsNullOrWhiteSpace(_project.IconUrl);
+
+    public IReadOnlyList<string> GalleryUrls => _project.GalleryUrls ?? [];
+
+    public bool HasGallery => GalleryUrls.Count > 0;
 
     public ObservableCollection<string> Chips { get; }
 

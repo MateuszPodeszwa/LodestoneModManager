@@ -112,12 +112,29 @@
 
             <!-- Content -->
             <Grid Grid.Column="1" Background="{StaticResource ContentBgBrush}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- "Minecraft not detected" banner — blocks installs until a valid folder is set -->
+                <Border Grid.Row="0" Background="#1FE3B341" BorderBrush="#55E3B341" BorderThickness="0,0,0,1" Padding="36,12"
+                        Visibility="{Binding IsGameReady, Converter={StaticResource InvBoolToVis}}">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Path Width="18" Height="18" VerticalAlignment="Center" Stretch="Uniform" Stroke="{StaticResource WarningBrush}" StrokeThickness="1.9" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M12 4l9 16H3z M12 10v4 M12 17h.01" />
+                            <TextBlock Text="Minecraft not detected — set your game folder to install mods, packs and shaders." Foreground="#FFE9D9A8" FontSize="13" VerticalAlignment="Center" Margin="11,0,0,0" />
+                        </StackPanel>
+                        <Button Content="Locate Minecraft" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right" Command="{Binding LocateGameCommand}" />
+                    </Grid>
+                </Border>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ContentControl Content="{Binding CurrentScreen}" />
                 </ScrollViewer>
 
                 <!-- Detail modal -->
-                <views:DetailView DataContext="{Binding CurrentDetail}"
+                <views:DetailView Grid.RowSpan="2" DataContext="{Binding CurrentDetail}"
                                   Visibility="{Binding DataContext.IsModalOpen, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}" />
             </Grid>
         </Grid>

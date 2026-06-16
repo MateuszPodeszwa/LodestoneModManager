@@ -19,6 +19,7 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
     private readonly ISettingsStore _settings;
     private readonly IMessageBus _bus;
     private readonly IUiDispatcher _ui;
+    private readonly IGameLocator _locator;
 
     private CancellationTokenSource? _debounce;
     private bool _loadedOnce;
@@ -29,7 +30,8 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
         IInstalledContentRepository repository,
         ISettingsStore settings,
         IMessageBus bus,
-        IUiDispatcher ui)
+        IUiDispatcher ui,
+        IGameLocator locator)
     {
         _registry = registry;
         _install = install;
@@ -37,11 +39,15 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
         _settings = settings;
         _bus = bus;
         _ui = ui;
+        _locator = locator;
         bus.Subscribe<LibraryChanged>(_ => _ui.Post(MarkInstalledFromLibrary));
     }
 
     /// <summary>Set by the shell so cards can open the detail modal.</summary>
     public Action<CatalogProject>? OpenDetailRequested { get; set; }
+
+    /// <summary>Whether the CurseForge source is usable (an API key is configured).</summary>
+    public bool IsCurseForgeAvailable => _registry.Find("curseforge")?.IsConfigured == true;
 
     public ObservableCollection<CatalogItemViewModel> Results { get; } = [];
 
@@ -168,6 +174,12 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
 
     private async Task InstallAsync(CatalogItemViewModel item)
     {
+        if (!_locator.IsValid(_settings.Current.GameDirectory))
+        {
+            _bus.Publish(new ToastMessage("Set your Minecraft folder first", "Lodestone needs a game folder before installing.", ToastKind.Warning));
+            return;
+        }
+
         item.Installing = true;
         try
         {

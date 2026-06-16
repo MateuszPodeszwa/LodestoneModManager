@@ -2,7 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              FontFamily="{StaticResource AppFont}">
-    <StackPanel Margin="36,30" MaxWidth="760" HorizontalAlignment="Left">
+    <StackPanel Margin="36,30" MaxWidth="1040" HorizontalAlignment="Stretch">
         <TextBlock Text="Settings" Style="{StaticResource H1}" />
         <TextBlock Text="Everything Lodestone needs — and nothing it doesn’t." Style="{StaticResource Subtitle}" Margin="0,4,0,0" />
 

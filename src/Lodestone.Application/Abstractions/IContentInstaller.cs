@@ -45,4 +45,7 @@ public interface IContentInstaller
 
     /// <summary>True if a file with this name already exists for the type (enabled or disabled).</summary>
     bool Exists(ContentType type, string fileName);
+
+    /// <summary>Full paths of all content files currently in the folder for <paramref name="type"/> (for auto-discovery).</summary>
+    IReadOnlyList<string> EnumerateInstalledFiles(ContentType type);
 }

@@ -186,6 +186,36 @@ public sealed class FileSystemContentInstaller : IContentInstaller
                || File.Exists(Path.Combine(folder, baseName + DisabledSuffix));
     }
 
+    public IReadOnlyList<string> EnumerateInstalledFiles(ContentType type)
+    {
+        string? game = _settings.Current.GameDirectory;
+        if (string.IsNullOrWhiteSpace(game))
+        {
+            return [];
+        }
+
+        string folder = Path.Combine(game, type.ToFolderName());
+        if (!Directory.Exists(folder))
+        {
+            return [];
+        }
+
+        // Top level only (mods/resourcepacks/shaderpacks aren't nested); includes ".disabled" variants.
+        return Directory.EnumerateFiles(folder)
+            .Where(p => IsContentFile(p))
+            .ToList();
+    }
+
+    private static bool IsContentFile(string path)
+    {
+        string name = Path.GetFileName(path);
+        string effective = name.EndsWith(DisabledSuffix, StringComparison.OrdinalIgnoreCase)
+            ? name[..^DisabledSuffix.Length]
+            : name;
+        string ext = Path.GetExtension(effective).ToLowerInvariant();
+        return ext is ".jar" or ".zip" or ".litemod" or ".mcpack";
+    }
+
     private Result<string> ResolveFolder(ContentType type)
     {
         string? game = _settings.Current.GameDirectory;

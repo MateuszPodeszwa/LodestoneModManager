@@ -19,7 +19,9 @@ public sealed record CatalogProject(
     IReadOnlyList<GameVersion> GameVersions,
     string Source,
     string? IconUrl = null,
-    string? LatestVersion = null)
+    string? LatestVersion = null,
+    string? Body = null,
+    IReadOnlyList<string>? GalleryUrls = null)
 {
     public bool SupportsLoader(Loader loader)
         => Loaders.Count == 0 || loader == Loader.None || Loaders.Contains(loader);

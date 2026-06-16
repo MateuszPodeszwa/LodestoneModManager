@@ -17,6 +17,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly IGameLocator _locator;
     private readonly IAppUpdater _updater;
     private readonly IMessageBus _bus;
+    private readonly ILoaderInstaller _loaderInstaller;
     private bool _ready;
 
     public SettingsViewModel(
@@ -24,13 +25,15 @@ public sealed partial class SettingsViewModel : ObservableObject
         IDialogService dialog,
         IGameLocator locator,
         IAppUpdater updater,
-        IMessageBus bus)
+        IMessageBus bus,
+        ILoaderInstaller loaderInstaller)
     {
         _settings = settings;
         _dialog = dialog;
         _locator = locator;
         _updater = updater;
         _bus = bus;
+        _loaderInstaller = loaderInstaller;
         ReloadFromSettings();
         AppVersionLabel = $"Lodestone {_updater.CurrentVersion}";
         _ready = true;
@@ -58,7 +61,41 @@ public sealed partial class SettingsViewModel : ObservableObject
         OnPropertyChanged(string.Empty); // refresh all bindings
     }
 
-    partial void OnLoaderChanged(string value) => Save();
+    partial void OnLoaderChanged(string value)
+    {
+        Save();
+        _ = InstallLoaderAsync(value);
+    }
+
+    // When the user picks a loader, install it in the background (Fabric/Quilt) so it's ready in the launcher.
+    private async Task InstallLoaderAsync(string loaderSlug)
+    {
+        if (!_ready || !_locator.IsValid(_settings.Current.GameDirectory))
+        {
+            return;
+        }
+
+        Lodestone.Domain.Loader loader = loaderSlug.ParseLoader();
+        if (!_loaderInstaller.Supports(loader))
+        {
+            _bus.Publish(new ToastMessage($"{loader.ToDisplayName()} loader",
+                $"{loader.ToDisplayName()} must be installed with its official installer — Lodestone still manages its mods.", ToastKind.Info));
+            return;
+        }
+
+        GameVersion version = GameVersion.Create(_settings.Current.SelectedVersion).Match<GameVersion?>(v => v, _ => null)
+            ?? GameVersion.Parse("1.21.4");
+
+        Result result = await _loaderInstaller.EnsureInstalledAsync(loader, version).ConfigureAwait(true);
+        if (result.IsSuccess)
+        {
+            _bus.Publish(new ToastMessage($"{loader.ToDisplayName()} ready", $"Installed for {version} — pick it in your launcher."));
+        }
+        else if (result.Error.Code != "game.dir_missing")
+        {
+            _bus.Publish(new ToastMessage("Loader install failed", result.Error.Message, ToastKind.Error));
+        }
+    }
     partial void OnAutoUpdateChanged(bool value) => Save();
     partial void OnNotifyChanged(bool value) => Save();
     partial void OnConcurrentChanged(int value) => Save();
