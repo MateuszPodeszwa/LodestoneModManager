@@ -48,6 +48,7 @@ public sealed class InMemoryMessageBus : IMessageBus
         });
     }
 
+    /// <summary>The token returned to a subscriber; disposing it removes the handler (idempotent).</summary>
     private sealed class Subscription(Action dispose) : IDisposable
     {
         private Action? _dispose = dispose;

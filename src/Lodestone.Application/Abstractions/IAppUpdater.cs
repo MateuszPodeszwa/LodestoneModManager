@@ -3,6 +3,7 @@ using Lodestone.Domain.Common;
 
 namespace Lodestone.Application.Abstractions;
 
+/// <summary>The outcome of an app update check: whether a newer build exists, plus the current and latest versions.</summary>
 public sealed record UpdateCheckResult(bool UpdateAvailable, string CurrentVersion, string? LatestVersion);
 
 /// <summary>

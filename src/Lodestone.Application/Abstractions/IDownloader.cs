@@ -8,8 +8,11 @@ public sealed record TransferProgress(long BytesTransferred, long? TotalBytes)
     public double? Fraction => TotalBytes is > 0 ? (double)BytesTransferred / TotalBytes.Value : null;
 }
 
+/// <summary>What to download: the source URL, the file name to save it as, and an optional expected
+/// SHA-512 the result is verified against.</summary>
 public sealed record DownloadRequest(string Url, string FileName, string? ExpectedSha512 = null);
 
+/// <summary>A completed download: the temp-file path, its size in bytes and the SHA-512 actually computed.</summary>
 public sealed record DownloadedFile(string Path, long SizeBytes, string Sha512);
 
 /// <summary>

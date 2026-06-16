@@ -5,6 +5,8 @@ using Lodestone.App.ViewModels;
 
 namespace Lodestone.App.Views;
 
+/// <summary>Code-behind for the Home screen. Handles the drag-and-drop file install and the drop-zone
+/// highlight (which need direct access to the visual tree); the rest lives in <see cref="HomeViewModel"/>.</summary>
 public partial class HomeView : UserControl
 {
     private static readonly Brush IdleBorder = new SolidColorBrush(Color.FromArgb(0x29, 0xFF, 0xFF, 0xFF));

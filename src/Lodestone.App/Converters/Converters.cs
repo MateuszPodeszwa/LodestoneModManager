@@ -15,12 +15,14 @@ public sealed class EqualsConverter : IValueConverter
         => value is true ? parameter ?? Binding.DoNothing : Binding.DoNothing;
 }
 
+/// <summary>Negates a boolean, so a binding can show UI when a flag is <c>false</c>.</summary>
 public sealed class InverseBoolConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value is not true;
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => value is not true;
 }
 
+/// <summary>Maps <c>true</c> → <see cref="Visibility.Visible"/>, <c>false</c> → <see cref="Visibility.Collapsed"/>.</summary>
 public sealed class BoolToVisibilityConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -29,6 +31,7 @@ public sealed class BoolToVisibilityConverter : IValueConverter
         => value is Visibility.Visible;
 }
 
+/// <summary>Maps <c>true</c> → <see cref="Visibility.Collapsed"/>, <c>false</c> → <see cref="Visibility.Visible"/> (show when a flag is off).</summary>
 public sealed class InverseBoolToVisibilityConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -37,6 +40,7 @@ public sealed class InverseBoolToVisibilityConverter : IValueConverter
         => value is Visibility.Collapsed;
 }
 
+/// <summary>Maps a non-null value → <see cref="Visibility.Visible"/>, null → <see cref="Visibility.Collapsed"/>.</summary>
 public sealed class NullToVisibilityConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -45,6 +49,7 @@ public sealed class NullToVisibilityConverter : IValueConverter
         => Binding.DoNothing;
 }
 
+/// <summary>Maps a positive count → <see cref="Visibility.Visible"/>, zero → <see cref="Visibility.Collapsed"/> (hides empty sections).</summary>
 public sealed class CountToVisibilityConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

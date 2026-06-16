@@ -16,6 +16,8 @@ public enum DuplicateResolution
     KeepBoth,
 }
 
+/// <summary>The outcome of placing a file: its final on-disk name, size in bytes, and whether an
+/// existing file of the same name was replaced.</summary>
 public sealed record PlaceResult(string FileName, long SizeBytes, bool ReplacedExisting);
 
 /// <summary>

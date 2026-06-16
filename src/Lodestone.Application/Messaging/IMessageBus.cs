@@ -17,6 +17,7 @@ public sealed record ToastMessage(string Title, string Body, ToastKind Kind = To
 /// <summary>Broadcast after the library changes so other screens (Home, Library) refresh.</summary>
 public sealed record LibraryChanged;
 
+/// <summary>The visual severity of a toast, which selects its colour/icon in the host.</summary>
 public enum ToastKind
 {
     Success = 0,

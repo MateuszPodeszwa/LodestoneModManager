@@ -8,6 +8,7 @@ public enum ContentType
     Shader,
 }
 
+/// <summary>Behaviour for <see cref="ContentType"/>: loader applicability, target folder and display name.</summary>
 public static class ContentTypeExtensions
 {
     /// <summary>Only mods are bound to a loader; packs and shaders are loader-agnostic.</summary>

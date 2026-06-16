@@ -13,6 +13,7 @@ public enum Loader
     NeoForge,
 }
 
+/// <summary>Behaviour for <see cref="Loader"/>: slug/display-name conversions and tolerant parsing.</summary>
 public static class LoaderExtensions
 {
     /// <summary>The canonical lowercase slug used by mod sources and folder conventions.</summary>

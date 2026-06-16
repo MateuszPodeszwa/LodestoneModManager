@@ -6,6 +6,8 @@ using Lodestone.Domain.Common;
 
 namespace Lodestone.Application.UseCases;
 
+/// <summary>The tally from an update refresh: how many updates are now available (flagged) and how
+/// many were auto-applied in place.</summary>
 public sealed record UpdateSummary(int UpdatesAvailable, int Updated);
 
 /// <summary>

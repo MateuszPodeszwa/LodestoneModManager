@@ -55,5 +55,6 @@ public sealed class CachingModSource : IModSource
     private static string Key(ModSearchQuery q)
         => $"{q.Text}|{q.Type}|{q.Category}|{q.Sort}|{q.GameVersion}|{q.Loader}|{q.Offset}|{q.Limit}";
 
+    /// <summary>A cached result boxed as <see cref="object"/> together with the instant it expires.</summary>
     private sealed record CacheEntry(object Value, DateTimeOffset Expires);
 }

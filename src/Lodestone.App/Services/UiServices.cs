@@ -11,6 +11,8 @@ public interface IUiDispatcher
     void Post(Action action);
 }
 
+/// <summary>Default <see cref="IUiDispatcher"/> backed by the WPF <see cref="Dispatcher"/>; runs the
+/// action inline when already on the UI thread, otherwise marshals onto it.</summary>
 public sealed class UiDispatcher : IUiDispatcher
 {
     private readonly Dispatcher _dispatcher = System.Windows.Application.Current.Dispatcher;
@@ -36,6 +38,7 @@ public interface IDialogService
     void OpenUrl(string url);
 }
 
+/// <summary>Default <see cref="IDialogService"/> using native Win32 dialogs and the OS shell to open URLs.</summary>
 public sealed class DialogService : IDialogService
 {
     public string? PickFolder(string? initialDirectory)

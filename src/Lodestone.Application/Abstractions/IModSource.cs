@@ -3,6 +3,7 @@ using Lodestone.Domain.Common;
 
 namespace Lodestone.Application.Abstractions;
 
+/// <summary>How catalog search results are ordered.</summary>
 public enum ModSortOrder
 {
     Relevance = 0,

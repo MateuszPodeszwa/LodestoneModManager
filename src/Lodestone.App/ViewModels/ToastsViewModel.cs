@@ -6,6 +6,7 @@ using Lodestone.Application.Messaging;
 
 namespace Lodestone.App.ViewModels;
 
+/// <summary>A single toast shown in the host: its title, body and a lowercase <see cref="ToastKind"/> string for styling.</summary>
 public sealed class ToastItemViewModel
 {
     public ToastItemViewModel(ToastMessage message)
