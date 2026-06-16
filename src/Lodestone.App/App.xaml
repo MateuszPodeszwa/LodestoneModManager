@@ -1,8 +1,33 @@
 <Application x:Class="Lodestone.App.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="MainWindow.xaml">
+             xmlns:vm="clr-namespace:Lodestone.App.ViewModels"
+             xmlns:views="clr-namespace:Lodestone.App.Views"
+             xmlns:conv="clr-namespace:Lodestone.App.Converters">
     <Application.Resources>
-        <!-- Theme resource dictionaries are merged here in Phase 5 (design tokens, controls). -->
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/Theme.xaml" />
+                <ResourceDictionary Source="Themes/Controls.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Converters -->
+            <conv:EqualsConverter x:Key="Equals" />
+            <conv:InverseBoolConverter x:Key="InvBool" />
+            <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
+            <conv:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
+            <conv:NullToVisibilityConverter x:Key="NullToVis" />
+            <conv:CountToVisibilityConverter x:Key="CountToVis" />
+            <conv:FirstLetterConverter x:Key="FirstLetter" />
+            <conv:NameToColorBrushConverter x:Key="NameToColor" />
+            <conv:VersionLabelConverter x:Key="VersionLabel" />
+
+            <!-- View-model → view mapping -->
+            <DataTemplate DataType="{x:Type vm:HomeViewModel}"><views:HomeView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:LibraryViewModel}"><views:LibraryView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:BrowseViewModel}"><views:BrowseView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><views:SettingsView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:DonateViewModel}"><views:DonateView /></DataTemplate>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

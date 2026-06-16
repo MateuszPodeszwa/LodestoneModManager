@@ -56,14 +56,16 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient("modrinth", client =>
             {
                 client.BaseAddress = new Uri("https://api.modrinth.com/");
-                client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
+                // Modrinth asks for a descriptive UA; TryAddWithoutValidation accepts the
+                // "user/repo/version (contact)" form that the strict product-token parser rejects.
+                client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", options.UserAgent);
                 client.Timeout = TimeSpan.FromSeconds(30);
             })
             .AddHttpMessageHandler(() => new RetryDelegatingHandler());
 
         services.AddHttpClient("downloads", client =>
             {
-                client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
+                client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", options.UserAgent);
                 client.Timeout = Timeout.InfiniteTimeSpan; // large files; bounded by CancellationToken
             })
             .AddHttpMessageHandler(() => new RetryDelegatingHandler());
@@ -103,6 +105,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ToggleContentUseCase>();
         services.AddTransient<UninstallContentUseCase>();
         services.AddTransient<RefreshUpdatesUseCase>();
+        services.AddTransient<UpdateAllUseCase>();
 
         return services;
     }

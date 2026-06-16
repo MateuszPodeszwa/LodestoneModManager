@@ -1,0 +1,106 @@
+<UserControl x:Class="Lodestone.App.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="{StaticResource AppFont}">
+    <StackPanel Margin="36,30" MaxWidth="760" HorizontalAlignment="Left">
+        <TextBlock Text="Settings" Style="{StaticResource H1}" />
+        <TextBlock Text="Everything Lodestone needs — and nothing it doesn’t." Style="{StaticResource Subtitle}" Margin="0,4,0,0" />
+
+        <!-- GAME -->
+        <TextBlock Text="GAME" Style="{StaticResource SectionLabel}" />
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <Grid Margin="18,16">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Game directory" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                        <TextBlock Text="{Binding GameDir, TargetNullValue='Not set yet'}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" FontFamily="{StaticResource MonoFont}" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <Button Content="Change…" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Right" Command="{Binding ChangeDirCommand}" />
+                </Grid>
+                <Border BorderBrush="{StaticResource BorderFaintBrush}" BorderThickness="0,1,0,0">
+                    <Grid Margin="18,16">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Default mod loader" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                            <TextBlock Text="Used when installing mods that support more than one." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
+                        </StackPanel>
+                        <Border Style="{StaticResource SegmentBar}" Background="#FF1F1F23" HorizontalAlignment="Right">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton GroupName="Loader" Style="{StaticResource Segment}" Content="Fabric" IsChecked="{Binding Loader, Converter={StaticResource Equals}, ConverterParameter=fabric, Mode=TwoWay}" />
+                                <RadioButton GroupName="Loader" Style="{StaticResource Segment}" Content="Forge" IsChecked="{Binding Loader, Converter={StaticResource Equals}, ConverterParameter=forge, Mode=TwoWay}" />
+                                <RadioButton GroupName="Loader" Style="{StaticResource Segment}" Content="Quilt" IsChecked="{Binding Loader, Converter={StaticResource Equals}, ConverterParameter=quilt, Mode=TwoWay}" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <!-- MODS & UPDATES -->
+        <TextBlock Text="MODS &amp; UPDATES" Style="{StaticResource SectionLabel}" />
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <Grid Margin="18,16">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Auto-update mods" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                        <TextBlock Text="Keep enabled mods on the latest compatible version." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
+                    </StackPanel>
+                    <ToggleButton Style="{StaticResource ToggleSwitch}" HorizontalAlignment="Right" IsChecked="{Binding AutoUpdate, Mode=TwoWay}" />
+                </Grid>
+                <Border BorderBrush="{StaticResource BorderFaintBrush}" BorderThickness="0,1,0,0">
+                    <Grid Margin="18,16">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Notify me about updates" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                            <TextBlock Text="Show a badge on Home when updates are available." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
+                        </StackPanel>
+                        <ToggleButton Style="{StaticResource ToggleSwitch}" HorizontalAlignment="Right" IsChecked="{Binding Notify, Mode=TwoWay}" />
+                    </Grid>
+                </Border>
+                <Border BorderBrush="{StaticResource BorderFaintBrush}" BorderThickness="0,1,0,0">
+                    <Grid Margin="18,16">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Concurrent downloads" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                            <TextBlock Text="How many files to download at the same time." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button Content="−" Style="{StaticResource SecondaryButton}" Width="30" Height="30" Padding="0" FontSize="17" Command="{Binding DecreaseConcurrentCommand}" />
+                            <TextBlock Text="{Binding Concurrent}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" MinWidth="22" TextAlignment="Center" VerticalAlignment="Center" Margin="10,0" />
+                            <Button Content="+" Style="{StaticResource SecondaryButton}" Width="30" Height="30" Padding="0" FontSize="17" Command="{Binding IncreaseConcurrentCommand}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <!-- SOURCES & APP -->
+        <TextBlock Text="SOURCES &amp; APP" Style="{StaticResource SectionLabel}" />
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <Grid Margin="18,16">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Use CurseForge as fallback" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                        <TextBlock Text="Modrinth is searched first; fall back to CurseForge when needed." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
+                    </StackPanel>
+                    <ToggleButton Style="{StaticResource ToggleSwitch}" HorizontalAlignment="Right" IsChecked="{Binding CurseFallback, Mode=TwoWay}" />
+                </Grid>
+                <Border BorderBrush="{StaticResource BorderFaintBrush}" BorderThickness="0,1,0,0">
+                    <Grid Margin="18,16">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Close to system tray" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                            <TextBlock Text="Keep Lodestone running in the background when closed." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
+                        </StackPanel>
+                        <ToggleButton Style="{StaticResource ToggleSwitch}" HorizontalAlignment="Right" IsChecked="{Binding CloseToTray, Mode=TwoWay}" />
+                    </Grid>
+                </Border>
+                <Border BorderBrush="{StaticResource BorderFaintBrush}" BorderThickness="0,1,0,0">
+                    <Grid Margin="18,16">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding AppVersionLabel}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                            <TextBlock Text="Free &amp; lightweight · made for the Minecraft community." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
+                        </StackPanel>
+                        <Button Content="Check for updates" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Right" Command="{Binding CheckUpdatesCommand}" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

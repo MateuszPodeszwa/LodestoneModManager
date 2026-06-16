@@ -14,6 +14,9 @@ public interface IMessageBus
 /// <summary>A request to show a transient toast (see the design's bottom-right notifications).</summary>
 public sealed record ToastMessage(string Title, string Body, ToastKind Kind = ToastKind.Success);
 
+/// <summary>Broadcast after the library changes so other screens (Home, Library) refresh.</summary>
+public sealed record LibraryChanged;
+
 public enum ToastKind
 {
     Success = 0,
