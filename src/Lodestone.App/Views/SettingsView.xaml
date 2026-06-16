@@ -23,7 +23,8 @@
                             <TextBlock Text="Default mod loader" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
                             <TextBlock Text="Used when installing mods that support more than one." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
                         </StackPanel>
-                        <Border Style="{StaticResource SegmentBar}" Background="#FF1F1F23" HorizontalAlignment="Right">
+                        <Border Style="{StaticResource SegmentBar}" Background="#FF1F1F23" HorizontalAlignment="Right"
+                                IsEnabled="{Binding IsGameReady}" ToolTip="Set your Minecraft folder first">
                             <StackPanel Orientation="Horizontal">
                                 <RadioButton GroupName="Loader" Style="{StaticResource Segment}" Content="Fabric" IsChecked="{Binding Loader, Converter={StaticResource Equals}, ConverterParameter=fabric, Mode=TwoWay}" />
                                 <RadioButton GroupName="Loader" Style="{StaticResource Segment}" Content="Forge" IsChecked="{Binding Loader, Converter={StaticResource Equals}, ConverterParameter=forge, Mode=TwoWay}" />

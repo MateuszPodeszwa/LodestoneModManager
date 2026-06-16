@@ -12,19 +12,24 @@ public sealed partial class DetailViewModel : ObservableObject
     private readonly CatalogProject _project;
     private readonly Func<DetailViewModel, Task> _install;
     private readonly Action _close;
+    private readonly Action _openExternal;
 
     public DetailViewModel(
         CatalogProject project,
         bool installed,
         Func<DetailViewModel, Task> install,
-        Action close)
+        Action close,
+        Action openExternal)
     {
         _project = project;
         _install = install;
         _close = close;
+        _openExternal = openExternal;
         _installed = installed;
         Chips = new ObservableCollection<string>(project.Categories);
     }
+
+    public string OpenLabel => _project.Source == "curseforge" ? "Open on CurseForge" : "Open on Modrinth";
 
     public CatalogProject Project => _project;
 
@@ -89,4 +94,7 @@ public sealed partial class DetailViewModel : ObservableObject
 
     [RelayCommand]
     private void Close() => _close();
+
+    [RelayCommand]
+    private void OpenExternal() => _openExternal();
 }

@@ -13,8 +13,8 @@ public class ModSourceRegistryTests
     {
         public string Name => name;
         public bool IsConfigured => configured;
-        public Task<Result<IReadOnlyList<CatalogProject>>> SearchAsync(ModSearchQuery q, CancellationToken ct = default)
-            => Task.FromResult(Result.Success<IReadOnlyList<CatalogProject>>([]));
+        public Task<Result<ModSearchResult>> SearchAsync(ModSearchQuery q, CancellationToken ct = default)
+            => Task.FromResult(Result.Success(new ModSearchResult([], 0)));
         public Task<Result<CatalogProject>> GetProjectAsync(string id, CancellationToken ct = default)
             => Task.FromResult(Result.Failure<CatalogProject>("x", "y"));
         public Task<Result<IReadOnlyList<ProjectVersion>>> GetVersionsAsync(string id, CancellationToken ct = default)

@@ -37,7 +37,17 @@ public sealed partial class SettingsViewModel : ObservableObject
         ReloadFromSettings();
         AppVersionLabel = $"Lodestone {_updater.CurrentVersion}";
         _ready = true;
+
+        // Keep the screen in sync when the folder/settings are changed elsewhere (e.g. the shell banner).
+        _settings.Changed += (_, _) =>
+        {
+            ReloadFromSettings();
+            OnPropertyChanged(nameof(IsGameReady));
+        };
     }
+
+    /// <summary>True once a valid Minecraft folder is set; gates the loader picker.</summary>
+    public bool IsGameReady => _locator.IsValid(_settings.Current.GameDirectory);
 
     [ObservableProperty] private string? _gameDir;
     [ObservableProperty] private string _loader = "fabric";

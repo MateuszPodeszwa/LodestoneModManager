@@ -23,12 +23,14 @@ public sealed class ModrinthModSource : IModSource
 
     public bool IsConfigured => true;
 
-    public async Task<Result<IReadOnlyList<CatalogProject>>> SearchAsync(ModSearchQuery query, CancellationToken ct = default)
+    public async Task<Result<ModSearchResult>> SearchAsync(ModSearchQuery query, CancellationToken ct = default)
     {
         string url = BuildSearchUrl(query);
-        return await SendAsync<ModrinthSearchResponse, IReadOnlyList<CatalogProject>>(
+        return await SendAsync<ModrinthSearchResponse, ModSearchResult>(
             url,
-            response => (response?.Hits ?? []).Select(ModrinthMapper.ToCatalog).ToList(),
+            response => new ModSearchResult(
+                (response?.Hits ?? []).Select(ModrinthMapper.ToCatalog).ToList(),
+                response?.TotalHits ?? 0),
             ct).ConfigureAwait(false);
     }
 

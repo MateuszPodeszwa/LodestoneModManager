@@ -66,13 +66,13 @@
                     <TextBlock Text="Drag &amp; drop to install" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,14,0,0" />
                     <TextBlock Text="Mods (.jar) · Resource packs &amp; shaders (.zip) — or click to browse files" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,5,0,0" />
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,14,0,0">
-                        <Border Background="#0DFFFFFF" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="999" Padding="10,4" Margin="4,0">
+                        <Border Background="#0DFFFFFF" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="10,4" Margin="4,0">
                             <TextBlock Text=".jar" FontSize="11.5" Foreground="{StaticResource TextBodyBrush}" />
                         </Border>
-                        <Border Background="#0DFFFFFF" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="999" Padding="10,4" Margin="4,0">
+                        <Border Background="#0DFFFFFF" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="10,4" Margin="4,0">
                             <TextBlock Text=".zip" FontSize="11.5" Foreground="{StaticResource TextBodyBrush}" />
                         </Border>
-                        <Border Background="#0DFFFFFF" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="999" Padding="10,4" Margin="4,0">
+                        <Border Background="#0DFFFFFF" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="8" Padding="10,4" Margin="4,0">
                             <TextBlock Text=".litemod" FontSize="11.5" Foreground="{StaticResource TextBodyBrush}" />
                         </Border>
                     </StackPanel>

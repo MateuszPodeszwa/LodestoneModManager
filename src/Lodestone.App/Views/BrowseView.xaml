@@ -129,7 +129,7 @@
                                 <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="#0DFFFFFF" BorderBrush="#12FFFFFF" BorderThickness="1" CornerRadius="999" Padding="9,3" Margin="0,0,6,0">
+                                        <Border Background="#0DFFFFFF" BorderBrush="#12FFFFFF" BorderThickness="1" CornerRadius="8" Padding="9,3" Margin="0,0,6,0">
                                             <TextBlock Text="{Binding}" FontSize="11" Foreground="{StaticResource TextBodyBrush}" />
                                         </Border>
                                     </DataTemplate>
@@ -148,7 +148,9 @@
                                         <TextBlock Text="Installed" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" Margin="5,0,0,0" VerticalAlignment="Center" />
                                     </StackPanel>
                                     <Button Content="Install" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right" Padding="16,7"
-                                            Command="{Binding InstallCommand}" Visibility="{Binding CanInstall, Converter={StaticResource BoolToVis}}" />
+                                            Command="{Binding InstallCommand}" Visibility="{Binding CanInstall, Converter={StaticResource BoolToVis}}"
+                                            IsEnabled="{Binding DataContext.IsGameReady, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            ToolTip="Set your Minecraft folder first" />
                                 </Grid>
                             </Border>
                         </StackPanel>
@@ -156,6 +158,23 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
+
+        <!-- Pagination -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0"
+                    Visibility="{Binding HasPages, Converter={StaticResource BoolToVis}}">
+            <Button Content="‹ Prev" Style="{StaticResource SecondaryButton}" Command="{Binding PrevPageCommand}" IsEnabled="{Binding CanPrev}" Margin="0,0,8,0" />
+            <ItemsControl ItemsSource="{Binding PageNumbers}" VerticalAlignment="Center">
+                <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Content="{Binding}" MinWidth="36" Margin="2,0" Padding="8,7" Style="{StaticResource SecondaryButton}"
+                                Command="{Binding DataContext.GoToPageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Content="Next ›" Style="{StaticResource SecondaryButton}" Command="{Binding NextPageCommand}" IsEnabled="{Binding CanNext}" Margin="8,0,0,0" />
+        </StackPanel>
 
         <!-- Empty -->
         <StackPanel HorizontalAlignment="Center" Margin="0,60" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}">

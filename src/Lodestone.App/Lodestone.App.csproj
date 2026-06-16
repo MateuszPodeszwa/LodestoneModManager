@@ -25,6 +25,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Velopack" />
     <PackageReference Include="H.NotifyIcon.Wpf" />
+    <PackageReference Include="MdXaml" />
   </ItemGroup>
 
 </Project>

@@ -92,6 +92,7 @@ public partial class App : System.Windows.Application
         [
             () => main.GoLibraryCommand.Execute(null),
             () => main.GoBrowseCommand.Execute(null),
+            () => main.OpenSampleDetailForSmoke(),
             () => main.GoSettingsCommand.Execute(null),
             () => main.GoDonateCommand.Execute(null),
             () => main.GoHomeCommand.Execute(null),

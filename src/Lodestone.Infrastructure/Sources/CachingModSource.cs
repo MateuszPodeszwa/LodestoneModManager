@@ -27,7 +27,7 @@ public sealed class CachingModSource : IModSource
 
     public bool IsConfigured => _inner.IsConfigured;
 
-    public Task<Result<IReadOnlyList<CatalogProject>>> SearchAsync(ModSearchQuery query, CancellationToken ct = default)
+    public Task<Result<ModSearchResult>> SearchAsync(ModSearchQuery query, CancellationToken ct = default)
         => GetOrAddAsync($"search:{Key(query)}", () => _inner.SearchAsync(query, ct));
 
     public Task<Result<CatalogProject>> GetProjectAsync(string idOrSlug, CancellationToken ct = default)

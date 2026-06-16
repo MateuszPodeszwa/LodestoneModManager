@@ -181,7 +181,7 @@ public sealed partial class MainViewModel : ObservableObject
     private async void OpenDetail(CatalogProject project)
     {
         bool installed = await _repository.FindAsync(project.Id).ConfigureAwait(true) is not null;
-        var detail = new DetailViewModel(project, installed, InstallFromDetailAsync, () => CurrentDetail = null);
+        var detail = new DetailViewModel(project, installed, InstallFromDetailAsync, () => CurrentDetail = null, () => _dialog.OpenUrl(BuildProjectUrl(project)));
         CurrentDetail = detail;
 
         // Enrich with the full project (long description + screenshot gallery) once it loads.
@@ -190,9 +190,26 @@ public sealed partial class MainViewModel : ObservableObject
         if (full.IsSuccess && ReferenceEquals(CurrentDetail, detail))
         {
             CatalogProject merged = project with { Body = full.Value.Body, GalleryUrls = full.Value.GalleryUrls };
-            CurrentDetail = new DetailViewModel(merged, installed, InstallFromDetailAsync, () => CurrentDetail = null);
+            CurrentDetail = new DetailViewModel(merged, installed, InstallFromDetailAsync, () => CurrentDetail = null, () => _dialog.OpenUrl(BuildProjectUrl(merged)));
         }
     }
+
+    /// <summary>Smoke-test hook: opens the detail modal with a sample markdown body to exercise rendering.</summary>
+    public void OpenSampleDetailForSmoke()
+    {
+        var sample = new CatalogProject(
+            "sample", "sodium", "Sample Mod", "Author", ContentType.Mod,
+            "A short description.", 12_400_000, 41_000,
+            ["optimization"], [Loader.Fabric], [GameVersion.Parse("1.21.4")], "modrinth",
+            IconUrl: null, LatestVersion: "1.0.0",
+            Body: "# Heading\n\nSome **bold**, _italic_ and a [link](https://modrinth.com).\n\n- one\n- two",
+            GalleryUrls: []);
+        OpenDetail(sample);
+    }
+
+    private static string BuildProjectUrl(CatalogProject project) => project.Source == "curseforge"
+        ? $"https://www.curseforge.com/minecraft/search?search={Uri.EscapeDataString(project.Slug)}"
+        : $"https://modrinth.com/project/{Uri.EscapeDataString(project.Slug)}";
 
     private async Task InstallFromDetailAsync(DetailViewModel detail)
     {

@@ -21,6 +21,9 @@ public sealed record ModSearchQuery(
     int Offset = 0,
     int Limit = 20);
 
+/// <summary>A page of search results plus the total match count (for pagination).</summary>
+public sealed record ModSearchResult(IReadOnlyList<CatalogProject> Items, int TotalCount);
+
 /// <summary>
 /// A browsable mod source (Modrinth, CurseForge…). Strategy: each source is interchangeable behind
 /// this port; the registry picks which one(s) to use based on settings.
@@ -33,7 +36,7 @@ public interface IModSource
     /// <summary>True when the source is usable (e.g. CurseForge requires a configured API key).</summary>
     bool IsConfigured { get; }
 
-    Task<Result<IReadOnlyList<CatalogProject>>> SearchAsync(ModSearchQuery query, CancellationToken ct = default);
+    Task<Result<ModSearchResult>> SearchAsync(ModSearchQuery query, CancellationToken ct = default);
 
     Task<Result<CatalogProject>> GetProjectAsync(string idOrSlug, CancellationToken ct = default);
 

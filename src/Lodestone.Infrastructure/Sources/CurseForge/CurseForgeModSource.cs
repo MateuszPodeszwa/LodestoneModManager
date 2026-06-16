@@ -19,8 +19,8 @@ public sealed class CurseForgeModSource : IModSource
 
     public bool IsConfigured => !string.IsNullOrWhiteSpace(_apiKey);
 
-    public Task<Result<IReadOnlyList<CatalogProject>>> SearchAsync(ModSearchQuery query, CancellationToken ct = default)
-        => Task.FromResult(NotConfigured<IReadOnlyList<CatalogProject>>());
+    public Task<Result<ModSearchResult>> SearchAsync(ModSearchQuery query, CancellationToken ct = default)
+        => Task.FromResult(NotConfigured<ModSearchResult>());
 
     public Task<Result<CatalogProject>> GetProjectAsync(string idOrSlug, CancellationToken ct = default)
         => Task.FromResult(NotConfigured<CatalogProject>());

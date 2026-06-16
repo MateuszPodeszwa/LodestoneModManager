@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Lodestone.App.Services;
 using Lodestone.Application.Abstractions;
 using Lodestone.Application.Messaging;
@@ -10,9 +11,12 @@ using Lodestone.Domain.Common;
 
 namespace Lodestone.App.ViewModels;
 
-/// <summary>The Browse screen: faceted Modrinth search with debounced input and one-click install.</summary>
+/// <summary>The Browse screen: faceted, paged Modrinth search filtered to the active loader + version,
+/// with one-click install (gated on a valid game folder).</summary>
 public sealed partial class BrowseViewModel : ObservableObject, IDisposable
 {
+    private const int PageSize = 20;
+
     private readonly IModSourceRegistry _registry;
     private readonly InstallFromCatalogUseCase _install;
     private readonly IInstalledContentRepository _repository;
@@ -40,16 +44,20 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
         _bus = bus;
         _ui = ui;
         _locator = locator;
-        bus.Subscribe<LibraryChanged>(_ => _ui.Post(MarkInstalledFromLibrary));
+        bus.Subscribe<LibraryChanged>(m => _ui.Post(MarkInstalledFromLibrary));
+        settings.Changed += (_, _) => _ui.Post(() => OnPropertyChanged(nameof(IsGameReady)));
     }
 
     /// <summary>Set by the shell so cards can open the detail modal.</summary>
     public Action<CatalogProject>? OpenDetailRequested { get; set; }
 
-    /// <summary>Whether the CurseForge source is usable (an API key is configured).</summary>
     public bool IsCurseForgeAvailable => _registry.Find("curseforge")?.IsConfigured == true;
 
+    public bool IsGameReady => _locator.IsValid(_settings.Current.GameDirectory);
+
     public ObservableCollection<CatalogItemViewModel> Results { get; } = [];
+
+    public ObservableCollection<int> PageNumbers { get; } = [];
 
     [ObservableProperty] private string _browseSource = "modrinth";
     [ObservableProperty] private string _browseQuery = string.Empty;
@@ -58,11 +66,30 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isEmpty;
     [ObservableProperty] private string _resultCountLabel = string.Empty;
+    [ObservableProperty] private int _currentPage = 1;
+    [ObservableProperty] private int _totalPages = 1;
 
-    partial void OnBrowseSourceChanged(string value) => QueueSearch();
-    partial void OnBrowseQueryChanged(string value) => QueueSearch();
-    partial void OnBrowseSortChanged(string value) => QueueSearch();
-    partial void OnBrowseCatChanged(string value) => QueueSearch();
+    public bool HasPages => TotalPages > 1;
+    public bool CanPrev => CurrentPage > 1;
+    public bool CanNext => CurrentPage < TotalPages;
+
+    partial void OnBrowseSourceChanged(string value) => RestartSearch();
+    partial void OnBrowseQueryChanged(string value) => RestartSearch();
+    partial void OnBrowseSortChanged(string value) => RestartSearch();
+    partial void OnBrowseCatChanged(string value) => RestartSearch();
+
+    partial void OnCurrentPageChanged(int value)
+    {
+        OnPropertyChanged(nameof(CanPrev));
+        OnPropertyChanged(nameof(CanNext));
+    }
+
+    partial void OnTotalPagesChanged(int value)
+    {
+        OnPropertyChanged(nameof(HasPages));
+        OnPropertyChanged(nameof(CanPrev));
+        OnPropertyChanged(nameof(CanNext));
+    }
 
     public async Task EnsureLoadedAsync()
     {
@@ -75,7 +102,41 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
         await SearchAsync(CancellationToken.None).ConfigureAwait(true);
     }
 
-    public void Dispose() => _debounce?.Dispose();
+    [RelayCommand]
+    private async Task NextPageAsync()
+    {
+        if (CanNext)
+        {
+            CurrentPage++;
+            await SearchAsync(CancellationToken.None).ConfigureAwait(true);
+        }
+    }
+
+    [RelayCommand]
+    private async Task PrevPageAsync()
+    {
+        if (CanPrev)
+        {
+            CurrentPage--;
+            await SearchAsync(CancellationToken.None).ConfigureAwait(true);
+        }
+    }
+
+    [RelayCommand]
+    private async Task GoToPageAsync(int page)
+    {
+        if (page >= 1 && page != CurrentPage)
+        {
+            CurrentPage = page;
+            await SearchAsync(CancellationToken.None).ConfigureAwait(true);
+        }
+    }
+
+    private void RestartSearch()
+    {
+        CurrentPage = 1;
+        QueueSearch();
+    }
 
     private void QueueSearch()
     {
@@ -104,6 +165,8 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
         if (source is null || !source.IsConfigured)
         {
             Results.Clear();
+            PageNumbers.Clear();
+            TotalPages = 1;
             IsEmpty = true;
             ResultCountLabel = BrowseSource == "curseforge" ? "CurseForge isn't configured yet" : "0 results";
             return;
@@ -112,8 +175,7 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
         IsLoading = true;
         try
         {
-            ModSearchQuery query = BuildQuery();
-            Result<IReadOnlyList<CatalogProject>> result = await source.SearchAsync(query, ct).ConfigureAwait(true);
+            Result<ModSearchResult> result = await source.SearchAsync(BuildQuery(), ct).ConfigureAwait(true);
             if (ct.IsCancellationRequested)
             {
                 return;
@@ -126,16 +188,21 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
                     .Select(i => i.Id)
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-                foreach (CatalogProject project in result.Value)
+                foreach (CatalogProject project in result.Value.Items)
                 {
                     Results.Add(new CatalogItemViewModel(project, installed.Contains(project.Id), InstallAsync, p => OpenDetailRequested?.Invoke(p)));
                 }
 
-                ResultCountLabel = $"{Results.Count} result{(Results.Count == 1 ? string.Empty : "s")}";
+                int total = result.Value.TotalCount;
+                ResultCountLabel = $"{total:N0} result{(total == 1 ? string.Empty : "s")}";
+                TotalPages = Math.Max(1, (int)Math.Ceiling(total / (double)PageSize));
+                RebuildPageWindow();
             }
             else
             {
                 ResultCountLabel = "Couldn't reach " + source.Name;
+                TotalPages = 1;
+                PageNumbers.Clear();
             }
 
             IsEmpty = Results.Count == 0;
@@ -143,6 +210,18 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    private void RebuildPageWindow()
+    {
+        PageNumbers.Clear();
+        int start = Math.Max(1, CurrentPage - 3);
+        int end = Math.Min(TotalPages, start + 6);
+        start = Math.Max(1, end - 6);
+        for (int p = start; p <= end; p++)
+        {
+            PageNumbers.Add(p);
         }
     }
 
@@ -169,12 +248,23 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
             _ => ModSortOrder.Relevance,
         };
 
-        return new ModSearchQuery(BrowseQuery, type, category, sort, Limit: 30);
+        // Filter to the active profile: version always (when not "All"), and the loader for mods only —
+        // so e.g. with Fabric selected you only see Fabric mods for that version.
+        GameVersion? version = _settings.Current.SelectedVersion is "all" or ""
+            ? null
+            : GameVersion.Create(_settings.Current.SelectedVersion).Match<GameVersion?>(v => v, _ => null);
+
+        Loader? loader = type is null && _settings.Current.DefaultLoader != Loader.None
+            ? _settings.Current.DefaultLoader
+            : null;
+
+        int offset = (CurrentPage - 1) * PageSize;
+        return new ModSearchQuery(BrowseQuery, type, category, sort, version, loader, offset, PageSize);
     }
 
     private async Task InstallAsync(CatalogItemViewModel item)
     {
-        if (!_locator.IsValid(_settings.Current.GameDirectory))
+        if (!IsGameReady)
         {
             _bus.Publish(new ToastMessage("Set your Minecraft folder first", "Lodestone needs a game folder before installing.", ToastKind.Warning));
             return;
@@ -222,4 +312,6 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
         string selected = _settings.Current.SelectedVersion;
         return GameVersion.Parse(selected is "all" or "" ? "1.21.4" : selected);
     }
+
+    public void Dispose() => _debounce?.Dispose();
 }

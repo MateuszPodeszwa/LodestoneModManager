@@ -34,11 +34,12 @@ public class ModrinthModSourceTests
         }
         """);
 
-        Result<IReadOnlyList<CatalogProject>> result =
+        Result<ModSearchResult> result =
             await source.SearchAsync(new ModSearchQuery("sodium", ContentType.Mod));
 
         result.IsSuccess.ShouldBeTrue();
-        CatalogProject project = result.Value.Single();
+        result.Value.TotalCount.ShouldBe(1);
+        CatalogProject project = result.Value.Items.Single();
         project.Id.ShouldBe("AANobbMI");
         project.Name.ShouldBe("Sodium");
         project.Loaders.ShouldContain(Loader.Fabric);
@@ -76,7 +77,7 @@ public class ModrinthModSourceTests
         (ModrinthModSource source, MockHttpMessageHandler mock) = Build();
         mock.When("https://api.modrinth.com/v2/search*").Respond(HttpStatusCode.InternalServerError);
 
-        Result<IReadOnlyList<CatalogProject>> result = await source.SearchAsync(new ModSearchQuery("x"));
+        Result<ModSearchResult> result = await source.SearchAsync(new ModSearchQuery("x"));
 
         result.IsFailure.ShouldBeTrue();
         result.Error.Code.ShouldBe("modrinth.http");
