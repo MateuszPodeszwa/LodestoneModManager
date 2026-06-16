@@ -9,9 +9,16 @@
     <!-- Custom entry point so Velopack can bootstrap before WPF (see Program.cs). -->
     <StartupObject>Lodestone.App.Program</StartupObject>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Embeds the icon in Lodestone.exe (Explorer, taskbar, Velopack shortcuts). -->
+    <ApplicationIcon>Assets\lodestone.ico</ApplicationIcon>
     <!-- Velopack updates ship as framework-dependent by default; self-contained is toggled in release.yml. -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Bundled so the WPF window can use it at runtime (taskbar / Alt+Tab). -->
+    <Resource Include="Assets\lodestone.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Lodestone.Domain\Lodestone.Domain.csproj" />
@@ -25,7 +32,8 @@
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Velopack" />
     <PackageReference Include="H.NotifyIcon.Wpf" />
-    <PackageReference Include="MdXaml" />
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="Microsoft.Web.WebView2" />
   </ItemGroup>
 
 </Project>

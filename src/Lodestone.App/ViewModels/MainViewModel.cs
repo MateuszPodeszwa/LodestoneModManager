@@ -27,6 +27,7 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly ReconcileLibraryUseCase _reconcile;
     private readonly ILoaderInstaller _loaderInstaller;
     private readonly IModSourceRegistry _registry;
+    private readonly IGameInventory _inventory;
 
     public MainViewModel(
         HomeViewModel home,
@@ -48,7 +49,8 @@ public sealed partial class MainViewModel : ObservableObject
         IDialogService dialog,
         ReconcileLibraryUseCase reconcile,
         ILoaderInstaller loaderInstaller,
-        IModSourceRegistry registry)
+        IModSourceRegistry registry,
+        IGameInventory inventory)
     {
         Home = home;
         Library = library;
@@ -70,6 +72,7 @@ public sealed partial class MainViewModel : ObservableObject
         _reconcile = reconcile;
         _loaderInstaller = loaderInstaller;
         _registry = registry;
+        _inventory = inventory;
 
         Browse.OpenDetailRequested = OpenDetail;
         Onboarding.Completed += OnOnboardingCompleted;
@@ -109,7 +112,7 @@ public sealed partial class MainViewModel : ObservableObject
         // Auto-discovery: import any mods already sitting in the game folders before showing the library.
         if (IsGameReady)
         {
-            await _reconcile.ExecuteAsync(ActiveVersion() ?? GameVersion.Parse("1.21.4")).ConfigureAwait(true);
+            await _reconcile.ExecuteAsync(ResolveTarget()).ConfigureAwait(true);
         }
 
         // Local state loads fast; await it so the first screen is populated.
@@ -122,10 +125,11 @@ public sealed partial class MainViewModel : ObservableObject
         // Per spec: the mod updater runs on app start (and on manual refresh) — never on a timer.
         _ = RunStartupRefreshAsync();
 
-        // Make sure the configured loader is actually installed (Fabric/Quilt), quietly, on start.
-        if (IsGameReady)
+        // Make sure the configured loader is actually installed (Fabric/Quilt), quietly, on start —
+        // but only when we have a concrete version to target (otherwise there's nothing to install against).
+        if (IsGameReady && ResolveTarget() is { } startupVersion)
         {
-            _ = _loaderInstaller.EnsureInstalledAsync(_settings.Current.DefaultLoader, ActiveVersion() ?? GameVersion.Parse("1.21.4"));
+            _ = _loaderInstaller.EnsureInstalledAsync(_settings.Current.DefaultLoader, startupVersion);
         }
     }
 
@@ -150,9 +154,13 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(IsGameReady));
         _bus.Publish(new ToastMessage("Minecraft folder set", picked));
 
-        GameVersion version = ActiveVersion() ?? GameVersion.Parse("1.21.4");
+        GameVersion? version = ResolveTarget();
         await _reconcile.ExecuteAsync(version).ConfigureAwait(true);
-        _ = _loaderInstaller.EnsureInstalledAsync(_settings.Current.DefaultLoader, version);
+        if (version is { } loaderVersion)
+        {
+            _ = _loaderInstaller.EnsureInstalledAsync(_settings.Current.DefaultLoader, loaderVersion);
+        }
+
         _bus.Publish(new LibraryChanged());
     }
 
@@ -194,15 +202,24 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
-    /// <summary>Smoke-test hook: opens the detail modal with a sample markdown body to exercise rendering.</summary>
+    /// <summary>Smoke-test hook: opens the detail modal with a sample markdown body to exercise rendering.
+    /// The body deliberately mixes Markdown, a width-pinned HTML image and a linked image so the
+    /// Markdig → WebView2 description pipeline is exercised end to end.</summary>
     public void OpenSampleDetailForSmoke()
     {
+        const string body =
+            "# Heading\n\nSome **bold**, _italic_ and a [link](https://modrinth.com).\n\n" +
+            "![wide banner](https://modrinth.com/data/sample/banner.png)\n\n" +
+            "<img src=\"https://modrinth.com/data/sample/wide.png\" width=\"1280\" height=\"400\" />\n\n" +
+            "[![linked banner](https://modrinth.com/data/sample/icon.png)](https://modrinth.com)\n\n" +
+            "- one\n- two";
+
         var sample = new CatalogProject(
             "sample", "sodium", "Sample Mod", "Author", ContentType.Mod,
             "A short description.", 12_400_000, 41_000,
             ["optimization"], [Loader.Fabric], [GameVersion.Parse("1.21.4")], "modrinth",
             IconUrl: null, LatestVersion: "1.0.0",
-            Body: "# Heading\n\nSome **bold**, _italic_ and a [link](https://modrinth.com).\n\n- one\n- two",
+            Body: body,
             GalleryUrls: []);
         OpenDetail(sample);
     }
@@ -219,25 +236,46 @@ public sealed partial class MainViewModel : ObservableObject
             return;
         }
 
+        GameVersion? target = ResolveTarget();
+        if (target is null)
+        {
+            _bus.Publish(new ToastMessage("No Minecraft version yet", "Install a Minecraft version (or pick one in My Content) before installing mods.", ToastKind.Warning));
+            return;
+        }
+
         detail.Installing = true;
         var progress = new Progress<TransferProgress>(p =>
             _ui.Post(() => detail.InstallPercent = (int)Math.Round((p.Fraction ?? 0) * 100)));
 
-        Result<InstalledContent> result = await _install
-            .ExecuteAsync(detail.Project, ActiveVersion() ?? GameVersion.Parse("1.21.4"), _settings.Current.DefaultLoader, progress)
+        Result<CatalogInstall> result = await _install
+            .ExecuteAsync(detail.Project, target, _settings.Current.DefaultLoader, progress)
             .ConfigureAwait(true);
 
         detail.Installing = false;
         if (result.IsSuccess)
         {
             detail.Installed = true;
-            _bus.Publish(new ToastMessage("Installed", $"{detail.Name} · {result.Value.Type.ToDisplayName()}"));
+            _bus.Publish(new ToastMessage("Installed", DescribeInstall(detail.Name, result.Value)));
+            if (!_inventory.IsVersionInstalled(target))
+            {
+                _bus.Publish(new ToastMessage("Heads up",
+                    $"Installed for {target}, but that Minecraft version isn't set up in your launcher yet — it won't load until you install it.",
+                    ToastKind.Warning));
+            }
+
             _bus.Publish(new LibraryChanged());
         }
         else
         {
             _bus.Publish(new ToastMessage("Couldn't install", result.Error.Message, ToastKind.Error));
         }
+    }
+
+    private static string DescribeInstall(string name, CatalogInstall install)
+    {
+        string text = $"{name} · {install.Item.Type.ToDisplayName()}";
+        int deps = install.InstalledDependencies.Count;
+        return deps == 0 ? text : $"{text}  ·  +{deps} dependenc{(deps == 1 ? "y" : "ies")}";
     }
 
     private void OnOnboardingCompleted()
@@ -249,9 +287,9 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void RefreshSupporter() => OnPropertyChanged(nameof(IsSupporter));
 
-    private GameVersion? ActiveVersion()
-    {
-        string selected = _settings.Current.SelectedVersion;
-        return selected is "all" or "" ? null : GameVersion.Create(selected).Match<GameVersion?>(v => v, _ => null);
-    }
+    /// <summary>The selected version, or null on the "All versions" view (per-mod latest semantics).</summary>
+    private GameVersion? ActiveVersion() => ActiveProfile.Selected(_settings.Current);
+
+    /// <summary>A concrete install/loader target: the selection, else newest installed, else null when none.</summary>
+    private GameVersion? ResolveTarget() => ActiveProfile.Target(_settings.Current, _inventory);
 }

@@ -48,10 +48,11 @@
                     <TextBlock Text="You can change these any time in Settings." FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" TextAlignment="Center" Margin="0,7,0,0" />
                     <TextBlock Text="Default mod loader" FontSize="13" FontWeight="SemiBold" Foreground="#FFDCDCE0" Margin="0,20,0,9" />
                     <Border Style="{StaticResource SegmentBar}" Background="#FF1F1F23" HorizontalAlignment="Stretch">
-                        <UniformGrid Columns="3">
+                        <UniformGrid Columns="4">
                             <RadioButton GroupName="ObLoader" Style="{StaticResource Segment}" Content="Fabric" IsChecked="{Binding ObLoader, Converter={StaticResource Equals}, ConverterParameter=fabric, Mode=TwoWay}" />
                             <RadioButton GroupName="ObLoader" Style="{StaticResource Segment}" Content="Forge" IsChecked="{Binding ObLoader, Converter={StaticResource Equals}, ConverterParameter=forge, Mode=TwoWay}" />
                             <RadioButton GroupName="ObLoader" Style="{StaticResource Segment}" Content="Quilt" IsChecked="{Binding ObLoader, Converter={StaticResource Equals}, ConverterParameter=quilt, Mode=TwoWay}" />
+                            <RadioButton GroupName="ObLoader" Style="{StaticResource Segment}" Content="NeoForge" IsChecked="{Binding ObLoader, Converter={StaticResource Equals}, ConverterParameter=neoforge, Mode=TwoWay}" />
                         </UniformGrid>
                     </Border>
                     <Border Background="#08FFFFFF" BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="11" Padding="16,14" Margin="0,18,0,0">

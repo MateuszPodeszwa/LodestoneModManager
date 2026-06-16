@@ -24,6 +24,7 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
     private readonly IMessageBus _bus;
     private readonly IUiDispatcher _ui;
     private readonly IGameLocator _locator;
+    private readonly IGameInventory _inventory;
 
     private CancellationTokenSource? _debounce;
     private bool _loadedOnce;
@@ -35,7 +36,8 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
         ISettingsStore settings,
         IMessageBus bus,
         IUiDispatcher ui,
-        IGameLocator locator)
+        IGameLocator locator,
+        IGameInventory inventory)
     {
         _registry = registry;
         _install = install;
@@ -44,6 +46,7 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
         _bus = bus;
         _ui = ui;
         _locator = locator;
+        _inventory = inventory;
         bus.Subscribe<LibraryChanged>(m => _ui.Post(MarkInstalledFromLibrary));
         settings.Changed += (_, _) => _ui.Post(() => OnPropertyChanged(nameof(IsGameReady)));
     }
@@ -250,9 +253,7 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
 
         // Filter to the active profile: version always (when not "All"), and the loader for mods only —
         // so e.g. with Fabric selected you only see Fabric mods for that version.
-        GameVersion? version = _settings.Current.SelectedVersion is "all" or ""
-            ? null
-            : GameVersion.Create(_settings.Current.SelectedVersion).Match<GameVersion?>(v => v, _ => null);
+        GameVersion? version = ActiveProfile.Selected(_settings.Current);
 
         Loader? loader = type is null && _settings.Current.DefaultLoader != Loader.None
             ? _settings.Current.DefaultLoader
@@ -270,18 +271,25 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
             return;
         }
 
+        GameVersion? target = ResolveTargetVersion();
+        if (target is null)
+        {
+            _bus.Publish(new ToastMessage("No Minecraft version yet", "Install a Minecraft version (or pick one in My Content) before installing mods.", ToastKind.Warning));
+            return;
+        }
+
         item.Installing = true;
         try
         {
-            GameVersion target = ResolveTargetVersion();
-            Result<InstalledContent> result = await _install
+            Result<CatalogInstall> result = await _install
                 .ExecuteAsync(item.Project, target, _settings.Current.DefaultLoader)
                 .ConfigureAwait(true);
 
             if (result.IsSuccess)
             {
                 item.Installed = true;
-                _bus.Publish(new ToastMessage("Installed", $"{item.Name} · {result.Value.Type.ToDisplayName()}"));
+                _bus.Publish(new ToastMessage("Installed", DescribeInstall(item.Name, result.Value)));
+                WarnIfVersionNotInstalled(target);
                 _bus.Publish(new LibraryChanged());
             }
             else
@@ -293,6 +301,13 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
         {
             item.Installing = false;
         }
+    }
+
+    private static string DescribeInstall(string name, CatalogInstall install)
+    {
+        string text = $"{name} · {install.Item.Type.ToDisplayName()}";
+        int deps = install.InstalledDependencies.Count;
+        return deps == 0 ? text : $"{text}  ·  +{deps} dependenc{(deps == 1 ? "y" : "ies")}";
     }
 
     private async void MarkInstalledFromLibrary()
@@ -307,10 +322,18 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
         }
     }
 
-    private GameVersion ResolveTargetVersion()
+    /// <summary>A concrete install target (selected version, else newest installed); null when nothing is installed.</summary>
+    private GameVersion? ResolveTargetVersion() => ActiveProfile.Target(_settings.Current, _inventory);
+
+    // Mods install even for a version that isn't set up yet (the user may be pre-staging) — but say so.
+    private void WarnIfVersionNotInstalled(GameVersion target)
     {
-        string selected = _settings.Current.SelectedVersion;
-        return GameVersion.Parse(selected is "all" or "" ? "1.21.4" : selected);
+        if (!_inventory.IsVersionInstalled(target))
+        {
+            _bus.Publish(new ToastMessage("Heads up",
+                $"Installed for {target}, but that Minecraft version isn't set up in your launcher yet — it won't load until you install it.",
+                ToastKind.Warning));
+        }
     }
 
     public void Dispose() => _debounce?.Dispose();

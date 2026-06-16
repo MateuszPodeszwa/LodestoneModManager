@@ -14,7 +14,7 @@ namespace Lodestone.App.Services;
 /// </summary>
 public sealed class VelopackAppUpdater : IAppUpdater
 {
-    private const string RepositoryUrl = "https://github.com/MateuszPodeszwa/lodestone-mod-manager";
+    private const string RepositoryUrl = "https://github.com/MateuszPodeszwa/LodestoneModManager";
     private UpdateInfo? _pending;
 
     public string CurrentVersion
@@ -34,8 +34,23 @@ public sealed class VelopackAppUpdater : IAppUpdater
                 // not Velopack-installed — fall back to the assembly version
             }
 
-            return Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0";
+            return AssemblyVersion();
         }
+    }
+
+    // The informational version carries the semver pre-release suffix (e.g. "0.1.0-beta"), unlike
+    // GetName().Version which is numeric-only. Strip any "+build" metadata the SDK appends.
+    private static string AssemblyVersion()
+    {
+        Assembly assembly = Assembly.GetExecutingAssembly();
+        string? informational = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        if (!string.IsNullOrWhiteSpace(informational))
+        {
+            int plus = informational.IndexOf('+', StringComparison.Ordinal);
+            return plus >= 0 ? informational[..plus] : informational;
+        }
+
+        return assembly.GetName().Version?.ToString(3) ?? "0.0.0";
     }
 
     public async Task<Result<UpdateCheckResult>> CheckAsync(UpdateChannel channel, CancellationToken ct = default)

@@ -169,9 +169,12 @@
                         <Border Width="40" Height="40" CornerRadius="20" Background="{StaticResource AccentSoftBrush}" HorizontalAlignment="Center">
                             <Path Width="20" Height="20" Stretch="Uniform" Stroke="{StaticResource AccentBrush}" StrokeThickness="2.2" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M5 12l4 4 10-10" />
                         </Border>
-                        <TextBlock Text="You're all caught up" FontSize="13.5" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" HorizontalAlignment="Center" Margin="0,10,0,0" />
-                        <TextBlock Text="Every mod is on its latest version." FontSize="12" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,3,0,0" />
+                        <TextBlock Text="{Binding UpdatesEmptyTitle}" FontSize="13.5" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" HorizontalAlignment="Center" Margin="0,10,0,0" />
+                        <TextBlock Text="{Binding UpdatesEmptySubtitle}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="0,3,0,0" />
                     </StackPanel>
+                    <Button Style="{StaticResource SecondaryButton}" Command="{Binding CheckForUpdatesCommand}"
+                            Content="{Binding CheckUpdatesLabel}" Margin="0,14,0,0"
+                            IsEnabled="{Binding IsCheckingUpdates, Converter={StaticResource InvBool}}" />
                 </StackPanel>
             </Border>
         </Grid>

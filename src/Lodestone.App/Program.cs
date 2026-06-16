@@ -1,3 +1,5 @@
+using System.IO;
+using Lodestone.Infrastructure.Persistence;
 using Velopack;
 
 namespace Lodestone.App;
@@ -12,7 +14,26 @@ internal static class Program
     [STAThread]
     public static void Main()
     {
-        VelopackApp.Build().Run();
+        VelopackApp.Build()
+            // On uninstall, drop the supporter token so a reinstall requires re-pasting a fresh code.
+            .OnBeforeUninstallFastCallback(_ => TryDeleteEntitlements())
+            .Run();
         App.Main();
+    }
+
+    private static void TryDeleteEntitlements()
+    {
+        try
+        {
+            string path = LodestonePaths.EntitlementsFile;
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // Best effort: uninstall must never fail because of our data file.
+        }
     }
 }

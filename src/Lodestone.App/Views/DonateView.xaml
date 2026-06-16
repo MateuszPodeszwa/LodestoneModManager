@@ -2,90 +2,150 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              FontFamily="{StaticResource AppFont}">
+    <UserControl.Resources>
+        <!-- A single perk row: green check + wrapping label. -->
+        <Style x:Key="PerkRow" TargetType="StackPanel">
+            <Setter Property="Orientation" Value="Horizontal" />
+            <Setter Property="Margin" Value="0,0,0,9" />
+        </Style>
+        <Style x:Key="PerkCheck" TargetType="Path">
+            <Setter Property="Width" Value="15" />
+            <Setter Property="Height" Value="15" />
+            <Setter Property="Margin" Value="0,2,0,0" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Stretch" Value="Uniform" />
+            <Setter Property="Stroke" Value="{StaticResource AccentBrush}" />
+            <Setter Property="StrokeThickness" Value="2.4" />
+            <Setter Property="StrokeLineJoin" Value="Round" />
+            <Setter Property="StrokeStartLineCap" Value="Round" />
+            <Setter Property="Data" Value="M5 12l4 4 10-10" />
+        </Style>
+        <Style x:Key="PerkText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="#FFC2C2C8" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="9,0,0,0" />
+        </Style>
+        <Style x:Key="StepNumber" TargetType="Border">
+            <Setter Property="Width" Value="26" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+        </Style>
+        <Style x:Key="StepNumberText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="StepText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13.5" />
+            <Setter Property="Foreground" Value="{StaticResource TextBodyBrush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="12,0,0,0" />
+        </Style>
+    </UserControl.Resources>
+
     <StackPanel Margin="36,30" MaxWidth="840" HorizontalAlignment="Left">
 
+        <!-- Header (always shown) -->
         <StackPanel Orientation="Horizontal">
             <Border Width="46" Height="46" CornerRadius="12" Background="{StaticResource PinkSoftBrush}">
                 <Path Width="24" Height="24" Stretch="Uniform" Stroke="{StaticResource PinkBrush}" StrokeThickness="1.8" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M12 20s-7-4.7-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.3-7 10-7 10Z" />
             </Border>
             <StackPanel Margin="13,0,0,0" VerticalAlignment="Center">
-                <TextBlock Text="Lodestone is free — and always will be" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
-                <TextBlock Text="No ads, no paywalls, no locked features. Donations fund development and hosting." FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0" />
+                <TextBlock Text="Support Lodestone" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Lodestone is free and always will be — every feature, for everyone." FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0" />
             </StackPanel>
         </StackPanel>
 
-        <Border Style="{StaticResource SegmentBar}" HorizontalAlignment="Left" Margin="0,24,0,0">
-            <StackPanel Orientation="Horizontal">
-                <RadioButton GroupName="Cycle" Style="{StaticResource Segment}" Content="One-time" IsChecked="{Binding DonateCycle, Converter={StaticResource Equals}, ConverterParameter=once, Mode=TwoWay}" />
-                <RadioButton GroupName="Cycle" Style="{StaticResource Segment}" Content="Monthly" IsChecked="{Binding DonateCycle, Converter={StaticResource Equals}, ConverterParameter=monthly, Mode=TwoWay}" />
-            </StackPanel>
-        </Border>
+        <!-- ============ NOT A SUPPORTER ============ -->
+        <StackPanel Visibility="{Binding IsNotSupporter, Converter={StaticResource BoolToVis}}">
 
-        <ItemsControl ItemsSource="{Binding Tiers}" Margin="0,18,0,0">
-            <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="3" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Grid Margin="7,10,7,0">
-                        <Border CornerRadius="14" Background="{StaticResource CardBgBrush}" Padding="20,22" BorderThickness="1">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Featured}" Value="True">
-                                            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                            <StackPanel>
-                                <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="#FFEAEAEC" />
-                                <TextBlock Text="{Binding Tag}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" Margin="0,2,0,0" />
-                                <TextBlock Text="{Binding AmountLabel}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,14,0,16" />
-                                <ItemsControl ItemsSource="{Binding Perks}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,9">
-                                                <Path Width="15" Height="15" Margin="0,2,0,0" VerticalAlignment="Top" Stretch="Uniform" Stroke="{StaticResource AccentBrush}" StrokeThickness="2.4" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M5 12l4 4 10-10" />
-                                                <TextBlock Text="{Binding}" FontSize="13" Foreground="#FFC2C2C8" TextWrapping="Wrap" Margin="9,0,0,0" />
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                                <Button Content="{Binding ButtonLabel}" Style="{StaticResource PrimaryButton}" Margin="0,18,0,0"
-                                        Command="{Binding DataContext.DonateCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
-                            </StackPanel>
-                        </Border>
-                        <Border Background="{StaticResource AccentBrush}" CornerRadius="999" Padding="11,4" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,-10,0,0"
-                                Visibility="{Binding Featured, Converter={StaticResource BoolToVis}}">
-                            <TextBlock Text="MOST POPULAR" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource AccentTextBrush}" />
-                        </Border>
+            <!-- Patreon promo + CTA -->
+            <Border Style="{StaticResource Card}" Padding="22,20" Margin="0,22,0,0">
+                <StackPanel>
+                    <TextBlock Text="Become a patron on Patreon" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock TextWrapping="Wrap" FontSize="13.5" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,7,0,14"
+                               Text="Pledge any amount to fund development and hosting. Every patron — current or past, at any tier — unlocks the supporter perks below. Cancel any time; you keep them." />
+                    <StackPanel Style="{StaticResource PerkRow}"><Path Style="{StaticResource PerkCheck}" /><TextBlock Style="{StaticResource PerkText}" Text="Supporter badge in the app" /></StackPanel>
+                    <StackPanel Style="{StaticResource PerkRow}"><Path Style="{StaticResource PerkCheck}" /><TextBlock Style="{StaticResource PerkText}" Text="Exclusive accent themes" /></StackPanel>
+                    <StackPanel Style="{StaticResource PerkRow}"><Path Style="{StaticResource PerkCheck}" /><TextBlock Style="{StaticResource PerkText}" Text="Early access to beta builds" /></StackPanel>
+                    <StackPanel Style="{StaticResource PerkRow}"><Path Style="{StaticResource PerkCheck}" /><TextBlock Style="{StaticResource PerkText}" Text="Priority support" /></StackPanel>
+                    <Button Content="Become a patron" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Command="{Binding OpenPatreonCommand}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Tutorial -->
+            <Border Style="{StaticResource Card}" Padding="22,20" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="Unlock your perks in 4 steps" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4" />
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Border Style="{StaticResource StepNumber}"><TextBlock Style="{StaticResource StepNumberText}" Text="1" /></Border>
+                        <TextBlock Style="{StaticResource StepText}" Text="Join on Patreon (any tier)." />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Border Style="{StaticResource StepNumber}"><TextBlock Style="{StaticResource StepNumberText}" Text="2" /></Border>
+                        <TextBlock Style="{StaticResource StepText}" Text="Open our website and sign in with Patreon to verify your pledge." />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Border Style="{StaticResource StepNumber}"><TextBlock Style="{StaticResource StepNumberText}" Text="3" /></Border>
+                        <TextBlock Style="{StaticResource StepText}" Text="Copy the code it generates — it's valid for one hour." />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Border Style="{StaticResource StepNumber}"><TextBlock Style="{StaticResource StepNumberText}" Text="4" /></Border>
+                        <TextBlock Style="{StaticResource StepText}" Text="Paste it below and redeem. Done — your perks stay unlocked." />
+                    </StackPanel>
+                    <Button Content="Open the supporter page" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left" Margin="38,16,0,0" Command="{Binding OpenWebsiteCommand}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Redeem -->
+            <Border Style="{StaticResource Card}" Padding="18,16" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="Redeem your supporter code" FontSize="13.5" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="10" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" Style="{StaticResource DarkTextBox}" Text="{Binding RedeemCode, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Grid.Column="2" Content="Redeem code" Style="{StaticResource PrimaryButton}" Command="{Binding RedeemCommand}" />
                     </Grid>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+                </StackPanel>
+            </Border>
 
-        <!-- Info banner -->
-        <Border CornerRadius="11" Background="{StaticResource AccentFaintBrush}" BorderBrush="#335AC26D" BorderThickness="1" Padding="18,15" Margin="0,18,0,0">
-            <StackPanel Orientation="Horizontal">
-                <Path Width="18" Height="18" VerticalAlignment="Top" Stretch="Uniform" Stroke="{StaticResource AccentBrush}" StrokeThickness="1.8" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z M12 8h.01 M11 12h1v4h1" />
-                <TextBlock Text="Every feature in Lodestone is free for everyone. Donations are entirely optional and will never gate functionality — supporters just get a few cosmetic perks and our thanks." FontSize="13" Foreground="#FFB6C9BA" TextWrapping="Wrap" Margin="11,0,0,0" />
-            </StackPanel>
-        </Border>
+            <!-- Info banner -->
+            <Border CornerRadius="11" Background="{StaticResource AccentFaintBrush}" BorderBrush="#335AC26D" BorderThickness="1" Padding="18,15" Margin="0,16,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <Path Width="18" Height="18" VerticalAlignment="Top" Stretch="Uniform" Stroke="{StaticResource AccentBrush}" StrokeThickness="1.8" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z M12 8h.01 M11 12h1v4h1" />
+                    <TextBlock Text="Supporter perks are cosmetic and convenience only — nothing about managing your mods is ever locked behind a payment." FontSize="13" Foreground="#FFB6C9BA" TextWrapping="Wrap" Margin="11,0,0,0" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
 
-        <!-- Redeem -->
-        <Border Style="{StaticResource Card}" Padding="18,16" Margin="0,18,0,0">
-            <StackPanel>
-                <TextBlock Text="{Binding SupporterStatusLabel}" FontSize="13.5" Foreground="{StaticResource TextBodyBrush}" TextWrapping="Wrap" />
-                <Grid Margin="0,12,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="10" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" Style="{StaticResource DarkTextBox}" Text="{Binding RedeemCode, UpdateSourceTrigger=PropertyChanged}" />
-                    <Button Grid.Column="2" Content="Redeem code" Style="{StaticResource PrimaryButton}" Command="{Binding RedeemCommand}" />
-                </Grid>
-            </StackPanel>
-        </Border>
+        <!-- ============ SUPPORTER (thank you) ============ -->
+        <StackPanel Visibility="{Binding IsSupporter, Converter={StaticResource BoolToVis}}">
+            <Border Style="{StaticResource Card}" Padding="24,22" Margin="0,22,0,0" BorderBrush="{StaticResource AccentBrush}">
+                <StackPanel>
+                    <TextBlock Text="{Binding ThanksHeadline}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="Your support keeps Lodestone free for everyone. Here's what's unlocked:" FontSize="13.5" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,0,16" />
+                    <StackPanel Style="{StaticResource PerkRow}"><Path Style="{StaticResource PerkCheck}" /><TextBlock Style="{StaticResource PerkText}" Text="Supporter badge in the title bar" /></StackPanel>
+                    <StackPanel Style="{StaticResource PerkRow}"><Path Style="{StaticResource PerkCheck}" /><TextBlock Style="{StaticResource PerkText}" Text="Exclusive accent themes (Settings → Appearance)" /></StackPanel>
+                    <StackPanel Style="{StaticResource PerkRow}"><Path Style="{StaticResource PerkCheck}" /><TextBlock Style="{StaticResource PerkText}" Text="Early access to beta builds (Settings → Mods &amp; updates)" /></StackPanel>
+                    <StackPanel Style="{StaticResource PerkRow}"><Path Style="{StaticResource PerkCheck}" /><TextBlock Style="{StaticResource PerkText}" Text="Priority support" /></StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button Content="Visit our website" Style="{StaticResource PrimaryButton}" Command="{Binding OpenWebsiteCommand}" />
+                        <Button Content="Priority support" Style="{StaticResource SecondaryButton}" Margin="10,0,0,0" Command="{Binding OpenPrioritySupportCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            <Button Content="Remove supporter code" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left" Margin="0,14,0,0" Command="{Binding RemoveCodeCommand}" />
+        </StackPanel>
+
     </StackPanel>
 </UserControl>

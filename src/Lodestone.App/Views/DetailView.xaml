@@ -1,7 +1,7 @@
 <UserControl x:Class="Lodestone.App.Views.DetailView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mdxaml="clr-namespace:MdXaml;assembly=MdXaml"
+             xmlns:controls="clr-namespace:Lodestone.App.Controls"
              FontFamily="{StaticResource AppFont}">
     <Grid Background="#9E08080B">
         <!-- click-outside to close -->
@@ -59,9 +59,9 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Markdown (and inline HTML) description rendered to a FlowDocument -->
-                        <mdxaml:MarkdownScrollViewer Markdown="{Binding Description}" Margin="0,16,0,0" MaxHeight="300"
-                                                     Foreground="#FFD2D2D8" Background="Transparent" />
+                        <!-- Web-authored Markdown+HTML description rendered with full fidelity in a
+                             hardened WebView2 (Markdig → themed HTML). Fixed height; it scrolls internally. -->
+                        <controls:MarkdownWebView Markdown="{Binding Description}" Height="300" Margin="0,16,0,0" />
 
                         <ItemsControl ItemsSource="{Binding Chips}" Margin="0,14,0,0">
                             <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>

@@ -124,10 +124,13 @@
         <Setter Property="Foreground" Value="{StaticResource TextBodyBrush}" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="Medium" />
+        <!-- Default chrome padding; honoured via TemplateBinding so compact buttons (e.g. the ± steppers,
+             which set Padding="0") aren't squeezed to zero content width and lose their glyph. -->
+        <Setter Property="Padding" Value="15,8" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="bg" Background="#0AFFFFFF" CornerRadius="8" Padding="15,8"
+                    <Border x:Name="bg" Background="#0AFFFFFF" CornerRadius="8" Padding="{TemplateBinding Padding}"
                             BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>

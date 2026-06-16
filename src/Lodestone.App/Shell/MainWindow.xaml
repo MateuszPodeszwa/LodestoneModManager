@@ -4,6 +4,7 @@
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         xmlns:views="clr-namespace:Lodestone.App.Views"
         Title="Lodestone — Mod Manager"
+        Icon="pack://application:,,,/Assets/lodestone.ico"
         Width="1360" Height="880" MinWidth="940" MinHeight="600"
         WindowStartupLocation="CenterScreen" WindowStyle="None"
         Background="{StaticResource WindowBgBrush}"

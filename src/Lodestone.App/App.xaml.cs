@@ -53,8 +53,13 @@ public partial class App : System.Windows.Application
         _provider = services.BuildServiceProvider();
 
         // Load persisted state up front so view models read real values in their constructors.
-        await _provider.GetRequiredService<ISettingsStore>().LoadAsync();
+        ISettingsStore settingsStore = _provider.GetRequiredService<ISettingsStore>();
+        await settingsStore.LoadAsync();
         await _provider.GetRequiredService<IEntitlementStore>().LoadAsync();
+
+        // Apply the saved accent (a supporter perk) before any view loads, so it renders themed from the
+        // first frame. AccentApplier ignores a custom accent when the user isn't a supporter.
+        AccentApplier.Apply(settingsStore.Current.AccentColor, _provider.GetRequiredService<SupporterService>().IsSupporter);
 
         var main = _provider.GetRequiredService<MainViewModel>();
         var window = _provider.GetRequiredService<MainWindow>();

@@ -29,8 +29,24 @@
                                 <RadioButton GroupName="Loader" Style="{StaticResource Segment}" Content="Fabric" IsChecked="{Binding Loader, Converter={StaticResource Equals}, ConverterParameter=fabric, Mode=TwoWay}" />
                                 <RadioButton GroupName="Loader" Style="{StaticResource Segment}" Content="Forge" IsChecked="{Binding Loader, Converter={StaticResource Equals}, ConverterParameter=forge, Mode=TwoWay}" />
                                 <RadioButton GroupName="Loader" Style="{StaticResource Segment}" Content="Quilt" IsChecked="{Binding Loader, Converter={StaticResource Equals}, ConverterParameter=quilt, Mode=TwoWay}" />
+                                <RadioButton GroupName="Loader" Style="{StaticResource Segment}" Content="NeoForge" IsChecked="{Binding Loader, Converter={StaticResource Equals}, ConverterParameter=neoforge, Mode=TwoWay}" />
                             </StackPanel>
                         </Border>
+                    </Grid>
+                </Border>
+                <Border BorderBrush="{StaticResource BorderFaintBrush}" BorderThickness="0,1,0,0">
+                    <Grid Margin="18,16">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Loader version" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                            <TextBlock Text="Pick the Minecraft version, then install or update Fabric/Quilt for it." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" IsEnabled="{Binding IsGameReady}">
+                            <TextBlock Text="Minecraft" FontSize="12.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                            <ComboBox Width="120" Style="{StaticResource DarkComboBox}" ItemContainerStyle="{StaticResource DarkComboBoxItem}"
+                                      ItemsSource="{Binding GameVersions}" SelectedItem="{Binding LoaderGameVersion, Mode=TwoWay}" Margin="0,0,10,0" />
+                            <Button Content="{Binding UpdateLoaderLabel}" Style="{StaticResource SecondaryButton}"
+                                    Command="{Binding UpdateLoaderCommand}" />
+                        </StackPanel>
                     </Grid>
                 </Border>
             </StackPanel>
@@ -59,6 +75,21 @@
                 <Border BorderBrush="{StaticResource BorderFaintBrush}" BorderThickness="0,1,0,0">
                     <Grid Margin="18,16">
                         <StackPanel VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Early access" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                                <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="999" Padding="7,2" Margin="9,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="SUPPORTER" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" />
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="Get beta builds before everyone else. Unlocked for supporters." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
+                        </StackPanel>
+                        <ToggleButton Style="{StaticResource ToggleSwitch}" HorizontalAlignment="Right" IsChecked="{Binding EarlyAccess, Mode=TwoWay}"
+                                      IsEnabled="{Binding CanUseEarlyAccess}" ToolTip="Unlocked for supporters" />
+                    </Grid>
+                </Border>
+                <Border BorderBrush="{StaticResource BorderFaintBrush}" BorderThickness="0,1,0,0">
+                    <Grid Margin="18,16">
+                        <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="Concurrent downloads" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
                             <TextBlock Text="How many files to download at the same time." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
                         </StackPanel>
@@ -70,6 +101,44 @@
                     </Grid>
                 </Border>
             </StackPanel>
+        </Border>
+
+        <!-- APPEARANCE -->
+        <TextBlock Text="APPEARANCE" Style="{StaticResource SectionLabel}" />
+        <Border Style="{StaticResource Card}">
+            <Grid Margin="18,16">
+                <StackPanel VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Accent colour" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                        <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="999" Padding="7,2" Margin="9,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="SUPPORTER" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" />
+                        </Border>
+                    </StackPanel>
+                    <TextBlock Text="Personalise the app. Extra colours are unlocked for supporters." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
+                </StackPanel>
+                <ItemsControl ItemsSource="{Binding Accents}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Width="34" Height="34" Margin="6,0,0,0" Cursor="Hand" ToolTip="{Binding Name}"
+                                    Command="{Binding DataContext.SelectAccentCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Grid>
+                                            <Ellipse Stroke="{StaticResource AccentBrush}" StrokeThickness="2"
+                                                     Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}}" />
+                                            <Ellipse Fill="{Binding Swatch}" Margin="4" />
+                                            <Ellipse Fill="#AA15151A" Margin="4"
+                                                     Visibility="{Binding IsLocked, Converter={StaticResource BoolToVis}}" />
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
         </Border>
 
         <!-- SOURCES & APP -->

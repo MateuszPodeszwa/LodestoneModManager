@@ -24,9 +24,12 @@ public sealed partial class LibraryViewModel : ObservableObject
     private readonly ISettingsStore _settings;
     private readonly IMessageBus _bus;
     private readonly IUiDispatcher _ui;
+    private readonly IGameInventory _inventory;
 
     private IReadOnlyList<InstalledContent> _all = [];
+    private IReadOnlyList<GameVersion> _installedVersions = [];
     private IReadOnlyDictionary<string, CompatibilityReport> _reports = new Dictionary<string, CompatibilityReport>();
+    private bool _suppressReload;
 
     public LibraryViewModel(
         IInstalledContentRepository repository,
@@ -35,7 +38,8 @@ public sealed partial class LibraryViewModel : ObservableObject
         UninstallContentUseCase uninstall,
         ISettingsStore settings,
         IMessageBus bus,
-        IUiDispatcher ui)
+        IUiDispatcher ui,
+        IGameInventory inventory)
     {
         _repository = repository;
         _compatibility = compatibility;
@@ -44,11 +48,13 @@ public sealed partial class LibraryViewModel : ObservableObject
         _settings = settings;
         _bus = bus;
         _ui = ui;
+        _inventory = inventory;
         _mcVersion = settings.Current.SelectedVersion;
         bus.Subscribe<LibraryChanged>(m => _ui.Post(() => _ = LoadAsync()));
     }
 
-    public ObservableCollection<string> Versions { get; } = ["all", "1.21.4", "1.21.1", "1.20.1", "1.19.2"];
+    /// <summary>The version filter options: "All versions" plus whatever is actually installed (newest first).</summary>
+    public ObservableCollection<string> Versions { get; } = ["all"];
 
     public ObservableCollection<ContentItemViewModel> Items { get; } = [];
 
@@ -64,22 +70,71 @@ public sealed partial class LibraryViewModel : ObservableObject
 
     partial void OnMcVersionChanged(string value)
     {
+        // A transient null/empty can arrive while the dropdown's ItemsSource is being rebuilt — ignore it.
+        if (string.IsNullOrEmpty(value))
+        {
+            return;
+        }
+
         LodestoneSettings updated = _settings.Current.Clone();
         updated.SelectedVersion = value;
         _ = _settings.SaveAsync(updated);
-        _ = LoadAsync();
+
+        if (!_suppressReload)
+        {
+            _ = LoadAsync();
+        }
     }
 
     public async Task LoadAsync()
     {
         _all = await _repository.GetAllAsync().ConfigureAwait(true);
+        RefreshVersionOptions();
 
-        GameVersion? activeVersion = _mcVersion is "all" or ""
-            ? null
-            : GameVersion.Create(_mcVersion).Match<GameVersion?>(v => v, _ => null);
+        GameVersion? activeVersion = ActiveProfile.Selected(_settings.Current);
 
-        _reports = _compatibility.Analyze(new CompatibilityContext(_all, activeVersion, _settings.Current.DefaultLoader));
+        _reports = _compatibility.Analyze(new CompatibilityContext(_all, activeVersion, _settings.Current.DefaultLoader)
+        {
+            InstalledGameVersions = _installedVersions,
+        });
         Rebuild();
+    }
+
+    // Rebuilds the dropdown from the installed versions and repairs a stale stored selection — so the
+    // list only ever offers versions the user actually has, never the old hardcoded set.
+    private void RefreshVersionOptions()
+    {
+        _installedVersions = _inventory.InstalledVersions();
+
+        var desired = new List<string> { "all" };
+        desired.AddRange(_installedVersions.Select(v => v.Value));
+
+        bool installedSelection =
+            _installedVersions.Any(v => v.Value.Equals(_mcVersion, StringComparison.OrdinalIgnoreCase));
+        string target = _mcVersion == "all" || installedSelection
+            ? _mcVersion
+            : _installedVersions.Count > 0 ? _installedVersions[0].Value : "all";
+
+        _suppressReload = true;
+        try
+        {
+            if (!Versions.SequenceEqual(desired, StringComparer.OrdinalIgnoreCase))
+            {
+                Versions.Clear();
+                foreach (string version in desired)
+                {
+                    Versions.Add(version);
+                }
+            }
+
+            // Re-assert the selection (the rebuild above can clear the bound SelectedItem) and persist
+            // a repaired value when the previous selection is no longer installed.
+            McVersion = target;
+        }
+        finally
+        {
+            _suppressReload = false;
+        }
     }
 
     private void Rebuild()
