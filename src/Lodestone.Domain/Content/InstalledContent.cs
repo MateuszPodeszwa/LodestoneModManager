@@ -55,6 +55,9 @@ public sealed class InstalledContent
     /// <summary>Mod-ids/slugs this item itself provides, so other items' dependencies can resolve to it.</summary>
     public IReadOnlyList<string> ProvidedIds { get; set; } = [];
 
+    /// <summary>True when this is a support library (e.g. Fabric API) — used to flag unused libraries.</summary>
+    public bool IsLibrary { get; set; }
+
     public bool UpdateAvailable { get; set; }
 
     /// <summary>True if this item declares support for <paramref name="version"/>.</summary>

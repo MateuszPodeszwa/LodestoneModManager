@@ -1,0 +1,106 @@
+using Lodestone.Application.Abstractions;
+using Lodestone.Application.Catalog;
+using Lodestone.Application.Settings;
+using Lodestone.Domain;
+using Lodestone.Domain.Common;
+
+namespace Lodestone.Application.UseCases;
+
+public sealed record UpdateSummary(int UpdatesAvailable, int Updated);
+
+/// <summary>
+/// Checks every catalog-sourced item for a newer compatible build. Runs only when invoked — on app
+/// start and on manual refresh — never on a timer. When auto-update is on, enabled items are updated
+/// in place; otherwise they are flagged so the UI can badge them.
+/// </summary>
+public sealed class RefreshUpdatesUseCase
+{
+    private readonly IInstalledContentRepository _repository;
+    private readonly IModSourceRegistry _registry;
+    private readonly IVersionResolver _resolver;
+    private readonly IUpdateContentUseCase _updateContent;
+    private readonly ISettingsStore _settings;
+
+    public RefreshUpdatesUseCase(
+        IInstalledContentRepository repository,
+        IModSourceRegistry registry,
+        IVersionResolver resolver,
+        IUpdateContentUseCase updateContent,
+        ISettingsStore settings)
+    {
+        _repository = repository;
+        _registry = registry;
+        _resolver = resolver;
+        _updateContent = updateContent;
+        _settings = settings;
+    }
+
+    public async Task<Result<UpdateSummary>> ExecuteAsync(GameVersion? activeVersion, CancellationToken ct = default)
+    {
+        IReadOnlyList<InstalledContent> items = await _repository.GetAllAsync(ct).ConfigureAwait(false);
+        int available = 0;
+        int updated = 0;
+
+        foreach (InstalledContent item in items)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            if (string.IsNullOrWhiteSpace(item.ProjectId) || item.Source is not ("modrinth" or "curseforge"))
+            {
+                continue;
+            }
+
+            IModSource? source = _registry.Find(item.Source);
+            if (source is null || !source.IsConfigured)
+            {
+                continue;
+            }
+
+            Result<IReadOnlyList<ProjectVersion>> versions =
+                await source.GetVersionsAsync(item.ProjectId!, ct).ConfigureAwait(false);
+            if (versions.IsFailure)
+            {
+                continue; // one source hiccup must not fail the whole refresh
+            }
+
+            GameVersion? checkVersion = activeVersion ?? item.GameVersions.OrderByDescending(v => v).FirstOrDefault();
+            if (checkVersion is null)
+            {
+                continue;
+            }
+
+            ProjectVersion? latest = _resolver.Resolve(versions.Value, checkVersion, item.Loader);
+            if (latest is null)
+            {
+                continue;
+            }
+
+            bool isNewer = VersionComparer.IsNewer(latest.VersionNumber, item.Version);
+            if (isNewer)
+            {
+                available++;
+
+                if (_settings.Current.AutoUpdate && item.Enabled)
+                {
+                    Result applied = await _updateContent.ApplyAsync(item, latest, null, ct).ConfigureAwait(false);
+                    if (applied.IsSuccess)
+                    {
+                        updated++;
+                        available--; // it's been handled, so no longer "available"
+                        continue;
+                    }
+                }
+
+                item.UpdateAvailable = true;
+                await _repository.UpsertAsync(item, ct).ConfigureAwait(false);
+            }
+            else if (item.UpdateAvailable)
+            {
+                item.UpdateAvailable = false;
+                await _repository.UpsertAsync(item, ct).ConfigureAwait(false);
+            }
+        }
+
+        return new UpdateSummary(available, updated);
+    }
+}
