@@ -112,13 +112,14 @@ public class InstallFromCatalogUseCaseTests
     {
         (InstallFromCatalogUseCase useCase, IInstalledContentRepository repo) = Build([SodiumBuild()]);
 
-        Result<InstalledContent> result =
+        Result<CatalogInstall> result =
             await useCase.ExecuteAsync(Sodium(), GameVersion.Parse("1.21.4"), Loader.Fabric);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Version.ShouldBe("0.5.8");
-        result.Value.ProjectId.ShouldBe("sodium");
-        result.Value.Sha512.ShouldBe("deadbeef");
+        result.Value.Item.Version.ShouldBe("0.5.8");
+        result.Value.Item.ProjectId.ShouldBe("sodium");
+        result.Value.Item.Sha512.ShouldBe("deadbeef");
+        result.Value.InstalledDependencies.ShouldBeEmpty();
         await repo.Received(1).UpsertAsync(Arg.Any<InstalledContent>(), Arg.Any<CancellationToken>());
     }
 
@@ -127,7 +128,7 @@ public class InstallFromCatalogUseCaseTests
     {
         (InstallFromCatalogUseCase useCase, _) = Build([SodiumBuild()], existing: Make.Mod("sodium"));
 
-        Result<InstalledContent> result =
+        Result<CatalogInstall> result =
             await useCase.ExecuteAsync(Sodium(), GameVersion.Parse("1.21.4"), Loader.Fabric);
 
         result.IsFailure.ShouldBeTrue();
@@ -139,11 +140,72 @@ public class InstallFromCatalogUseCaseTests
     {
         (InstallFromCatalogUseCase useCase, _) = Build([SodiumBuild(Loader.Forge)]);
 
-        Result<InstalledContent> result =
+        Result<CatalogInstall> result =
             await useCase.ExecuteAsync(Sodium(), GameVersion.Parse("1.21.4"), Loader.Fabric);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.Code.ShouldBe("install.no_compatible_version");
+    }
+
+    [Fact]
+    public async Task Auto_installs_required_dependencies_from_the_source()
+    {
+        var source = Substitute.For<IModSource>();
+        source.IsConfigured.Returns(true);
+
+        // Sodium declares a required dependency on Fabric API (a Modrinth project id).
+        IReadOnlyList<ProjectVersion> sodiumVersions =
+        [
+            new ProjectVersion(
+                "v1", "sodium", "0.5.8", ContentType.Mod,
+                [GameVersion.Parse("1.21.4")], [Loader.Fabric],
+                [new Dependency("fabric-api", DependencyKind.Required)],
+                "sodium-0.5.8.jar", "https://cdn/sodium", "deadbeef", 1.2),
+        ];
+        source.GetVersionsAsync("sodium", Arg.Any<CancellationToken>()).Returns(Result.Success(sodiumVersions));
+
+        var fabricApi = new CatalogProject(
+            "fabric-api", "fabric-api", "Fabric API", "FabricMC", ContentType.Mod, "Hooks",
+            5_000_000, 9_000, ["library"], [Loader.Fabric], [GameVersion.Parse("1.21.4")], "modrinth");
+        source.GetProjectAsync("fabric-api", Arg.Any<CancellationToken>()).Returns(Result.Success(fabricApi));
+
+        IReadOnlyList<ProjectVersion> fabricApiVersions =
+        [
+            new ProjectVersion(
+                "fv1", "fabric-api", "0.100.0", ContentType.Mod,
+                [GameVersion.Parse("1.21.4")], [Loader.Fabric], [],
+                "fabric-api-0.100.0.jar", "https://cdn/fapi", "cafebabe", 2.0),
+        ];
+        source.GetVersionsAsync("fabric-api", Arg.Any<CancellationToken>()).Returns(Result.Success(fabricApiVersions));
+
+        var registry = Substitute.For<IModSourceRegistry>();
+        registry.Find("modrinth").Returns(source);
+        registry.Primary.Returns(source);
+
+        var downloader = Substitute.For<IDownloader>();
+        downloader.DownloadAsync(Arg.Any<DownloadRequest>(), Arg.Any<IProgress<TransferProgress>?>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success(new DownloadedFile(@"C:\tmp\dep.jar", 1_000_000, "filehash")));
+
+        var installer = Substitute.For<IContentInstaller>();
+        installer.PlaceAsync(Arg.Any<string>(), ContentType.Mod, Arg.Any<DuplicateResolution>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success(new PlaceResult("placed.jar", 1_000_000, false)));
+
+        var repo = Substitute.For<IInstalledContentRepository>();
+        repo.FindAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((InstalledContent?)null);
+
+        var settings = Substitute.For<ISettingsStore>();
+        settings.Current.Returns(new LodestoneSettings());
+
+        var useCase = new InstallFromCatalogUseCase(registry, new VersionResolver(), downloader, installer, repo, settings);
+
+        Result<CatalogInstall> result =
+            await useCase.ExecuteAsync(Sodium(), GameVersion.Parse("1.21.4"), Loader.Fabric);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Item.ProjectId.ShouldBe("sodium");
+        result.Value.InstalledDependencies.ShouldContain("Fabric API");
+        await repo.Received(1).UpsertAsync(Arg.Is<InstalledContent>(c => c.Id == "sodium"), Arg.Any<CancellationToken>());
+        await repo.Received(1).UpsertAsync(Arg.Is<InstalledContent>(c => c.Id == "fabric-api"), Arg.Any<CancellationToken>());
     }
 }
 

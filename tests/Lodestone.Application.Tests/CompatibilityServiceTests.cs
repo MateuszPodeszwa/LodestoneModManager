@@ -35,6 +35,38 @@ public class CompatibilityServiceTests
     }
 
     [Fact]
+    public void Outdated_required_dependency_version_is_a_warning()
+    {
+        var iris = Make.Mod("iris", deps: [Make.Requires("fabric-api", ">=0.100.0")], versions: ["1.21.4"]);
+        var fabric = Make.Mod("fabric-api", provides: ["fabric-api"], versions: ["1.21.4"], version: "0.95.0");
+
+        var report = Analyze("iris", iris, fabric);
+
+        report.Issues.ShouldContain(i => i.Kind == CompatibilityKind.OutdatedDependency);
+        report.HighestSeverity.ShouldBe(CompatibilitySeverity.Warning);
+    }
+
+    [Fact]
+    public void Satisfied_dependency_version_range_is_clean()
+    {
+        var iris = Make.Mod("iris", deps: [Make.Requires("fabric-api", ">=0.100.0")], versions: ["1.21.4"]);
+        var fabric = Make.Mod("fabric-api", provides: ["fabric-api"], versions: ["1.21.4"], version: "0.100.3");
+
+        Analyze("iris", iris, fabric).HasIssues.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void Unparseable_dependency_range_is_never_flagged()
+    {
+        // A compound range we don't evaluate must not produce a false positive, even when the
+        // installed version would clearly fail a naive reading of it.
+        var iris = Make.Mod("iris", deps: [Make.Requires("fabric-api", ">=0.90 <0.100")], versions: ["1.21.4"]);
+        var fabric = Make.Mod("fabric-api", provides: ["fabric-api"], versions: ["1.21.4"], version: "0.50.0");
+
+        Analyze("iris", iris, fabric).Issues.ShouldNotContain(i => i.Kind == CompatibilityKind.OutdatedDependency);
+    }
+
+    [Fact]
     public void Required_dependency_present_but_disabled_is_a_warning_not_missing()
     {
         var iris = Make.Mod("iris", deps: [Make.Requires("fabric-api")], versions: ["1.21.4"]);
@@ -97,6 +129,53 @@ public class CompatibilityServiceTests
 
         var pack = Make.Pack("faithful", versions: ["1.21.4"]);
         Analyze("faithful", GameVersion.Parse("1.21.4"), Loader.Fabric, pack).HasIssues.ShouldBeFalse();
+    }
+
+    // Isolates the GameVersionNotInstalled rule: "All versions" view + Loader.None silences the
+    // version-mismatch and loader-mismatch rules, so only the installed-versions check can fire.
+    private static CompatibilityReport AnalyzeInstalled(string id, string[] installed, params InstalledContent[] items)
+        => Service.Analyze(new CompatibilityContext(items, null, Loader.None)
+        {
+            InstalledGameVersions = installed.Select(GameVersion.Parse).ToList(),
+        })[id];
+
+    [Fact]
+    public void Content_built_only_for_an_uninstalled_version_is_a_warning()
+    {
+        var sodium = Make.Mod("sodium", versions: ["1.21.4"]);
+
+        var report = AnalyzeInstalled("sodium", ["1.20.1"], sodium);
+
+        report.Issues.ShouldContain(i => i.Kind == CompatibilityKind.GameVersionNotInstalled);
+        report.HighestSeverity.ShouldBe(CompatibilitySeverity.Warning);
+    }
+
+    [Fact]
+    public void Content_runnable_on_an_installed_version_is_clean()
+    {
+        var sodium = Make.Mod("sodium", versions: ["1.21.4", "1.20.1"]);
+
+        AnalyzeInstalled("sodium", ["1.20.1"], sodium).Issues
+            .ShouldNotContain(i => i.Kind == CompatibilityKind.GameVersionNotInstalled);
+    }
+
+    [Fact]
+    public void Not_installed_check_stays_silent_when_the_installed_set_is_unknown()
+    {
+        var sodium = Make.Mod("sodium", versions: ["1.21.4"]);
+
+        // Empty installed set = "we don't know what's installed" → never flagged.
+        AnalyzeInstalled("sodium", [], sodium).Issues
+            .ShouldNotContain(i => i.Kind == CompatibilityKind.GameVersionNotInstalled);
+    }
+
+    [Fact]
+    public void Not_installed_check_stays_silent_when_the_item_declares_no_versions()
+    {
+        var mystery = Make.Mod("mystery", versions: []);
+
+        AnalyzeInstalled("mystery", ["1.20.1"], mystery).Issues
+            .ShouldNotContain(i => i.Kind == CompatibilityKind.GameVersionNotInstalled);
     }
 
     [Fact]

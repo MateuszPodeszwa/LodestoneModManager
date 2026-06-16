@@ -2,6 +2,7 @@ using Lodestone.Domain;
 
 namespace Lodestone.Application.Settings;
 
+/// <summary>Which release channel the app self-updater follows (Beta is a supporter perk).</summary>
 public enum UpdateChannel
 {
     Stable = 0,
@@ -17,7 +18,10 @@ public sealed class LodestoneSettings
 {
     public const int MinConcurrentDownloads = 1;
     public const int MaxConcurrentDownloads = 6;
-    public const string DefaultSelectedVersion = "1.21.4";
+
+    /// <summary>The "All versions" sentinel — the safe default, since we can't assume any specific
+    /// Minecraft version is installed. The UI resolves a concrete target from the game inventory.</summary>
+    public const string DefaultSelectedVersion = "all";
 
     /// <summary>Bumped when the on-disk shape changes, to drive migrations.</summary>
     public int SchemaVersion { get; set; } = 1;

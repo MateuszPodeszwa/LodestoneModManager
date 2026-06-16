@@ -32,7 +32,7 @@ public sealed class InstallLocalFileUseCase
 
     public async Task<Result<InstalledContent>> ExecuteAsync(
         string filePath,
-        GameVersion targetVersion,
+        GameVersion? targetVersion,
         CancellationToken ct = default)
     {
         Result<LocalContentMetadata> metaResult = await _reader.ReadAsync(filePath, ct).ConfigureAwait(false);
@@ -58,9 +58,10 @@ public sealed class InstallLocalFileUseCase
             ? meta.LoadersOrEmpty.Count > 0 ? meta.LoadersOrEmpty[0] : _settings.Current.DefaultLoader
             : Loader.None;
 
-        // The item supports whatever it declares, plus the profile version the user dropped it onto.
+        // The item supports whatever it declares, plus the profile version the user dropped it onto
+        // (when there is one — with no game version installed yet, we keep only what the file declares).
         var versions = meta.GameVersionsOrEmpty.ToList();
-        if (!versions.Any(v => v.Equals(targetVersion)))
+        if (targetVersion is not null && !versions.Any(v => v.Equals(targetVersion)))
         {
             versions.Add(targetVersion);
         }

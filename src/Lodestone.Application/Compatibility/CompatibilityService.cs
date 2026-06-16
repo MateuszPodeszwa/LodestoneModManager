@@ -49,8 +49,10 @@ public static class CompatibilityRuleSet
     [
         new MissingRequiredDependencyRule(),
         new DisabledDependencyRule(),
+        new DependencyVersionRule(),
         new IncompatibleModRule(),
         new GameVersionMismatchRule(),
+        new GameVersionNotInstalledRule(),
         new LoaderMismatchRule(),
         new DuplicateRule(),
         new OrphanLibraryRule(),

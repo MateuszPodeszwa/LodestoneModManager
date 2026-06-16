@@ -14,11 +14,13 @@ internal static class Make
         Dependency[]? deps = null,
         string[]? provides = null,
         string? projectId = null,
-        bool isLibrary = false)
+        bool isLibrary = false,
+        string? version = null)
         => new(id, name ?? id, ContentType.Mod)
         {
             Enabled = enabled,
             Loader = loader,
+            Version = version ?? "1.0.0",
             GameVersions = (versions ?? []).Select(GameVersion.Parse).ToList(),
             Dependencies = deps ?? [],
             ProvidedIds = provides ?? [id],
@@ -35,7 +37,7 @@ internal static class Make
             GameVersions = (versions ?? []).Select(GameVersion.Parse).ToList(),
         };
 
-    public static Dependency Requires(string id) => new(id, DependencyKind.Required);
+    public static Dependency Requires(string id, string? range = null) => new(id, DependencyKind.Required, VersionRange: range);
 
     public static Dependency Breaks(string id) => new(id, DependencyKind.Incompatible);
 }

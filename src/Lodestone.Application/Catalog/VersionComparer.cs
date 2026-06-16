@@ -40,6 +40,29 @@ public sealed partial class VersionComparer : IComparer<string>
     public static bool IsNewer(string? candidate, string? current)
         => Instance.Compare(candidate, current) > 0;
 
+    /// <summary>
+    /// Compares only the leading numeric components, treating equal numeric parts as equal (no ordinal
+    /// tie-break, unlike <see cref="Compare"/>). Used for version-range satisfaction, where <c>1.0</c>
+    /// and <c>1.0.0</c> must count as the same so an equality bound (<c>&gt;=</c>) isn't falsely failed.
+    /// </summary>
+    public static int CompareNumeric(string? x, string? y)
+    {
+        int[] left = ExtractNumbers(x);
+        int[] right = ExtractNumbers(y);
+        int max = Math.Max(left.Length, right.Length);
+        for (int i = 0; i < max; i++)
+        {
+            int a = i < left.Length ? left[i] : 0;
+            int b = i < right.Length ? right[i] : 0;
+            if (a != b)
+            {
+                return a.CompareTo(b);
+            }
+        }
+
+        return 0;
+    }
+
     private static int[] ExtractNumbers(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))

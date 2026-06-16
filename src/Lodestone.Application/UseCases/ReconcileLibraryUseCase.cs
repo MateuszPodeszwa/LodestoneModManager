@@ -38,7 +38,7 @@ public sealed class ReconcileLibraryUseCase
         _locator = locator;
     }
 
-    public async Task<Result<int>> ExecuteAsync(GameVersion targetVersion, CancellationToken ct = default)
+    public async Task<Result<int>> ExecuteAsync(GameVersion? targetVersion, CancellationToken ct = default)
     {
         if (!_locator.IsValid(_settings.Current.GameDirectory))
         {
@@ -80,9 +80,9 @@ public sealed class ReconcileLibraryUseCase
                     loader = meta is { LoadersOrEmpty.Count: > 0 } ? meta.LoadersOrEmpty[0] : _settings.Current.DefaultLoader;
                 }
 
-                var versions = meta is { GameVersionsOrEmpty.Count: > 0 }
+                List<GameVersion> versions = meta is { GameVersionsOrEmpty.Count: > 0 }
                     ? meta.GameVersionsOrEmpty.ToList()
-                    : [targetVersion];
+                    : targetVersion is not null ? [targetVersion] : [];
 
                 string id = !string.IsNullOrWhiteSpace(meta?.ModId) ? meta!.ModId! : Slug.From(name);
                 if (await _repository.FindAsync(id, ct).ConfigureAwait(false) is not null)

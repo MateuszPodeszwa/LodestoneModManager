@@ -10,7 +10,14 @@ namespace Lodestone.Application.Compatibility;
 public sealed record CompatibilityContext(
     IReadOnlyList<InstalledContent> Items,
     GameVersion? ActiveVersion = null,
-    Loader ActiveLoader = Loader.None);
+    Loader ActiveLoader = Loader.None)
+{
+    /// <summary>
+    /// The base game versions actually installed on disk. Used to flag content that can't run on
+    /// anything the user has installed. Empty means "unknown" — the dependent rule then stays silent.
+    /// </summary>
+    public IReadOnlyList<GameVersion> InstalledGameVersions { get; init; } = [];
+}
 
 /// <summary>
 /// Pre-computed lookups built once per scan so each rule runs in O(n) rather than re-scanning the
