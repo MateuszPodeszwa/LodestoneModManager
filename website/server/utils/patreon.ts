@@ -11,7 +11,6 @@ export interface PatreonConfig {
   clientSecret: string
   redirectUri: string
   campaignId: string
-  allowFormer: boolean
   betaThresholdCents: number
   // The campaign owner isn't a member of their own campaign, so they'd never resolve as a patron.
   // These allowlists (Patreon user ids / emails) grant supporter + beta to the owner and any teammates.
@@ -33,7 +32,6 @@ export function patreonConfig(): PatreonConfig {
     clientSecret: c.patreonClientSecret,
     redirectUri: c.patreonRedirectUri,
     campaignId: c.patreonCampaignId,
-    allowFormer: String(c.patreonAllowFormer) === 'true',
     betaThresholdCents: Number(c.betaThresholdCents) || 700,
     ownerIds: csv(c.patreonOwnerIds),
     ownerEmails: csv(c.patreonOwnerEmails).map((e) => e.toLowerCase()),
@@ -129,9 +127,11 @@ export async function fetchEligibility(accessToken: string): Promise<PatreonElig
   // The owner can't be a patron of their own campaign — grant supporter + beta via the allowlist.
   const isOwner = c.ownerIds.includes(String(user.id)) || (!!email && c.ownerEmails.includes(email.toLowerCase()))
 
+  // A supporter code requires an ACTIVE, paying membership — former/declined patrons
+  // and free followers don't qualify. The owner allowlist still covers the maintainer.
   const isActive = patronStatus === 'active_patron'
-  const isFormer = patronStatus === 'declined_patron' || patronStatus === 'former_patron'
-  const isPatron = isOwner || (!!best && (isActive || (c.allowFormer && isFormer)))
+  const isPaying = currentlyEntitledCents > 0
+  const isPatron = isOwner || (isActive && isPaying)
   const betaAccess = isOwner || (isActive && currentlyEntitledCents >= c.betaThresholdCents)
 
   return {
