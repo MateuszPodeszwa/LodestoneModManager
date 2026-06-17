@@ -35,6 +35,12 @@ jobs:
           # Canonical tag used for the GitHub Release, consistent whether triggered by a tag push
           # (ref_name already "vX.Y.Z") or a manual run (only the bare version is supplied).
           "tag=v$v" >> $env:GITHUB_OUTPUT
+          # A semver pre-release suffix (e.g. 1.3.0-beta.1, 1.3.0-rc.1) marks a patrons-first build:
+          # it's published as a GitHub *pre-release*, so only Beta-channel (supporter) clients pick it up.
+          # Promote to everyone later by cutting a normal vX.Y.Z release.
+          $preFlag = if ($v -match '-') { '--pre' } else { '' }
+          "prerelease=$(if ($v -match '-') { 'true' } else { 'false' })" >> $env:GITHUB_OUTPUT
+          "preFlag=$preFlag" >> $env:GITHUB_OUTPUT
 
       - name: Restore & test
         run: dotnet test Lodestone.slnx --configuration Release
@@ -69,10 +75,14 @@ jobs:
       - name: Publish release to GitHub
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # `--pre` (set only for pre-release versions) marks the GitHub Release as a pre-release, which is
+        # exactly what the app's Beta channel (GithubSource prerelease:true) and the website's
+        # /api/download/beta look for. Stable clients never see it.
         run: >
           vpk upload github
           --repoUrl https://github.com/MateuszPodeszwa/LodestoneModManager
           --publish
+          ${{ steps.ver.outputs.preFlag }}
           --releaseName "Lodestone ${{ steps.ver.outputs.version }}"
           --tag ${{ steps.ver.outputs.tag }}
           --token $env:GITHUB_TOKEN
