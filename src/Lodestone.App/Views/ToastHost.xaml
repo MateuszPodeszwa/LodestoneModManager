@@ -12,7 +12,7 @@
                         <Border Width="24" Height="24" CornerRadius="12" VerticalAlignment="Top">
                             <Border.Style>
                                 <Style TargetType="Border">
-                                    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+                                    <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding Kind}" Value="error"><Setter Property="Background" Value="{StaticResource DangerSoftBrush}" /></DataTrigger>
                                         <DataTrigger Binding="{Binding Kind}" Value="warning"><Setter Property="Background" Value="#24E3B341" /></DataTrigger>
@@ -22,7 +22,7 @@
                             <Path Width="13" Height="13" Stretch="Uniform" StrokeThickness="2.4" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M5 12l4 4 10-10">
                                 <Path.Style>
                                     <Style TargetType="Path">
-                                        <Setter Property="Stroke" Value="{StaticResource AccentBrush}" />
+                                        <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding Kind}" Value="error"><Setter Property="Stroke" Value="{StaticResource DangerBrush}" /></DataTrigger>
                                             <DataTrigger Binding="{Binding Kind}" Value="warning"><Setter Property="Stroke" Value="{StaticResource WarningBrush}" /></DataTrigger>

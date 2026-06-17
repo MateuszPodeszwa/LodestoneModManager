@@ -14,7 +14,7 @@
             <Setter Property="Margin" Value="0,2,0,0" />
             <Setter Property="VerticalAlignment" Value="Top" />
             <Setter Property="Stretch" Value="Uniform" />
-            <Setter Property="Stroke" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
             <Setter Property="StrokeThickness" Value="2.4" />
             <Setter Property="StrokeLineJoin" Value="Round" />
             <Setter Property="StrokeStartLineCap" Value="Round" />
@@ -30,13 +30,13 @@
             <Setter Property="Width" Value="26" />
             <Setter Property="Height" Value="26" />
             <Setter Property="CornerRadius" Value="999" />
-            <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+            <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
             <Setter Property="VerticalAlignment" Value="Top" />
         </Style>
         <Style x:Key="StepNumberText" TargetType="TextBlock">
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
@@ -98,7 +98,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsExpanded" Value="True">
                                 <Setter TargetName="content" Property="Visibility" Value="Visible" />
-                                <Setter TargetName="chevron" Property="Stroke" Value="{StaticResource AccentBrush}" />
+                                <Setter TargetName="chevron" Property="Stroke" Value="{DynamicResource AccentBrush}" />
                                 <Trigger.EnterActions>
                                     <BeginStoryboard>
                                         <Storyboard>
@@ -216,9 +216,9 @@
             </Border>
 
             <!-- Info banner -->
-            <Border CornerRadius="11" Background="{StaticResource AccentFaintBrush}" BorderBrush="{StaticResource AccentBorderBrush}" BorderThickness="1" Padding="18,15" Margin="0,16,0,0">
+            <Border CornerRadius="11" Background="{DynamicResource AccentFaintBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" BorderThickness="1" Padding="18,15" Margin="0,16,0,0">
                 <StackPanel Orientation="Horizontal">
-                    <Path Width="18" Height="18" VerticalAlignment="Top" Stretch="Uniform" Stroke="{StaticResource AccentBrush}" StrokeThickness="1.8" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z M12 8h.01 M11 12h1v4h1" />
+                    <Path Width="18" Height="18" VerticalAlignment="Top" Stretch="Uniform" Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.8" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z M12 8h.01 M11 12h1v4h1" />
                     <TextBlock Text="Supporter perks are cosmetic and convenience only — nothing about managing your mods is ever locked behind a payment." FontSize="13" Foreground="#FFB6C9BA" TextWrapping="Wrap" Margin="11,0,0,0" />
                 </StackPanel>
             </Border>
@@ -230,18 +230,18 @@
 
             <!-- Hero: a celebratory, accent-themed thank-you that makes supporters feel special. -->
             <Border Style="{StaticResource Card}" Padding="26,24" Margin="0,22,0,0"
-                    BorderBrush="{StaticResource AccentBrush}" BorderThickness="1"
-                    Background="{StaticResource AccentHeroBrush}">
+                    BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"
+                    Background="{DynamicResource AccentHeroBrush}">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <Border Width="54" Height="54" CornerRadius="15" Background="{StaticResource AccentTileBrush}">
-                            <Path Width="27" Height="27" Stretch="Uniform" Fill="{StaticResource AccentTextBrush}"
+                        <Border Width="54" Height="54" CornerRadius="15" Background="{DynamicResource AccentTileBrush}">
+                            <Path Width="27" Height="27" Stretch="Uniform" Fill="{DynamicResource AccentTextBrush}"
                                   Data="M12 20s-7-4.7-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.3-7 10-7 10Z" />
                         </Border>
                         <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
                             <!-- Matches the title-bar supporter badge: rectangular r6, not a full pill -->
-                            <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="6" Padding="9,3" HorizontalAlignment="Left">
-                                <TextBlock Text="Supporter" Foreground="{StaticResource AccentBrush}" FontSize="11" FontWeight="SemiBold" />
+                            <Border Background="{DynamicResource AccentSoftBrush}" CornerRadius="6" Padding="9,3" HorizontalAlignment="Left">
+                                <TextBlock Text="Supporter" Foreground="{DynamicResource AccentBrush}" FontSize="11" FontWeight="SemiBold" />
                             </Border>
                             <TextBlock Text="{Binding ThanksHeadline}" FontSize="22" FontWeight="Bold"
                                        Foreground="{StaticResource TextPrimaryBrush}" Margin="0,7,0,0" />
@@ -274,8 +274,8 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Border Width="28" Height="28" CornerRadius="999" Background="{StaticResource AccentSoftBrush}" VerticalAlignment="Center">
-                                <Path Width="14" Height="14" Stretch="Uniform" Stroke="{StaticResource AccentBrush}" StrokeThickness="2.4"
+                            <Border Width="28" Height="28" CornerRadius="999" Background="{DynamicResource AccentSoftBrush}" VerticalAlignment="Center">
+                                <Path Width="14" Height="14" Stretch="Uniform" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.4"
                                       StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M5 12l4 4 10-10"
                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
@@ -291,8 +291,8 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Border Width="28" Height="28" CornerRadius="999" Background="{StaticResource AccentSoftBrush}" VerticalAlignment="Center">
-                                <Path Width="14" Height="14" Stretch="Uniform" Stroke="{StaticResource AccentBrush}" StrokeThickness="2.4"
+                            <Border Width="28" Height="28" CornerRadius="999" Background="{DynamicResource AccentSoftBrush}" VerticalAlignment="Center">
+                                <Path Width="14" Height="14" Stretch="Uniform" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.4"
                                       StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M5 12l4 4 10-10"
                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
@@ -308,8 +308,8 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Border Width="28" Height="28" CornerRadius="999" Background="{StaticResource AccentSoftBrush}" VerticalAlignment="Center">
-                                <Path Width="14" Height="14" Stretch="Uniform" Stroke="{StaticResource AccentBrush}" StrokeThickness="2.4"
+                            <Border Width="28" Height="28" CornerRadius="999" Background="{DynamicResource AccentSoftBrush}" VerticalAlignment="Center">
+                                <Path Width="14" Height="14" Stretch="Uniform" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.4"
                                       StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M5 12l4 4 10-10"
                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
@@ -325,8 +325,8 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Border Width="28" Height="28" CornerRadius="999" Background="{StaticResource AccentSoftBrush}" VerticalAlignment="Center">
-                                <Path Width="14" Height="14" Stretch="Uniform" Stroke="{StaticResource AccentBrush}" StrokeThickness="2.4"
+                            <Border Width="28" Height="28" CornerRadius="999" Background="{DynamicResource AccentSoftBrush}" VerticalAlignment="Center">
+                                <Path Width="14" Height="14" Stretch="Uniform" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.4"
                                       StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M5 12l4 4 10-10"
                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
