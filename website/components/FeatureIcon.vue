@@ -23,6 +23,9 @@ const tone = computed(() => tones[props.tone] ?? tones.brand)
       <template v-else-if="name === 'refresh'"><path d="M3 12a9 9 0 0 1 15-6.7L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16" /><path d="M3 21v-5h5" /></template>
       <template v-else-if="name === 'layers'"><path d="m12 3 9 5-9 5-9-5 9-5Z" /><path d="m3 13 9 5 9-5" /></template>
       <template v-else-if="name === 'toggle'"><rect x="2" y="7" width="20" height="10" rx="5" /><circle cx="16" cy="12" r="3" :fill="tone.stroke" stroke="none" /></template>
+      <template v-else-if="name === 'shield'"><path d="M12 3 5 6v5.5c0 4 3 6.8 7 8.5 4-1.7 7-4.5 7-8.5V6l-7-3Z" /><path d="m9 12 2 2 4-4" /></template>
+      <template v-else-if="name === 'gauge'"><path d="M5 19a8 8 0 1 1 14 0" /><path d="m12 13 4-3.5" /></template>
+      <template v-else-if="name === 'code'"><path d="m8 8-4 4 4 4" /><path d="m16 8 4 4-4 4" /><path d="m14 5-4 14" /></template>
       <template v-else><circle cx="12" cy="12" r="9" /><path d="m8.5 12 2.5 2.5 5-5" /></template>
     </svg>
   </div>

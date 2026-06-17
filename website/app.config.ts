@@ -17,6 +17,15 @@ export default defineAppConfig({
     discord: '',
   },
 
+  // ── Releases ──────────────────────────────────────────────────────────
+  // Editorial codenames shown as a badge on the changelog (versions, dates,
+  // notes and downloads are all pulled live from GitHub — only the names are here).
+  releases: {
+    names: {
+      '0.1.0': 'Spawn Point',
+    } as Record<string, string>,
+  },
+
   // ── Hero ──────────────────────────────────────────────────────────────
   hero: {
     badge: 'Free · Open source · No clutter',
@@ -42,6 +51,19 @@ export default defineAppConfig({
       { icon: 'layers', tone: 'grape', title: 'Version profiles', body: 'Keep separate sets of mods for 1.21, 1.20 and beyond. Switch profiles without touching a single file.' },
       { icon: 'toggle', tone: 'gold', title: "Toggle, don't delete", body: 'Flip mods on and off without losing them. Experiment freely and roll back the moment something breaks.' },
       { icon: 'check', tone: 'brand', title: 'Zero config', body: 'No editing JSON, no loader headaches, no broken installs. It detects what you have and just works.' },
+    ],
+  },
+
+  // ── Trust strip (home page) — privacy / lightweight reassurances ───────
+  trust: {
+    eyebrow: 'Private & lightweight',
+    title: 'Yours, and yours alone',
+    subtitle:
+      'Lodestone is lightweight and basic on purpose — it manages your files and nothing else. No accounts, no background noise, no surprises.',
+    points: [
+      { icon: 'shield', tone: 'brand', title: 'No data collection', body: 'No telemetry, no analytics, no account to use it. Nothing about you or your mods ever leaves your PC — it only goes online when you browse or check for updates.' },
+      { icon: 'gauge', tone: 'sky', title: "Won't touch your FPS", body: 'It only sorts files into the right folders. It never injects into or runs alongside Minecraft, and uses no background processes — so it has zero effect on your game.' },
+      { icon: 'code', tone: 'gold', title: 'Open source', body: 'Every line is on GitHub to read, audit or build yourself. Releases come straight from that public code — no black boxes.' },
     ],
   },
 
@@ -90,8 +112,8 @@ export default defineAppConfig({
       subtitle: 'Turn your pledge into in-app perks in under a minute.',
       note: 'Each code is valid for one hour and is yours alone — we never store it, so keep it safe and please don’t share it.',
       steps: [
-        { icon: 'patreon', title: 'Join on Patreon', body: 'Pick any tier above and become a patron — current or former patrons all count.' },
-        { icon: 'login', title: 'Sign in with Patreon', body: 'Open the Supporter page and connect your account. We verify your pledge instantly — nothing else is touched.' },
+        { icon: 'patreon', title: 'Join on Patreon', body: 'Pledge to any paid tier and become a patron. Keys are for active members — keep your membership going to keep your perks.' },
+        { icon: 'login', title: 'Sign in with Patreon', body: 'Open the Supporter page and connect your account. We verify your active pledge instantly — nothing else is touched.' },
         { icon: 'key', title: 'Generate your key', body: 'Create your one-hour membership code and copy it with a tap. Generate a fresh one whenever you need it.' },
         { icon: 'unlock', title: 'Activate in the app', body: 'Paste it into Lodestone → Settings → Supporter → Activate. Your badge and perks light up instantly.' },
       ],
@@ -106,8 +128,11 @@ export default defineAppConfig({
       "Most answers are a click away. Supporters get a priority channel; everyone can open a GitHub issue and we'll take a look.",
     faq: [
       { q: 'How do I install a mod?', a: 'Just drag the .jar (mods) or .zip (resource packs / shaders) onto the Lodestone window. It detects the type and files it in the right folder automatically — no setup needed.' },
+      { q: 'Does Lodestone collect any of my data?', a: 'No. There is no telemetry, no analytics, and no account needed just to use the app — nothing about you or your mods is ever sent anywhere. Lodestone only talks to the internet when you ask it to (browsing Modrinth or checking for updates), and even then it only fetches public mod data. Your library stays entirely on your machine.' },
+      { q: 'Is it safe? Will it slow down my game?', a: "Yes, and no. Lodestone is lightweight and basic on purpose: it only manages the files in your mods, resourcepacks and shaderpacks folders — it never injects into or runs alongside Minecraft, so it has zero effect on in-game FPS. It runs no background processes and shuts down completely when you close it, so it isn't sitting in the background eating resources." },
+      { q: 'Is Lodestone open source?', a: 'Completely. The full source is on GitHub for anyone to read, audit or build themselves — so you never have to take our word for any of the above. Releases are built straight from that public code.' },
       { q: 'Is Lodestone really free?', a: 'Yes. Every mod-managing feature is free forever. Supporter perks are cosmetic/convenience only (a badge, accent themes, early beta access) and never gate core functionality.' },
-      { q: 'How do I unlock my supporter perks?', a: 'Join on Patreon, then sign in on the Supporter page to generate a one-hour code. Paste it into the app under Settings → Supporter and your perks unlock permanently.' },
+      { q: 'How do I unlock my supporter perks?', a: 'Join on Patreon with any paid tier, then sign in on the Supporter page to generate a one-hour code. Paste it into the app under Settings → Supporter and your perks unlock. Codes are issued to active members, and we never store them.' },
       { q: 'Does Lodestone work offline?', a: 'The app itself runs offline. Browsing Modrinth/CurseForge and checking for updates needs an internet connection, but your installed library is always available.' },
       { q: 'Where are my logs?', a: 'Open the app and go to Settings → Open logs. Attach anything relevant when you report a bug — it helps a lot.' },
     ],

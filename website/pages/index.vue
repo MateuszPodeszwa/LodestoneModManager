@@ -167,6 +167,23 @@ onBeforeUnmount(() => {
             <div class="mt-2 text-sm leading-relaxed text-muted">{{ f.body }}</div>
           </Reveal>
         </div>
+
+        <!-- Trust strip: privacy + lightweight reassurances (more detail on /support). -->
+        <Reveal class="mt-7 overflow-hidden rounded-2xl border border-white/[0.08] p-7 sm:p-9" style="background: linear-gradient(135deg, rgba(90,194,109,0.07), rgba(90,145,194,0.05))">
+          <div class="max-w-[640px]">
+            <div class="eyebrow !text-[#7ed98f]">{{ app.trust.eyebrow }}</div>
+            <h3 class="mt-2.5 font-pixel text-2xl font-bold text-[#f3f3f5]">{{ app.trust.title }}</h3>
+            <p class="mt-2 text-[15px] leading-relaxed text-muted">{{ app.trust.subtitle }}</p>
+          </div>
+          <div class="mt-7 grid gap-5 sm:grid-cols-3">
+            <div v-for="t in app.trust.points" :key="t.title">
+              <FeatureIcon :name="t.icon" :tone="t.tone as any" />
+              <div class="mt-3.5 text-[15.5px] font-semibold text-[#f0f0f2]">{{ t.title }}</div>
+              <div class="mt-1.5 text-[13.5px] leading-relaxed text-muted">{{ t.body }}</div>
+            </div>
+          </div>
+          <NuxtLink to="/support" class="mt-6 inline-block text-sm font-semibold text-brand no-underline hover:underline">More on privacy &amp; how it stays light →</NuxtLink>
+        </Reveal>
       </div>
     </section>
 
