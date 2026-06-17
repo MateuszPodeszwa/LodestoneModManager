@@ -14,11 +14,14 @@ async function signOut() {
   await navigateTo('/')
 }
 
+// "Donate" (the Patreon section, /#support) is kept clearly distinct from "Help"
+// (the help & support page, /support) so the two don't read as the same thing.
 const navLinks = [
   { label: 'About', to: '/#about' },
-  { label: 'How it works', to: '/#tutorial' },
-  { label: 'Support', to: '/#support' },
+  { label: 'Donate', to: '/#support' },
   { label: 'Changelog', to: '/changelog' },
+  { label: 'Help', to: '/support' },
+  { label: 'Report a bug', to: '/report' },
 ]
 </script>
 
@@ -33,7 +36,7 @@ const navLinks = [
     </NuxtLink>
 
     <!-- desktop links -->
-    <div class="ml-4 hidden items-center gap-0.5 md:flex">
+    <div class="ml-4 hidden items-center gap-0.5 lg:flex">
       <NuxtLink
         v-for="l in navLinks"
         :key="l.to"
@@ -78,7 +81,7 @@ const navLinks = [
       </NuxtLink>
       <!-- mobile menu toggle -->
       <button
-        class="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.12] text-soft md:hidden"
+        class="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.12] text-soft lg:hidden"
         :aria-expanded="open"
         aria-label="Toggle menu"
         @click="open = !open"
@@ -92,7 +95,7 @@ const navLinks = [
     <Transition name="page">
       <div
         v-if="open"
-        class="absolute inset-x-0 top-16 flex flex-col gap-1 border-b border-white/[0.06] bg-[#16171b] p-4 md:hidden"
+        class="absolute inset-x-0 top-16 flex flex-col gap-1 border-b border-white/[0.06] bg-[#16171b] p-4 lg:hidden"
       >
         <NuxtLink
           v-for="l in navLinks"

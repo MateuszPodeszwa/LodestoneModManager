@@ -36,6 +36,15 @@ const year = new Date().getFullYear()
             <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="15" cy="9.2" r="6.2" /><rect x="2.5" y="2.6" width="3.6" height="18.8" rx="0.4" /></svg>
           </a>
         </div>
+
+        <!-- Quick, prominent path to help so it's never buried. -->
+        <NuxtLink
+          to="/support"
+          class="mt-5 inline-flex items-center gap-2 rounded-xl border border-brand/25 bg-brand/[0.07] px-3.5 py-2.5 text-[13px] font-semibold text-[#bfe0c6] no-underline transition hover:bg-brand/[0.12]"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.7" /><path d="M12 17h.01" /></svg>
+          Need a hand? Help &amp; support
+        </NuxtLink>
       </div>
 
       <!-- product -->
@@ -48,23 +57,23 @@ const year = new Date().getFullYear()
         </div>
       </div>
 
-      <!-- community -->
+      <!-- help (its own column so support + bug reports are easy to find) -->
       <div>
-        <div class="font-pixel text-[13px] font-semibold uppercase tracking-wide text-faint">Community</div>
+        <div class="font-pixel text-[13px] font-semibold uppercase tracking-wide text-faint">Help</div>
         <div class="mt-4 flex flex-col gap-2.5">
+          <NuxtLink to="/support" class="text-sm font-semibold text-[#d8d8dd] no-underline transition hover:text-brand">Help &amp; support</NuxtLink>
+          <NuxtLink to="/report" class="text-sm font-semibold text-[#d8d8dd] no-underline transition hover:text-brand">Report a bug</NuxtLink>
           <a :href="app.links.github" target="_blank" rel="noopener" class="text-sm text-[#b9b9bf] no-underline transition hover:text-brand">GitHub</a>
-          <NuxtLink to="/report" class="text-sm text-[#b9b9bf] no-underline transition hover:text-brand">Report a bug</NuxtLink>
           <DiscordLink variant="text" />
         </div>
       </div>
 
-      <!-- support -->
+      <!-- support the project (donate — kept distinct from Help) -->
       <div>
-        <div class="font-pixel text-[13px] font-semibold uppercase tracking-wide text-faint">Support</div>
+        <div class="font-pixel text-[13px] font-semibold uppercase tracking-wide text-faint">Support the project</div>
         <div class="mt-4 flex flex-col gap-2.5">
           <a :href="app.links.patreon" target="_blank" rel="noopener" class="text-sm text-[#b9b9bf] no-underline transition hover:text-pink">Become a patron</a>
           <NuxtLink to="/supporter" class="text-sm text-[#b9b9bf] no-underline transition hover:text-brand">Claim your key</NuxtLink>
-          <NuxtLink to="/support" class="text-sm text-[#b9b9bf] no-underline transition hover:text-brand">Help &amp; support</NuxtLink>
         </div>
       </div>
     </div>
