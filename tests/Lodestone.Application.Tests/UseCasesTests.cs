@@ -209,6 +209,66 @@ public class InstallFromCatalogUseCaseTests
     }
 }
 
+public class SwitchProfileUseCaseTests
+{
+    private static (SwitchProfileUseCase UseCase, IContentInstaller Installer, IInstalledContentRepository Repo)
+        Build(params InstalledContent[] items)
+    {
+        var repo = Substitute.For<IInstalledContentRepository>();
+        repo.GetAllAsync(Arg.Any<CancellationToken>()).Returns(items);
+
+        var installer = Substitute.For<IContentInstaller>();
+        installer.SetEnabledAsync(Arg.Any<ContentType>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Result.Success((string)ci[1])); // echo the file name back
+
+        return (new SwitchProfileUseCase(repo, installer), installer, repo);
+    }
+
+    private static InstalledContent Mod(string id, Loader loader, string version, bool enabled)
+    {
+        InstalledContent m = Make.Mod(id, loader: loader, versions: [version], enabled: enabled);
+        m.FileName = id + ".jar";
+        return m;
+    }
+
+    [Fact]
+    public async Task Enables_the_profile_mods_and_disables_everything_else()
+    {
+        InstalledContent a = Mod("a", Loader.Fabric, "1.20.1", enabled: false); // belongs → enable
+        InstalledContent b = Mod("b", Loader.Fabric, "1.21.4", enabled: true);  // wrong version → disable
+        InstalledContent c = Mod("c", Loader.Forge, "1.20.1", enabled: true);   // wrong loader → disable
+        (SwitchProfileUseCase useCase, IContentInstaller installer, IInstalledContentRepository repo) = Build(a, b, c);
+
+        Result<ProfileSwitch> result = await useCase.ExecuteAsync(GameVersion.Parse("1.20.1"), Loader.Fabric);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Enabled.ShouldBe(1);
+        result.Value.Disabled.ShouldBe(2);
+        a.Enabled.ShouldBeTrue();
+        b.Enabled.ShouldBeFalse();
+        c.Enabled.ShouldBeFalse();
+        await installer.Received(1).SetEnabledAsync(ContentType.Mod, "a.jar", true, Arg.Any<CancellationToken>());
+        await installer.Received(1).SetEnabledAsync(ContentType.Mod, "b.jar", false, Arg.Any<CancellationToken>());
+        await installer.Received(1).SetEnabledAsync(ContentType.Mod, "c.jar", false, Arg.Any<CancellationToken>());
+        await repo.Received(3).UpsertAsync(Arg.Any<InstalledContent>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Leaves_already_correct_mods_and_loader_agnostic_content_untouched()
+    {
+        InstalledContent a = Mod("a", Loader.Fabric, "1.20.1", enabled: true); // already correct
+        InstalledContent pack = Make.Pack("p", enabled: true, versions: ["1.19"]);
+        (SwitchProfileUseCase useCase, IContentInstaller installer, IInstalledContentRepository repo) = Build(a, pack);
+
+        Result<ProfileSwitch> result = await useCase.ExecuteAsync(GameVersion.Parse("1.20.1"), Loader.Fabric);
+
+        result.Value.Enabled.ShouldBe(0);
+        result.Value.Disabled.ShouldBe(0);
+        await installer.DidNotReceive().SetEnabledAsync(Arg.Any<ContentType>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<CancellationToken>());
+        await repo.DidNotReceive().UpsertAsync(Arg.Any<InstalledContent>(), Arg.Any<CancellationToken>());
+    }
+}
+
 public class RefreshUpdatesUseCaseTests
 {
     private static ProjectVersion NewerBuild() => new(
