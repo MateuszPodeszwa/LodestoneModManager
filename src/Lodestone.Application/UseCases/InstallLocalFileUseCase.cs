@@ -17,17 +17,20 @@ public sealed class InstallLocalFileUseCase
     private readonly IContentInstaller _installer;
     private readonly IInstalledContentRepository _repository;
     private readonly ISettingsStore _settings;
+    private readonly IGameInventory _inventory;
 
     public InstallLocalFileUseCase(
         IArchiveMetadataReader reader,
         IContentInstaller installer,
         IInstalledContentRepository repository,
-        ISettingsStore settings)
+        ISettingsStore settings,
+        IGameInventory inventory)
     {
         _reader = reader;
         _installer = installer;
         _repository = repository;
         _settings = settings;
+        _inventory = inventory;
     }
 
     public async Task<Result<InstalledContent>> ExecuteAsync(
@@ -42,6 +45,24 @@ public sealed class InstallLocalFileUseCase
         }
 
         LocalContentMetadata meta = metaResult.Value;
+
+        // Mods need their loader installed for the target version, or the dropped file won't load. Gate the
+        // active loader (resource packs and shaders don't use a loader; with no target version we can't tell).
+        if (meta.Type.UsesLoader() && targetVersion is not null)
+        {
+            Loader active = _settings.Current.DefaultLoader;
+            if (active == Loader.None)
+            {
+                return Result.Failure<InstalledContent>("install.no_loader",
+                    "Choose a mod loader in Settings before installing mods.");
+            }
+
+            if (!_inventory.IsLoaderInstalled(active, targetVersion))
+            {
+                return Result.Failure<InstalledContent>("install.loader_missing",
+                    $"Install the {active.ToDisplayName()} loader for {targetVersion} first — open Settings → Loader version.");
+            }
+        }
 
         Result<PlaceResult> placed = await _installer
             .PlaceAsync(filePath, meta.Type, DuplicateResolution.KeepBoth, ct)

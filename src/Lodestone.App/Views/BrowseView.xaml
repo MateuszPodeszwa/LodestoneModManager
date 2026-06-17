@@ -96,6 +96,17 @@
             <RadioButton GroupName="Cat" Style="{StaticResource CategoryPill}" Content="Resource Packs" IsChecked="{Binding BrowseCat, Converter={StaticResource Equals}, ConverterParameter=resource-packs, Mode=TwoWay}" />
         </WrapPanel>
 
+        <!-- Loader gate: mods can't be installed until their loader is set up for the active version. -->
+        <Border Visibility="{Binding ShowLoaderGate, Converter={StaticResource BoolToVis}}"
+                Background="#24E3B341" BorderBrush="{StaticResource WarningBrush}" BorderThickness="1"
+                CornerRadius="11" Padding="14,11" Margin="0,16,0,0">
+            <StackPanel Orientation="Horizontal">
+                <Path Width="17" Height="17" VerticalAlignment="Center" Stretch="Uniform" Stroke="{StaticResource WarningBrush}" StrokeThickness="1.8"
+                      StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M12 9v4 M12 17h.01 M10.3 4 3.3 16a2 2 0 0 0 1.7 3h14a2 2 0 0 0 1.7-3L13.7 4a2 2 0 0 0-3.4 0Z" />
+                <TextBlock Text="{Binding LoaderGateMessage}" Foreground="{StaticResource WarningBrush}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0" />
+            </StackPanel>
+        </Border>
+
         <!-- Results -->
         <ItemsControl ItemsSource="{Binding Results}" Margin="0,20,0,0">
             <ItemsControl.ItemsPanel>
@@ -149,8 +160,8 @@
                                     </StackPanel>
                                     <Button Content="Install" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right" Padding="16,7"
                                             Command="{Binding InstallCommand}" Visibility="{Binding CanInstall, Converter={StaticResource BoolToVis}}"
-                                            IsEnabled="{Binding DataContext.IsGameReady, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                            ToolTip="Set your Minecraft folder first" />
+                                            IsEnabled="{Binding DataContext.CanInstallHere, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            ToolTip="Set your Minecraft folder and install its loader first" />
                                 </Grid>
                             </Border>
                         </StackPanel>

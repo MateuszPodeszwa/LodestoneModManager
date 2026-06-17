@@ -33,7 +33,10 @@ public class InstallLocalFileUseCaseTests
         var settings = Substitute.For<ISettingsStore>();
         settings.Current.Returns(new LodestoneSettings { DefaultLoader = Loader.Fabric });
 
-        var useCase = new InstallLocalFileUseCase(reader, installer, repo, settings);
+        var inventory = Substitute.For<IGameInventory>();
+        inventory.IsLoaderInstalled(Arg.Any<Loader>(), Arg.Any<GameVersion>()).Returns(true);
+
+        var useCase = new InstallLocalFileUseCase(reader, installer, repo, settings, inventory);
 
         Result<InstalledContent> result = await useCase.ExecuteAsync(@"C:\drop\sodium.jar", GameVersion.Parse("1.20.1"));
 
@@ -58,11 +61,39 @@ public class InstallLocalFileUseCaseTests
         var settings = Substitute.For<ISettingsStore>();
         settings.Current.Returns(new LodestoneSettings());
 
-        var useCase = new InstallLocalFileUseCase(reader, installer, repo, settings);
+        var useCase = new InstallLocalFileUseCase(reader, installer, repo, settings, Substitute.For<IGameInventory>());
 
         Result<InstalledContent> result = await useCase.ExecuteAsync(@"C:\drop\bad.jar", GameVersion.Parse("1.21.4"));
 
         result.IsFailure.ShouldBeTrue();
+        await repo.DidNotReceive().UpsertAsync(Arg.Any<InstalledContent>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Refuses_a_dropped_mod_when_the_loader_is_not_installed()
+    {
+        var reader = Substitute.For<IArchiveMetadataReader>();
+        reader.ReadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(
+            Result.Success(new LocalContentMetadata(
+                ContentType.Mod, ModId: "sodium", Name: "Sodium", Version: "0.5.8",
+                Loaders: [Loader.Fabric], Dependencies: [], ProvidedIds: ["sodium"],
+                GameVersions: [GameVersion.Parse("1.21.4")])));
+
+        var installer = Substitute.For<IContentInstaller>();
+        var repo = Substitute.For<IInstalledContentRepository>();
+        var settings = Substitute.For<ISettingsStore>();
+        settings.Current.Returns(new LodestoneSettings { DefaultLoader = Loader.Fabric });
+
+        var inventory = Substitute.For<IGameInventory>();
+        inventory.IsLoaderInstalled(Arg.Any<Loader>(), Arg.Any<GameVersion>()).Returns(false);
+
+        var useCase = new InstallLocalFileUseCase(reader, installer, repo, settings, inventory);
+
+        Result<InstalledContent> result = await useCase.ExecuteAsync(@"C:\drop\sodium.jar", GameVersion.Parse("1.21.4"));
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.Code.ShouldBe("install.loader_missing");
+        await installer.DidNotReceive().PlaceAsync(Arg.Any<string>(), Arg.Any<ContentType>(), Arg.Any<DuplicateResolution>(), Arg.Any<CancellationToken>());
         await repo.DidNotReceive().UpsertAsync(Arg.Any<InstalledContent>(), Arg.Any<CancellationToken>());
     }
 }
@@ -79,7 +110,8 @@ public class InstallFromCatalogUseCaseTests
 
     private static (InstallFromCatalogUseCase UseCase, IInstalledContentRepository Repo) Build(
         IReadOnlyList<ProjectVersion> versions,
-        InstalledContent? existing = null)
+        InstalledContent? existing = null,
+        bool loaderInstalled = true)
     {
         var source = Substitute.For<IModSource>();
         source.IsConfigured.Returns(true);
@@ -104,7 +136,10 @@ public class InstallFromCatalogUseCaseTests
         var settings = Substitute.For<ISettingsStore>();
         settings.Current.Returns(new LodestoneSettings());
 
-        return (new InstallFromCatalogUseCase(registry, new VersionResolver(), downloader, installer, repo, settings), repo);
+        var inventory = Substitute.For<IGameInventory>();
+        inventory.IsLoaderInstalled(Arg.Any<Loader>(), Arg.Any<GameVersion>()).Returns(loaderInstalled);
+
+        return (new InstallFromCatalogUseCase(registry, new VersionResolver(), downloader, installer, repo, settings, inventory), repo);
     }
 
     [Fact]
@@ -145,6 +180,19 @@ public class InstallFromCatalogUseCaseTests
 
         result.IsFailure.ShouldBeTrue();
         result.Error.Code.ShouldBe("install.no_compatible_version");
+    }
+
+    [Fact]
+    public async Task Refuses_a_mod_when_its_loader_is_not_installed_for_the_version()
+    {
+        (InstallFromCatalogUseCase useCase, IInstalledContentRepository repo) = Build([SodiumBuild()], loaderInstalled: false);
+
+        Result<CatalogInstall> result =
+            await useCase.ExecuteAsync(Sodium(), GameVersion.Parse("1.21.4"), Loader.Fabric);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.Code.ShouldBe("install.loader_missing");
+        await repo.DidNotReceive().UpsertAsync(Arg.Any<InstalledContent>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -196,7 +244,10 @@ public class InstallFromCatalogUseCaseTests
         var settings = Substitute.For<ISettingsStore>();
         settings.Current.Returns(new LodestoneSettings());
 
-        var useCase = new InstallFromCatalogUseCase(registry, new VersionResolver(), downloader, installer, repo, settings);
+        var inventory = Substitute.For<IGameInventory>();
+        inventory.IsLoaderInstalled(Arg.Any<Loader>(), Arg.Any<GameVersion>()).Returns(true);
+
+        var useCase = new InstallFromCatalogUseCase(registry, new VersionResolver(), downloader, installer, repo, settings, inventory);
 
         Result<CatalogInstall> result =
             await useCase.ExecuteAsync(Sodium(), GameVersion.Parse("1.21.4"), Loader.Fabric);

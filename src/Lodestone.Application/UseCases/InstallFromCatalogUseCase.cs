@@ -26,6 +26,7 @@ public sealed class InstallFromCatalogUseCase
     private readonly IContentInstaller _installer;
     private readonly IInstalledContentRepository _repository;
     private readonly ISettingsStore _settings;
+    private readonly IGameInventory _inventory;
 
     public InstallFromCatalogUseCase(
         IModSourceRegistry registry,
@@ -33,7 +34,8 @@ public sealed class InstallFromCatalogUseCase
         IDownloader downloader,
         IContentInstaller installer,
         IInstalledContentRepository repository,
-        ISettingsStore settings)
+        ISettingsStore settings,
+        IGameInventory inventory)
     {
         _registry = registry;
         _resolver = resolver;
@@ -41,6 +43,7 @@ public sealed class InstallFromCatalogUseCase
         _installer = installer;
         _repository = repository;
         _settings = settings;
+        _inventory = inventory;
     }
 
     public async Task<Result<CatalogInstall>> ExecuteAsync(
@@ -53,6 +56,24 @@ public sealed class InstallFromCatalogUseCase
         if (await _repository.FindAsync(project.Id, ct).ConfigureAwait(false) is not null)
         {
             return Result.Failure<CatalogInstall>("install.duplicate", $"{project.Name} is already installed.");
+        }
+
+        // A mod can't load without its loader actually installed for the target version, so block the
+        // install rather than leave the user with a mod that silently does nothing. Resource packs and
+        // shaders don't use a loader, so they're never gated this way.
+        if (project.Type.UsesLoader())
+        {
+            if (loader == Loader.None)
+            {
+                return Result.Failure<CatalogInstall>("install.no_loader",
+                    "Choose a mod loader in Settings before installing mods.");
+            }
+
+            if (!_inventory.IsLoaderInstalled(loader, targetVersion))
+            {
+                return Result.Failure<CatalogInstall>("install.loader_missing",
+                    $"Install the {loader.ToDisplayName()} loader for {targetVersion} first — open Settings → Loader version.");
+            }
         }
 
         IModSource source = _registry.Find(project.Source) ?? _registry.Primary;

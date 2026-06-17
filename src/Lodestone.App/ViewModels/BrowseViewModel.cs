@@ -50,8 +50,16 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
         _locator = locator;
         _inventory = inventory;
         _gate = gate;
-        bus.Subscribe<LibraryChanged>(m => _ui.Post(MarkInstalledFromLibrary));
-        settings.Changed += (_, _) => _ui.Post(() => OnPropertyChanged(nameof(IsGameReady)));
+        bus.Subscribe<LibraryChanged>(m => _ui.Post(() =>
+        {
+            MarkInstalledFromLibrary();
+            RaiseLoaderGate(); // a loader may have just been installed
+        }));
+        settings.Changed += (_, _) => _ui.Post(() =>
+        {
+            OnPropertyChanged(nameof(IsGameReady));
+            RaiseLoaderGate();
+        });
     }
 
     /// <summary>Set by the shell so cards can open the detail modal.</summary>
@@ -60,6 +68,56 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
     public bool IsCurseForgeAvailable => _registry.Find("curseforge")?.IsConfigured == true;
 
     public bool IsGameReady => _locator.IsValid(_settings.Current.GameDirectory);
+
+    /// <summary>Mods need their loader installed for the target version before they can be added; resource
+    /// packs and shaders don't use a loader. When false (mods only), installs are disabled and the gate
+    /// banner explains why.</summary>
+    public bool IsActiveLoaderReady
+    {
+        get
+        {
+            if (BrowseCat is "resource-packs" or "shaders")
+            {
+                return true; // loader-independent content
+            }
+
+            GameVersion? target = ResolveTargetVersion();
+            if (target is null)
+            {
+                return true; // "no Minecraft version yet" is handled separately on install
+            }
+
+            Loader loader = _settings.Current.DefaultLoader;
+            return loader != Loader.None && _inventory.IsLoaderInstalled(loader, target);
+        }
+    }
+
+    /// <summary>Installs are allowed only with a valid game folder and (for mods) the loader installed.</summary>
+    public bool CanInstallHere => IsGameReady && IsActiveLoaderReady;
+
+    /// <summary>Shows the loader-gate banner: the folder is set but the active loader isn't installed yet.</summary>
+    public bool ShowLoaderGate => IsGameReady && !IsActiveLoaderReady;
+
+    public string LoaderGateMessage
+    {
+        get
+        {
+            Loader loader = _settings.Current.DefaultLoader;
+            string name = loader == Loader.None ? "a mod loader" : $"the {loader.ToDisplayName()} loader";
+            GameVersion? target = ResolveTargetVersion();
+            return target is null
+                ? $"Install {name} in Settings before adding mods."
+                : $"Install {name} for {target} in Settings before adding mods.";
+        }
+    }
+
+    private void RaiseLoaderGate()
+    {
+        OnPropertyChanged(nameof(IsActiveLoaderReady));
+        OnPropertyChanged(nameof(CanInstallHere));
+        OnPropertyChanged(nameof(ShowLoaderGate));
+        OnPropertyChanged(nameof(LoaderGateMessage));
+    }
 
     /// <summary>Single-flight gate so install buttons disable while any operation runs.</summary>
     public OperationGate Gate => _gate;
@@ -85,7 +143,11 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
     partial void OnBrowseSourceChanged(string value) => RestartSearch();
     partial void OnBrowseQueryChanged(string value) => RestartSearch();
     partial void OnBrowseSortChanged(string value) => RestartSearch();
-    partial void OnBrowseCatChanged(string value) => RestartSearch();
+    partial void OnBrowseCatChanged(string value)
+    {
+        RaiseLoaderGate(); // switching between mods and packs/shaders changes whether a loader is required
+        RestartSearch();
+    }
 
     partial void OnCurrentPageChanged(int value)
     {
@@ -281,6 +343,13 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
         if (target is null)
         {
             _bus.Publish(new ToastMessage("No Minecraft version yet", "Install a Minecraft version (or pick one in My Content) before installing mods.", ToastKind.Warning));
+            return;
+        }
+
+        // Mods need their loader installed first (resource packs/shaders don't — IsActiveLoaderReady is true for them).
+        if (!IsActiveLoaderReady)
+        {
+            _bus.Publish(new ToastMessage("Loader not installed", LoaderGateMessage, ToastKind.Warning));
             return;
         }
 
