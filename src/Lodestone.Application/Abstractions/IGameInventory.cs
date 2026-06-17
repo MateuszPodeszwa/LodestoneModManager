@@ -32,4 +32,12 @@ public interface IGameInventory
     /// is <see cref="Loader.None"/>.
     /// </summary>
     bool IsLoaderInstalled(Loader loader, GameVersion version);
+
+    /// <summary>
+    /// The installed profile for this loader against the given base game version, or <c>null</c> when none
+    /// is installed. Its <see cref="LoaderProfile.VersionId"/> / <see cref="LoaderProfile.PreciseLabel"/>
+    /// expose the exact installed build (e.g. "fabric-loader-0.16.5-1.21.4"), so the UI can show the
+    /// precise loader version rather than just which base version it targets.
+    /// </summary>
+    LoaderProfile? FindLoaderProfile(Loader loader, GameVersion version);
 }
