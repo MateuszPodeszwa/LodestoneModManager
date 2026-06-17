@@ -93,6 +93,9 @@ public static class ServiceCollectionExtensions
                 sp.GetRequiredService<IGameLocator>(),
                 sp.GetRequiredService<IGameInventory>()));
 
+        services.AddSingleton<IExternalLoaderInstaller>(sp =>
+            new ForgeInstallerLauncher(sp.GetRequiredService<IHttpClientFactory>().CreateClient("downloads")));
+
         // ---- Supporter (offline signed codes) ----
         services.AddSingleton<ISupporterCodeVerifier>(_ => new SignedSupporterCodeVerifier(options.SupporterPublicKey));
         services.AddSingleton<SupporterService>();

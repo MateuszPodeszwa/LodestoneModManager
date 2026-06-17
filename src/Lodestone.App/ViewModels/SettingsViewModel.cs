@@ -51,6 +51,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly IUiDispatcher _ui;
     private readonly ResetGameUseCase _reset;
     private readonly OperationGate _gate;
+    private readonly IExternalLoaderInstaller _external;
     private bool _ready;
 
     public SettingsViewModel(
@@ -64,7 +65,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         SupporterService supporter,
         IUiDispatcher ui,
         ResetGameUseCase reset,
-        OperationGate gate)
+        OperationGate gate,
+        IExternalLoaderInstaller external)
     {
         _settings = settings;
         _dialog = dialog;
@@ -77,6 +79,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         _ui = ui;
         _reset = reset;
         _gate = gate;
+        _external = external;
         _gate.PropertyChanged += (_, _) => OnPropertyChanged(nameof(CanManageLoaders));
         ReloadFromSettings();
         string version = _updater.CurrentVersion;
@@ -233,8 +236,10 @@ public sealed partial class SettingsViewModel : ObservableObject
         Lodestone.Domain.Loader loader = loaderSlug.ParseLoader();
         if (!_loaderInstaller.Supports(loader))
         {
-            _bus.Publish(new ToastMessage($"{loader.ToDisplayName()} loader",
-                $"{loader.ToDisplayName()} must be installed with its official installer — Lodestone still manages its mods.", ToastKind.Info));
+            string guidance = _external.Supports(loader)
+                ? $"Use “Update loader” to download and run the official {loader.ToDisplayName()} installer."
+                : $"{loader.ToDisplayName()} must be installed with its official installer — Lodestone still manages its mods.";
+            _bus.Publish(new ToastMessage($"{loader.ToDisplayName()} loader", guidance, ToastKind.Info));
             return;
         }
 
@@ -422,8 +427,16 @@ public sealed partial class SettingsViewModel : ObservableObject
         Loader loader = _settings.Current.DefaultLoader;
         if (!_loaderInstaller.Supports(loader))
         {
-            _bus.Publish(new ToastMessage($"{loader.ToDisplayName()} loader",
-                $"{loader.ToDisplayName()} must be updated with its official installer — Lodestone still manages its mods.", ToastKind.Info));
+            if (_external.Supports(loader))
+            {
+                await RunExternalInstallerAsync(loader).ConfigureAwait(true);
+            }
+            else
+            {
+                _bus.Publish(new ToastMessage($"{loader.ToDisplayName()} loader",
+                    $"{loader.ToDisplayName()} must be updated with its official installer — Lodestone still manages its mods.", ToastKind.Info));
+            }
+
             return;
         }
 
@@ -459,6 +472,48 @@ public sealed partial class SettingsViewModel : ObservableObject
                 else
                 {
                     _bus.Publish(new ToastMessage($"{loader.ToDisplayName()} updated", $"v{update.PreviousVersion} → v{update.Version} for {version}."));
+                }
+            }
+            finally
+            {
+                IsUpdatingLoader = false;
+            }
+        }).ConfigureAwait(true);
+
+        if (!ran)
+        {
+            _bus.Publish(new ToastMessage("Please wait", "Another install is still running — try again in a moment.", ToastKind.Info));
+        }
+    }
+
+    // Downloads and launches the official Forge/NeoForge installer for the chosen Minecraft version —
+    // their own GUI completes the install. Gated so it can't overlap another operation.
+    private async Task RunExternalInstallerAsync(Loader loader)
+    {
+        GameVersion? version = ResolveLoaderVersion();
+        if (version is null)
+        {
+            _bus.Publish(new ToastMessage("No Minecraft version found",
+                "Run Minecraft once to install a version, then Lodestone can set up the loader for it.", ToastKind.Warning));
+            return;
+        }
+
+        bool ran = await _gate.RunAsync(async () =>
+        {
+            IsUpdatingLoader = true;
+            try
+            {
+                _bus.Publish(new ToastMessage($"Fetching {loader.ToDisplayName()}",
+                    $"Downloading the official {loader.ToDisplayName()} installer for {version}…"));
+                Result<string> result = await _external.LaunchInstallerAsync(loader, version).ConfigureAwait(true);
+                if (result.IsSuccess)
+                {
+                    _bus.Publish(new ToastMessage($"{loader.ToDisplayName()} installer launched",
+                        $"Finish the installer window (v{result.Value} for {version}). Your {loader.ToDisplayName()} profile shows up in My Content once it completes."));
+                }
+                else
+                {
+                    _bus.Publish(new ToastMessage($"Couldn't start {loader.ToDisplayName()}", result.Error.Message, ToastKind.Error));
                 }
             }
             finally
