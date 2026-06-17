@@ -20,17 +20,20 @@ public sealed class ResetGameUseCase
     private readonly IContentInstaller _installer;
     private readonly ILoaderInstaller _loaders;
     private readonly ISettingsStore _settings;
+    private readonly ILauncherVisibility _launcher;
 
     public ResetGameUseCase(
         IInstalledContentRepository repository,
         IContentInstaller installer,
         ILoaderInstaller loaders,
-        ISettingsStore settings)
+        ISettingsStore settings,
+        ILauncherVisibility launcher)
     {
         _repository = repository;
         _installer = installer;
         _loaders = loaders;
         _settings = settings;
+        _launcher = launcher;
     }
 
     public async Task<Result<ResetSummary>> ExecuteAsync(CancellationToken ct = default)
@@ -52,6 +55,9 @@ public sealed class ResetGameUseCase
             await _repository.RemoveAsync(item.Id, ct).ConfigureAwait(false);
             content++;
         }
+
+        // Un-hide any profiles parked in the stash so the launcher reflects reality before we strip loaders.
+        _launcher.RestoreAll();
 
         Result<int> loaders = await _loaders.RemoveManagedAsync(ct).ConfigureAwait(false);
         if (loaders.IsFailure)

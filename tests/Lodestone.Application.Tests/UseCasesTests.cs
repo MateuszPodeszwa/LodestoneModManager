@@ -232,8 +232,9 @@ public class ResetGameUseCaseTests
 
         var settings = Substitute.For<ISettingsStore>();
         settings.Current.Returns(new LodestoneSettings { SelectedVersion = "1.20.1", SelectedLoader = Loader.Fabric });
+        var launcher = Substitute.For<ILauncherVisibility>();
 
-        var useCase = new ResetGameUseCase(repo, installer, loaders, settings);
+        var useCase = new ResetGameUseCase(repo, installer, loaders, settings, launcher);
         Result<ResetSummary> result = await useCase.ExecuteAsync();
 
         result.IsSuccess.ShouldBeTrue();
@@ -262,8 +263,9 @@ public class ResetGameUseCaseTests
         var loaders = Substitute.For<ILoaderInstaller>();
         var settings = Substitute.For<ISettingsStore>();
         settings.Current.Returns(new LodestoneSettings());
+        var launcher = Substitute.For<ILauncherVisibility>();
 
-        var useCase = new ResetGameUseCase(repo, installer, loaders, settings);
+        var useCase = new ResetGameUseCase(repo, installer, loaders, settings, launcher);
         Result<ResetSummary> result = await useCase.ExecuteAsync();
 
         result.IsFailure.ShouldBeTrue();
@@ -284,7 +286,10 @@ public class SwitchProfileUseCaseTests
         installer.SetEnabledAsync(Arg.Any<ContentType>(), Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(ci => Result.Success((string)ci[1])); // echo the file name back
 
-        return (new SwitchProfileUseCase(repo, installer), installer, repo);
+        var inventory = Substitute.For<IGameInventory>();
+        var launcher = Substitute.For<ILauncherVisibility>();
+
+        return (new SwitchProfileUseCase(repo, installer, inventory, launcher), installer, repo);
     }
 
     private static InstalledContent Mod(string id, Loader loader, string version, bool enabled)

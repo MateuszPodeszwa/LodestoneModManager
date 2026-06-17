@@ -52,6 +52,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IGameLocator, MinecraftGameLocator>();
         services.AddSingleton<IGameInventory, MinecraftGameInventory>();
         services.AddSingleton<IContentInstaller, FileSystemContentInstaller>();
+        services.AddSingleton<ILauncherVisibility, LauncherProfileStore>();
         services.AddSingleton<IArchiveMetadataReader, ArchiveMetadataReader>();
 
         // ---- HTTP: Modrinth (cached + retrying) and the downloader ----

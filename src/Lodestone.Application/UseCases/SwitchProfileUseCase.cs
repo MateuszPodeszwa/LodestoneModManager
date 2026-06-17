@@ -20,11 +20,19 @@ public sealed class SwitchProfileUseCase
 {
     private readonly IInstalledContentRepository _repository;
     private readonly IContentInstaller _installer;
+    private readonly IGameInventory _inventory;
+    private readonly ILauncherVisibility _launcher;
 
-    public SwitchProfileUseCase(IInstalledContentRepository repository, IContentInstaller installer)
+    public SwitchProfileUseCase(
+        IInstalledContentRepository repository,
+        IContentInstaller installer,
+        IGameInventory inventory,
+        ILauncherVisibility launcher)
     {
         _repository = repository;
         _installer = installer;
+        _inventory = inventory;
+        _launcher = launcher;
     }
 
     public async Task<Result<ProfileSwitch>> ExecuteAsync(GameVersion version, Loader loader, CancellationToken ct = default)
@@ -70,6 +78,16 @@ public sealed class SwitchProfileUseCase
             {
                 disabled++;
             }
+        }
+
+        // Make the launcher show only this profile (plus vanilla), stashing the other modded profiles.
+        // Best-effort: the mods swap is what makes the game load correctly, so a launcher hiccup here
+        // must not fail the switch.
+        IReadOnlyList<LoaderProfile> modded = _inventory.InstalledProfiles().Where(p => !p.IsVanilla).ToList();
+        LoaderProfile? active = modded.FirstOrDefault(p => p.GameVersion.Equals(version) && p.Loader == loader);
+        if (active is not null)
+        {
+            _launcher.Apply(active, modded);
         }
 
         return new ProfileSwitch(enabled, disabled);

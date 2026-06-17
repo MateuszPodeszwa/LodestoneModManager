@@ -15,6 +15,10 @@ public static class LodestonePaths
 
     public static string EntitlementsFile => Path.Combine(Root, "entitlements.json");
 
+    /// <summary>Holds launcher profiles temporarily hidden by profile switching, so they can be restored
+    /// verbatim (with the user's custom JVM args etc.) when their profile is reactivated.</summary>
+    public static string LauncherStashFile => Path.Combine(Root, "launcher-stash.json");
+
     public static string LogsDirectory => Path.Combine(Root, "logs");
 
     public static string TrashDirectory => Path.Combine(Root, "trash");
