@@ -3,6 +3,7 @@ using Lodestone.Application.Common;
 using Lodestone.Application.Messaging;
 using Lodestone.Application.UseCases;
 using Lodestone.Domain.Common;
+using Lodestone.Infrastructure.Persistence;
 
 namespace Lodestone.App.Services;
 
@@ -56,12 +57,18 @@ public sealed class AppUpdateCoordinator
 
         try
         {
+            LodestoneLog.Info("Checking for updates…");
             Result<UpdateCheckResult> checkResult = await _check.ExecuteAsync(ct).ConfigureAwait(true);
             if (checkResult.IsFailure)
             {
                 if (announceNoUpdate)
                 {
                     Toast("Couldn't check for updates", checkResult.Error.Message, ToastKind.Error);
+                }
+                else
+                {
+                    // Startup check stays quiet for the user, but the failure still belongs in the log.
+                    LodestoneLog.Warn($"Update check failed: {checkResult.Error.Message}");
                 }
 
                 return; // startup stays quiet on a transient network failure
@@ -73,6 +80,10 @@ public sealed class AppUpdateCoordinator
                 if (announceNoUpdate)
                 {
                     Toast("You're up to date", $"Lodestone {info.CurrentVersion} is the latest version.");
+                }
+                else
+                {
+                    LodestoneLog.Info($"Up to date — Lodestone {info.CurrentVersion} is the latest version.");
                 }
 
                 return;

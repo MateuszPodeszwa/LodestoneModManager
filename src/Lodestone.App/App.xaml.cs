@@ -1,13 +1,17 @@
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Threading;
 using Lodestone.App.Services;
 using Lodestone.App.ViewModels;
 using Lodestone.Application.Abstractions;
+using Lodestone.Application.Messaging;
 using Lodestone.Application.Settings;
 using Lodestone.Application.Supporter;
 using Lodestone.Application.UseCases;
 using Lodestone.Infrastructure.DependencyInjection;
+using Lodestone.Infrastructure.Diagnostics;
+using Lodestone.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Lodestone.App;
@@ -22,6 +26,7 @@ public partial class App : System.Windows.Application
     private static readonly string SmokeLogPath = Path.Combine(Path.GetTempPath(), "lodestone-smoke.log");
 
     private ServiceProvider? _provider;
+    private IDisposable? _diagnostics;
     private bool _smoke;
     private bool _smokeError;
 
@@ -67,6 +72,15 @@ public partial class App : System.Windows.Application
         // first frame. AccentApplier ignores a custom accent when the user isn't a supporter.
         AccentApplier.Apply(settingsStore.Current.AccentColor, _provider.GetRequiredService<SupporterService>().IsSupporter);
 
+        // Diagnostics: outside smoke runs, mirror every toast into the log and write a startup banner, so
+        // the logs folder (what the "Open logs" button and the FAQ point users to) actually has the context
+        // needed for a bug report. Done before the window shows so the first toast is already captured.
+        if (!_smoke)
+        {
+            _diagnostics = DiagnosticLogger.Attach(_provider.GetRequiredService<IMessageBus>());
+            LogStartupBanner(settingsStore);
+        }
+
         var main = _provider.GetRequiredService<MainViewModel>();
         var window = _provider.GetRequiredService<MainWindow>();
         window.DataContext = main;
@@ -91,8 +105,36 @@ public partial class App : System.Windows.Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        if (!_smoke)
+        {
+            LodestoneLog.Info("Lodestone exiting");
+        }
+
+        _diagnostics?.Dispose();
         _provider?.Dispose();
         base.OnExit(e);
+    }
+
+    // One-time banner with the essentials for a bug report: app version, OS, runtime, and whether a valid
+    // Minecraft folder is configured. Best-effort — diagnostics must never break startup.
+    private void LogStartupBanner(ISettingsStore settings)
+    {
+        ServiceProvider provider = _provider!; // non-null here: the banner is only logged after the provider is built
+        try
+        {
+            string version = provider.GetRequiredService<IAppUpdater>().CurrentVersion;
+            LodestoneLog.Info($"Lodestone {version} starting — {RuntimeInformation.OSDescription} — {RuntimeInformation.FrameworkDescription}");
+
+            string? dir = settings.Current.GameDirectory;
+            string state = string.IsNullOrWhiteSpace(dir)
+                ? "not set"
+                : provider.GetRequiredService<IGameLocator>().IsValid(dir) ? "set (valid)" : "set (invalid)";
+            LodestoneLog.Info($"Game directory: {state}");
+        }
+        catch (Exception ex)
+        {
+            LodestoneLog.Error("Failed to write startup banner", ex); // never let diagnostics break startup
+        }
     }
 
     // Renders every screen once (catching runtime resource/binding errors) then exits. Runs
