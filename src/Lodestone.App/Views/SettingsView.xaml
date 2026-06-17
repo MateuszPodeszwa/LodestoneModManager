@@ -77,7 +77,7 @@
                         <StackPanel VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="Early access" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
-                                <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="999" Padding="7,2" Margin="9,0,0,0" VerticalAlignment="Center">
+                                <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="8" Padding="7,2" Margin="9,0,0,0" VerticalAlignment="Center">
                                     <TextBlock Text="SUPPORTER" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" />
                                 </Border>
                             </StackPanel>
@@ -110,7 +110,7 @@
                 <StackPanel VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Accent colour" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
-                        <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="999" Padding="7,2" Margin="9,0,0,0" VerticalAlignment="Center">
+                        <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="8" Padding="7,2" Margin="9,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="SUPPORTER" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" />
                         </Border>
                     </StackPanel>
