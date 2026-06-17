@@ -231,11 +231,15 @@ public sealed partial class LibraryViewModel : ObservableObject
             filtered = LibraryQuery.Apply(_all, filter);
         }
 
+        // Targets an unsorted mod can be assigned to: a prompt, then each concrete (version + loader) profile.
+        var assignTargets = new List<ProfileOption> { new(string.Empty, "Assign to…") };
+        assignTargets.AddRange(Profiles.Where(p => p.Key != AllKey && p.Key != UnknownKey));
+
         Items.Clear();
         foreach (InstalledContent item in filtered)
         {
             _reports.TryGetValue(item.Id, out CompatibilityReport? report);
-            Items.Add(new ContentItemViewModel(item, report, allProfiles, ToggleAsync, UninstallAsync));
+            Items.Add(new ContentItemViewModel(item, report, allProfiles, assignTargets, ToggleAsync, UninstallAsync, AssignAsync));
         }
 
         string tabLabel = _libTab switch
@@ -279,6 +283,33 @@ public sealed partial class LibraryViewModel : ObservableObject
             _bus.Publish(new ToastMessage("Couldn't change that", result.Error.Message, ToastKind.Error));
         }
 
+        _bus.Publish(new LibraryChanged());
+    }
+
+    // Manual sort: pin an unattributed mod to a chosen (version + loader) profile and re-evaluate the library.
+    private async Task AssignAsync(string id, string profileKey)
+    {
+        InstalledContent? item = await _repository.FindAsync(id).ConfigureAwait(true);
+        if (item is null)
+        {
+            return;
+        }
+
+        (string versionValue, Loader loader) = Parse(profileKey);
+        if (GameVersion.Create(versionValue).Match<GameVersion?>(v => v, _ => null) is not { } version)
+        {
+            return;
+        }
+
+        item.GameVersions = [version];
+        if (loader != Loader.None)
+        {
+            item.Loader = loader;
+        }
+
+        await _repository.UpsertAsync(item).ConfigureAwait(true);
+        _bus.Publish(new ToastMessage("Sorted",
+            $"{item.Name} → {version.Value}" + (loader != Loader.None ? $" · {loader.ToDisplayName()}" : string.Empty)));
         _bus.Publish(new LibraryChanged());
     }
 

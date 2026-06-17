@@ -123,6 +123,18 @@
                             </StackPanel>
 
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <!-- Inline sorter for an adopted mod with no known version — pick the profile it belongs to. -->
+                                <ComboBox Width="160" Style="{StaticResource DarkComboBox}" ItemContainerStyle="{StaticResource DarkComboBoxItem}"
+                                          Margin="0,0,12,0" VerticalAlignment="Center"
+                                          Visibility="{Binding CanAssign, Converter={StaticResource BoolToVis}}"
+                                          ItemsSource="{Binding AssignTargets}" SelectedValuePath="Key"
+                                          SelectedValue="{Binding AssignTargetKey, Mode=TwoWay}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Label}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
                                 <ToggleButton Style="{StaticResource ToggleSwitch}" IsChecked="{Binding Enabled, Mode=OneWay}" Command="{Binding ToggleCommand}" />
                                 <Button Style="{StaticResource GhostButton}" Command="{Binding UninstallCommand}" Margin="14,0,0,0" ToolTip="Uninstall" Foreground="{StaticResource TextSecondaryBrush}">
                                     <Path Width="17" Height="17" Stretch="Uniform" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.7" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M4 7h16 M9 7V5h6v2 M6.5 7l.8 13h9.4l.8-13" />

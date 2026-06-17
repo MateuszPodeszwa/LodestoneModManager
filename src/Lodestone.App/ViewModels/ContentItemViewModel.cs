@@ -12,20 +12,45 @@ public sealed partial class ContentItemViewModel : ObservableObject
     private readonly InstalledContent _model;
     private readonly Func<string, Task> _onToggle;
     private readonly Func<string, Task> _onUninstall;
+    private readonly Func<string, string, Task> _onAssign;
 
     public ContentItemViewModel(
         InstalledContent model,
         CompatibilityReport? report,
         bool showVersions,
+        IReadOnlyList<ProfileOption> assignTargets,
         Func<string, Task> onToggle,
-        Func<string, Task> onUninstall)
+        Func<string, Task> onUninstall,
+        Func<string, string, Task> onAssign)
     {
         _model = model;
         _onToggle = onToggle;
         _onUninstall = onUninstall;
+        _onAssign = onAssign;
+        AssignTargets = assignTargets;
         Report = report;
         ShowVersions = showVersions;
         _enabled = model.Enabled;
+    }
+
+    /// <summary>The profiles this item can be assigned to (a leading "Assign to…" prompt, then each profile).</summary>
+    public IReadOnlyList<ProfileOption> AssignTargets { get; }
+
+    /// <summary>A mod adopted without a known version — eligible for manual sorting in My Content.</summary>
+    public bool IsUnsorted => _model.Type.UsesLoader() && _model.GameVersions.Count == 0;
+
+    /// <summary>Show the inline "assign to a profile" picker only when it's unsorted and there's a target.</summary>
+    public bool CanAssign => IsUnsorted && AssignTargets.Count > 1;
+
+    [ObservableProperty]
+    private string _assignTargetKey = "";
+
+    partial void OnAssignTargetKeyChanged(string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            _ = _onAssign(Id, value); // user picked a profile from the prompt — sort it there
+        }
     }
 
     public string Id => _model.Id;
