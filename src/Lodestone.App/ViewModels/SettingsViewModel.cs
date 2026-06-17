@@ -391,6 +391,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             return;
         }
 
+        LodestoneLog.Info("Resetting Minecraft to a clean state…");
         Result<ResetSummary> result = await _reset.ExecuteAsync().ConfigureAwait(true);
         if (result.IsFailure)
         {
@@ -478,6 +479,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             return;
         }
 
+        LodestoneLog.Info($"Installing {loader.ToDisplayName()} for Minecraft {version}…");
         bool ran = await _gate.RunAsync($"Setting up {loader.ToDisplayName()}…", async () =>
         {
             IsUpdatingLoader = true;
@@ -531,6 +533,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             return;
         }
 
+        LodestoneLog.Info($"Installing {loader.ToDisplayName()} for Minecraft {version} via its official installer…");
         bool ran = await _gate.RunAsync($"Setting up {loader.ToDisplayName()}…", async () =>
         {
             IsUpdatingLoader = true;
