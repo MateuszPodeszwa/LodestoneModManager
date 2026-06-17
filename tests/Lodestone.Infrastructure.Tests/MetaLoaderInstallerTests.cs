@@ -170,4 +170,23 @@ public class MetaLoaderInstallerTests
 
         installer.InstalledVersion(Loader.Fabric, GameVersion.Parse("1.21.4")).ShouldBe("0.16.5");
     }
+
+    [Fact]
+    public async Task RemoveManaged_deletes_fabric_quilt_but_keeps_vanilla_and_forge()
+    {
+        using var dir = new TempDir();
+        (MetaLoaderInstaller installer, string gameDir) = await BuildAsync(dir); // seeds vanilla 1.21.4
+        Directory.CreateDirectory(Path.Combine(gameDir, "versions", "fabric-loader-0.16.5-1.21.4"));
+        Directory.CreateDirectory(Path.Combine(gameDir, "versions", "quilt-loader-0.26.0-1.21.4"));
+        Directory.CreateDirectory(Path.Combine(gameDir, "versions", "1.20.1-forge-47.2.0")); // user's own installer
+
+        Result<int> result = await installer.RemoveManagedAsync();
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe(2);
+        Directory.Exists(Path.Combine(gameDir, "versions", "fabric-loader-0.16.5-1.21.4")).ShouldBeFalse();
+        Directory.Exists(Path.Combine(gameDir, "versions", "quilt-loader-0.26.0-1.21.4")).ShouldBeFalse();
+        Directory.Exists(Path.Combine(gameDir, "versions", "1.20.1-forge-47.2.0")).ShouldBeTrue(); // left alone
+        Directory.Exists(Path.Combine(gameDir, "versions", "1.21.4")).ShouldBeTrue(); // vanilla kept
+    }
 }

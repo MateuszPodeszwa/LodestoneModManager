@@ -26,4 +26,11 @@ public interface ILoaderInstaller
 
     /// <summary>Installs the latest stable build, upgrading in place when a newer one is available.</summary>
     Task<Result<LoaderUpdate>> UpdateAsync(Loader loader, GameVersion gameVersion, CancellationToken ct = default);
+
+    /// <summary>
+    /// Removes the loader profiles Lodestone manages (Fabric/Quilt) from <c>versions/</c> and their
+    /// <c>launcher_profiles.json</c> entries, returning how many were removed. Used by "Reset to clean";
+    /// the user's vanilla versions and loaders installed by their own installers are left untouched.
+    /// </summary>
+    Task<Result<int>> RemoveManagedAsync(CancellationToken ct = default);
 }

@@ -209,6 +209,69 @@ public class InstallFromCatalogUseCaseTests
     }
 }
 
+public class ResetGameUseCaseTests
+{
+    [Fact]
+    public async Task Removes_all_content_and_managed_loaders_then_clears_the_selection()
+    {
+        InstalledContent a = Make.Mod("a", loader: Loader.Fabric, versions: ["1.20.1"]);
+        a.FileName = "a.jar";
+        InstalledContent b = Make.Mod("b", loader: Loader.Forge, versions: ["1.20.1"]);
+        b.FileName = "b.jar";
+        IReadOnlyList<InstalledContent> items = [a, b];
+
+        var repo = Substitute.For<IInstalledContentRepository>();
+        repo.GetAllAsync(Arg.Any<CancellationToken>()).Returns(items);
+
+        var installer = Substitute.For<IContentInstaller>();
+        installer.RemoveAsync(Arg.Any<ContentType>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var loaders = Substitute.For<ILoaderInstaller>();
+        loaders.RemoveManagedAsync(Arg.Any<CancellationToken>()).Returns(Result.Success(2));
+
+        var settings = Substitute.For<ISettingsStore>();
+        settings.Current.Returns(new LodestoneSettings { SelectedVersion = "1.20.1", SelectedLoader = Loader.Fabric });
+
+        var useCase = new ResetGameUseCase(repo, installer, loaders, settings);
+        Result<ResetSummary> result = await useCase.ExecuteAsync();
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ContentRemoved.ShouldBe(2);
+        result.Value.LoadersRemoved.ShouldBe(2);
+        await installer.Received(1).RemoveAsync(ContentType.Mod, "a.jar", Arg.Any<CancellationToken>());
+        await repo.Received(1).RemoveAsync("a", Arg.Any<CancellationToken>());
+        await repo.Received(1).RemoveAsync("b", Arg.Any<CancellationToken>());
+        await settings.Received(1).SaveAsync(
+            Arg.Is<LodestoneSettings>(s => s.SelectedVersion == "all" && s.SelectedLoader == Loader.None),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Stops_and_reports_when_a_file_cannot_be_removed()
+    {
+        InstalledContent a = Make.Mod("a", loader: Loader.Fabric, versions: ["1.20.1"]);
+        a.FileName = "a.jar";
+        IReadOnlyList<InstalledContent> items = [a];
+
+        var repo = Substitute.For<IInstalledContentRepository>();
+        repo.GetAllAsync(Arg.Any<CancellationToken>()).Returns(items);
+        var installer = Substitute.For<IContentInstaller>();
+        installer.RemoveAsync(Arg.Any<ContentType>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Failure("install.locked", "Is Minecraft running?"));
+        var loaders = Substitute.For<ILoaderInstaller>();
+        var settings = Substitute.For<ISettingsStore>();
+        settings.Current.Returns(new LodestoneSettings());
+
+        var useCase = new ResetGameUseCase(repo, installer, loaders, settings);
+        Result<ResetSummary> result = await useCase.ExecuteAsync();
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.Code.ShouldBe("install.locked");
+        await loaders.DidNotReceive().RemoveManagedAsync(Arg.Any<CancellationToken>());
+    }
+}
+
 public class SwitchProfileUseCaseTests
 {
     private static (SwitchProfileUseCase UseCase, IContentInstaller Installer, IInstalledContentRepository Repo)

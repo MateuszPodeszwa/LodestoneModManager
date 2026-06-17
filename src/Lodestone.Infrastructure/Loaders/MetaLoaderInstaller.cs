@@ -168,6 +168,78 @@ public sealed class MetaLoaderInstaller : ILoaderInstaller
         }
     }
 
+    public Task<Result<int>> RemoveManagedAsync(CancellationToken ct = default)
+    {
+        string? game = _settings.Current.GameDirectory;
+        if (string.IsNullOrWhiteSpace(game) || !_locator.IsValid(game))
+        {
+            return Task.FromResult(Result.Failure<int>("game.dir_missing", "Set your Minecraft folder first."));
+        }
+
+        string versions = Path.Combine(game, "versions");
+        if (!Directory.Exists(versions))
+        {
+            return Task.FromResult(Result.Success(0));
+        }
+
+        var removedIds = new List<string>();
+        try
+        {
+            foreach (string directory in Directory.EnumerateDirectories(versions))
+            {
+                string name = Path.GetFileName(directory);
+                if (name.StartsWith("fabric-loader-", StringComparison.OrdinalIgnoreCase) ||
+                    name.StartsWith("quilt-loader-", StringComparison.OrdinalIgnoreCase))
+                {
+                    Directory.Delete(directory, recursive: true);
+                    removedIds.Add(name);
+                }
+            }
+
+            RemoveLauncherProfiles(game, removedIds);
+        }
+        catch (IOException ex)
+        {
+            return Task.FromResult(Result.Failure<int>("loader.io", ex.Message));
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Task.FromResult(Result.Failure<int>("loader.permission", "Lodestone doesn't have permission to remove those files."));
+        }
+
+        return Task.FromResult(Result.Success(removedIds.Count));
+    }
+
+    // Drops the launcher entries for the version-ids we just removed (keyed by id, with a lastVersionId
+    // fallback), backing up launcher_profiles.json first — the user's own profiles are left alone.
+    private static void RemoveLauncherProfiles(string gameDir, IReadOnlyList<string> versionIds)
+    {
+        string path = Path.Combine(gameDir, "launcher_profiles.json");
+        if (!File.Exists(path) || versionIds.Count == 0)
+        {
+            return;
+        }
+
+        File.Copy(path, path + ".bak", overwrite: true);
+        if (JsonNode.Parse(File.ReadAllText(path)) is not JsonObject root || root["profiles"] is not JsonObject profiles)
+        {
+            return;
+        }
+
+        foreach (string key in profiles.Select(p => p.Key).ToList())
+        {
+            string? lastVersionId = profiles[key]?["lastVersionId"]?.GetValue<string>();
+            if (versionIds.Contains(key) || (lastVersionId is not null && versionIds.Contains(lastVersionId)))
+            {
+                profiles.Remove(key);
+            }
+        }
+
+        string temp = path + ".tmp";
+        File.WriteAllText(temp, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        File.Replace(temp, path, null);
+    }
+
     private static (string MetaBase, string VersionsPath) MetaEndpoints(Loader loader) => loader == Loader.Fabric
         ? ("https://meta.fabricmc.net", "v2/versions/loader")
         : ("https://meta.quiltmc.org", "v3/versions/loader");

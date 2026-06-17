@@ -170,6 +170,15 @@
                         <Button Content="Check for updates" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Right" Command="{Binding CheckUpdatesCommand}" />
                     </Grid>
                 </Border>
+                <Border BorderBrush="{StaticResource BorderFaintBrush}" BorderThickness="0,1,0,0">
+                    <Grid Margin="18,16">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Reset to clean" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
+                            <TextBlock Text="Remove every mod and Fabric/Quilt loader Lodestone installed — back to vanilla. Your worlds are kept." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
+                        </StackPanel>
+                        <Button Content="Reset…" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Right" Command="{Binding ResetToCleanCommand}" />
+                    </Grid>
+                </Border>
             </StackPanel>
         </Border>
     </StackPanel>

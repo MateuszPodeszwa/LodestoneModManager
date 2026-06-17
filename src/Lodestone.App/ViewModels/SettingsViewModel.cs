@@ -8,6 +8,7 @@ using Lodestone.Application.Common;
 using Lodestone.Application.Messaging;
 using Lodestone.Application.Settings;
 using Lodestone.Application.Supporter;
+using Lodestone.Application.UseCases;
 using Lodestone.Domain;
 using Lodestone.Domain.Common;
 
@@ -48,6 +49,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly IGameInventory _inventory;
     private readonly SupporterService _supporter;
     private readonly IUiDispatcher _ui;
+    private readonly ResetGameUseCase _reset;
     private bool _ready;
 
     public SettingsViewModel(
@@ -59,7 +61,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         ILoaderInstaller loaderInstaller,
         IGameInventory inventory,
         SupporterService supporter,
-        IUiDispatcher ui)
+        IUiDispatcher ui,
+        ResetGameUseCase reset)
     {
         _settings = settings;
         _dialog = dialog;
@@ -70,6 +73,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         _inventory = inventory;
         _supporter = supporter;
         _ui = ui;
+        _reset = reset;
         ReloadFromSettings();
         string version = _updater.CurrentVersion;
         string? codename = ReleaseNames.For(version);
@@ -300,6 +304,40 @@ public sealed partial class SettingsViewModel : ObservableObject
                 ? isDefault
                 : string.Equals(a.Hex, hex, StringComparison.OrdinalIgnoreCase);
         }
+    }
+
+    // Removes every mod/pack/shader and Fabric/Quilt loader Lodestone installed — a clean, pre-loader
+    // Minecraft. Gated behind an explicit confirmation; removed content goes to Lodestone's trash.
+    [RelayCommand]
+    private async Task ResetToCleanAsync()
+    {
+        if (!_locator.IsValid(_settings.Current.GameDirectory))
+        {
+            _bus.Publish(new ToastMessage("Nothing to reset", "Set your Minecraft folder first.", ToastKind.Warning));
+            return;
+        }
+
+        bool confirmed = _dialog.Confirm(
+            "Reset to clean?",
+            "This removes every mod, pack, shader and Fabric/Quilt loader Lodestone installed, returning " +
+            "Minecraft to a pre-loader state. Your worlds and vanilla versions are kept, and removed mods go " +
+            "to Lodestone's trash so they're recoverable.\n\nClose Minecraft first, then continue?");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        Result<ResetSummary> result = await _reset.ExecuteAsync().ConfigureAwait(true);
+        if (result.IsFailure)
+        {
+            _bus.Publish(new ToastMessage("Couldn't reset", result.Error.Message, ToastKind.Error));
+            return;
+        }
+
+        ReloadFromSettings();
+        _bus.Publish(new LibraryChanged());
+        _bus.Publish(new ToastMessage("Reset complete",
+            $"Removed {result.Value.ContentRemoved} item(s) and {result.Value.LoadersRemoved} loader(s). Minecraft is back to vanilla."));
     }
 
     [RelayCommand]
