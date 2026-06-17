@@ -7,11 +7,13 @@ using Lodestone.Domain;
 namespace Lodestone.Infrastructure.FileSystem;
 
 /// <summary>
-/// Reads the base game versions installed under <c>&lt;game&gt;/versions/</c>. Each entry has a
-/// <c>&lt;id&gt;.json</c> launcher manifest: a vanilla version's <c>id</c> is the version itself
-/// (e.g. <c>1.21.4</c>); a modded profile carries <c>inheritsFrom</c> naming its base version. We map
-/// every profile to its base, dedupe and sort newest-first. When a manifest is missing or unreadable
-/// we fall back to a trailing-version token in the folder name (e.g. <c>fabric-loader-0.16.5-1.21.4</c>).
+/// Reads the launcher profiles installed under <c>&lt;game&gt;/versions/</c>. Each entry has a
+/// <c>&lt;id&gt;.json</c> manifest: a vanilla version's <c>id</c> is the version itself (e.g.
+/// <c>1.21.4</c>); a modded profile carries <c>inheritsFrom</c> naming its base version, and its id or
+/// folder name identifies the loader (<c>fabric-loader-…</c>, <c>quilt-loader-…</c>,
+/// <c>1.20.1-forge-…</c>, <c>neoforge-…</c>). We map every folder to its base game version + loader,
+/// deduping and sorting newest-first. When a manifest is missing/unreadable we fall back to the folder
+/// name (Fabric/Quilt fold the base version into the name as a suffix).
 /// </summary>
 public sealed partial class MinecraftGameInventory : IGameInventory
 {
@@ -26,35 +28,68 @@ public sealed partial class MinecraftGameInventory : IGameInventory
 
     public IReadOnlyList<GameVersion> InstalledVersions()
     {
-        string? game = _settings.Current.GameDirectory;
-        if (string.IsNullOrWhiteSpace(game))
-        {
-            return [];
-        }
-
-        string versions = Path.Combine(game, "versions");
-        if (!Directory.Exists(versions))
-        {
-            return [];
-        }
-
         var byValue = new Dictionary<string, GameVersion>(StringComparer.OrdinalIgnoreCase);
-        foreach (string directory in Directory.EnumerateDirectories(versions))
+        foreach (LoaderProfile profile in ScanProfiles())
         {
-            string folder = Path.GetFileName(directory);
-            GameVersion? baseVersion = ResolveBaseVersion(directory, folder);
-            if (baseVersion is not null && !byValue.ContainsKey(baseVersion.Value))
-            {
-                byValue[baseVersion.Value] = baseVersion;
-            }
+            byValue.TryAdd(profile.GameVersion.Value, profile.GameVersion);
         }
 
         return byValue.Values.OrderByDescending(v => v).ToList();
     }
 
-    // Prefer the manifest (inheritsFrom for modded, id for vanilla); fall back to the folder name.
-    private static GameVersion? ResolveBaseVersion(string directory, string folder)
+    public IReadOnlyList<LoaderProfile> InstalledProfiles()
     {
+        // Dedupe by (version, loader): multiple loader builds for the same version collapse to one
+        // profile, keeping the highest version-id so a later switch can activate the newest build.
+        var byKey = new Dictionary<(string Version, Loader Loader), LoaderProfile>();
+        foreach (LoaderProfile profile in ScanProfiles())
+        {
+            (string, Loader) key = (profile.GameVersion.Value, profile.Loader);
+            if (!byKey.TryGetValue(key, out LoaderProfile? existing) ||
+                string.CompareOrdinal(profile.VersionId, existing.VersionId) > 0)
+            {
+                byKey[key] = profile;
+            }
+        }
+
+        return byKey.Values
+            .OrderByDescending(p => p.GameVersion)
+            .ThenBy(p => p.Loader)
+            .ToList();
+    }
+
+    private IEnumerable<LoaderProfile> ScanProfiles()
+    {
+        string? game = _settings.Current.GameDirectory;
+        if (string.IsNullOrWhiteSpace(game))
+        {
+            yield break;
+        }
+
+        string versions = Path.Combine(game, "versions");
+        if (!Directory.Exists(versions))
+        {
+            yield break;
+        }
+
+        foreach (string directory in Directory.EnumerateDirectories(versions))
+        {
+            string folder = Path.GetFileName(directory);
+            LoaderProfile? profile = ResolveProfile(directory, folder);
+            if (profile is not null)
+            {
+                yield return profile;
+            }
+        }
+    }
+
+    // Prefer the manifest (inheritsFrom for modded, id for vanilla) for the base version, and classify
+    // the loader from the id/folder name. Fall back to the folder name when there's no usable manifest.
+    private static LoaderProfile? ResolveProfile(string directory, string folder)
+    {
+        string? id = null;
+        GameVersion? baseVersion = null;
+
         string manifest = Path.Combine(directory, folder + ".json");
         if (File.Exists(manifest))
         {
@@ -62,12 +97,8 @@ public sealed partial class MinecraftGameInventory : IGameInventory
             {
                 using JsonDocument doc = JsonDocument.Parse(File.ReadAllText(manifest));
                 JsonElement root = doc.RootElement;
-                GameVersion? fromManifest = PlausibleVersion(TryString(root, "inheritsFrom"))
-                                            ?? PlausibleVersion(TryString(root, "id"));
-                if (fromManifest is not null)
-                {
-                    return fromManifest;
-                }
+                id = TryString(root, "id");
+                baseVersion = PlausibleVersion(TryString(root, "inheritsFrom")) ?? PlausibleVersion(id);
             }
             catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
             {
@@ -75,12 +106,40 @@ public sealed partial class MinecraftGameInventory : IGameInventory
             }
         }
 
-        // No usable manifest: Fabric/Quilt fold the base version into the folder name as a suffix;
-        // anything else is a vanilla folder named for the version itself.
-        Match loader = LoaderFolder.Match(folder);
-        return loader.Success
-            ? PlausibleVersion(loader.Groups["mc"].Value)
-            : PlausibleVersion(folder);
+        if (baseVersion is null)
+        {
+            // No usable manifest: Fabric/Quilt fold the base version into the folder name as a suffix;
+            // anything else is a vanilla folder named for the version itself.
+            Match loader = LoaderFolder.Match(folder);
+            baseVersion = loader.Success ? PlausibleVersion(loader.Groups["mc"].Value) : PlausibleVersion(folder);
+        }
+
+        return baseVersion is null
+            ? null
+            : new LoaderProfile(baseVersion, DetectLoader(id ?? string.Empty, folder), folder);
+    }
+
+    // Identify the loader from the manifest id / folder name. NeoForge is checked before Forge because
+    // the string "neoforge" contains "forge".
+    private static Loader DetectLoader(string id, string folder)
+    {
+        string hay = (id + " " + folder).ToLowerInvariant();
+        if (hay.Contains("quilt"))
+        {
+            return Loader.Quilt;
+        }
+
+        if (hay.Contains("fabric"))
+        {
+            return Loader.Fabric;
+        }
+
+        if (hay.Contains("neoforge"))
+        {
+            return Loader.NeoForge;
+        }
+
+        return hay.Contains("forge") ? Loader.Forge : Loader.None;
     }
 
     private static string? TryString(JsonElement root, string property)

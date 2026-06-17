@@ -16,6 +16,13 @@ public interface IGameInventory
     /// </summary>
     IReadOnlyList<GameVersion> InstalledVersions();
 
+    /// <summary>
+    /// Every installed launcher profile — each <c>versions/</c> folder mapped to its base game version
+    /// and the loader it carries (vanilla = <see cref="Loader.None"/>). Deduped by (version, loader),
+    /// newest game version first. This is the set of profiles the user can switch between.
+    /// </summary>
+    IReadOnlyList<LoaderProfile> InstalledProfiles();
+
     /// <summary>True when a base profile (vanilla, or a modded one that inherits from it) exists for this version.</summary>
     bool IsVersionInstalled(GameVersion version);
 }
