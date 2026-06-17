@@ -107,6 +107,16 @@
             </StackPanel>
         </Border>
 
+        <!-- Loading: a spinner stands in for the result list while the source responds to a search/filter. -->
+        <StackPanel HorizontalAlignment="Center" Margin="0,80" MinHeight="200"
+                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
+            <Control Style="{StaticResource Spinner}" HorizontalAlignment="Center" />
+            <TextBlock Text="Searching…" FontSize="13.5" Foreground="{StaticResource TextMutedBrush}"
+                       HorizontalAlignment="Center" Margin="0,16,0,0" />
+        </StackPanel>
+
+        <!-- Results, pager and empty-state swap out for the spinner while a search is in flight. -->
+        <StackPanel Visibility="{Binding IsLoading, Converter={StaticResource InvBoolToVis}}">
         <!-- Results -->
         <ItemsControl ItemsSource="{Binding Results}" Margin="0,20,0,0">
             <ItemsControl.ItemsPanel>
@@ -191,6 +201,7 @@
         <StackPanel HorizontalAlignment="Center" Margin="0,60" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}">
             <TextBlock Text="No results" FontSize="15" FontWeight="SemiBold" Foreground="#FFC7C7CC" HorizontalAlignment="Center" />
             <TextBlock Text="Try a different search, category or source." FontSize="13" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,6,0,0" />
+        </StackPanel>
         </StackPanel>
     </StackPanel>
 </UserControl>
