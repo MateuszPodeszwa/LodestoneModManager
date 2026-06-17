@@ -61,6 +61,11 @@ public sealed class InstalledContent
     /// <summary>True when this is a support library (e.g. Fabric API) — used to flag unused libraries.</summary>
     public bool IsLibrary { get; set; }
 
+    /// <summary>Catalog categories this item belongs to (e.g. <c>optimization</c>, <c>library</c>), lower-cased
+    /// source slugs. Empty for local/adopted files whose metadata doesn't declare any — those read as
+    /// "uncategorized" and drive the My Content category filter.</summary>
+    public IReadOnlyList<string> Categories { get; set; } = [];
+
     public bool UpdateAvailable { get; set; }
 
     /// <summary>True if this item declares support for <paramref name="version"/>.</summary>

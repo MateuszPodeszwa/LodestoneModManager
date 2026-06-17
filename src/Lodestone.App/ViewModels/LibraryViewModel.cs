@@ -16,6 +16,9 @@ namespace Lodestone.App.ViewModels;
 /// <summary>One entry in the My Content profile selector: a stable key and its display label.</summary>
 public sealed record ProfileOption(string Key, string Label);
 
+/// <summary>One entry in the My Content category filter: the source category slug (or a sentinel) and its label.</summary>
+public sealed record CategoryOption(string Key, string Label);
+
 /// <summary>
 /// "My Content": switch between installed (version + loader) profiles, type tabs, search,
 /// toggle/uninstall, and the compatibility symbols from the rule engine. Selecting a concrete profile
@@ -26,6 +29,7 @@ public sealed partial class LibraryViewModel : ObservableObject
 {
     private const string AllKey = "all";
     private const string UnknownKey = "unknown";
+    private const string UncategorizedKey = "uncategorized";
 
     private readonly IInstalledContentRepository _repository;
     private readonly ICompatibilityService _compatibility;
@@ -42,6 +46,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     private IReadOnlyList<GameVersion> _installedVersions = [];
     private IReadOnlyDictionary<string, CompatibilityReport> _reports = new Dictionary<string, CompatibilityReport>();
     private bool _suppressSwitch;
+    private bool _suppressCategory;
 
     public LibraryViewModel(
         IInstalledContentRepository repository,
@@ -75,17 +80,38 @@ public sealed partial class LibraryViewModel : ObservableObject
     /// <summary>"All profiles" plus every installed (version + loader) profile, newest first.</summary>
     public ObservableCollection<ProfileOption> Profiles { get; } = [new(AllKey, "All profiles")];
 
+    /// <summary>"All categories" plus every category present on the mods in the current profile/tab; a
+    /// trailing "Uncategorized" bucket appears when some items declare no category. Empty (and hidden)
+    /// when nothing is categorized.</summary>
+    public ObservableCollection<CategoryOption> Categories { get; } = [new(AllKey, "All categories")];
+
     public ObservableCollection<ContentItemViewModel> Items { get; } = [];
 
     [ObservableProperty] private string _libTab = "mods";
     [ObservableProperty] private string _selectedProfileKey;
+    [ObservableProperty] private string _selectedCategoryKey = AllKey;
     [ObservableProperty] private string _libSearch = string.Empty;
     [ObservableProperty] private string _countLabel = string.Empty;
     [ObservableProperty] private bool _isEmpty;
 
+    /// <summary>The category filter is only useful once at least one item carries a category — otherwise hidden.</summary>
+    [ObservableProperty] private bool _showCategoryFilter;
+
     partial void OnLibTabChanged(string value) => Rebuild();
 
     partial void OnLibSearchChanged(string value) => Rebuild();
+
+    partial void OnSelectedCategoryKeyChanged(string value)
+    {
+        // Ignore the transient null/empty that arrives while the dropdown's ItemsSource is rebuilt, and
+        // the programmatic resets we make while refreshing the options (guarded by _suppressCategory).
+        if (string.IsNullOrEmpty(value) || _suppressCategory)
+        {
+            return;
+        }
+
+        Rebuild();
+    }
 
     partial void OnSelectedProfileKeyChanged(string value)
     {
@@ -208,14 +234,15 @@ public sealed partial class LibraryViewModel : ObservableObject
             _ => ContentType.Mod,
         };
 
+        // The set in scope for this profile + tab, before the search and category facets are applied —
+        // it's what both the category dropdown and the visible list are derived from.
         bool allProfiles;
-        IReadOnlyList<InstalledContent> filtered;
+        IReadOnlyList<InstalledContent> baseSet;
         if (SelectedProfileKey == UnknownKey)
         {
             // The "Unknown" bucket: items of this type with no attributed version, for manual sorting.
             allProfiles = false;
-            string? search = string.IsNullOrWhiteSpace(LibSearch) ? null : LibSearch;
-            filtered = _all.Where(i => i.Type == type && i.GameVersions.Count == 0 && Matches(i, search)).ToList();
+            baseSet = _all.Where(i => i.Type == type && i.GameVersions.Count == 0).ToList();
         }
         else
         {
@@ -223,13 +250,16 @@ public sealed partial class LibraryViewModel : ObservableObject
             allProfiles = versionValue is AllKey or "";
             GameVersion? version = allProfiles ? null : GameVersion.Create(versionValue).Match<GameVersion?>(v => v, _ => null);
 
-            var filter = new LibraryFilter(
-                type,
-                version,
-                string.IsNullOrWhiteSpace(LibSearch) ? null : LibSearch,
-                allProfiles ? null : loader);
-            filtered = LibraryQuery.Apply(_all, filter);
+            baseSet = LibraryQuery.Apply(_all, new LibraryFilter(type, version, null, allProfiles ? null : loader));
         }
+
+        RefreshCategoryOptions(baseSet);
+
+        // Narrow to the visible list by the search text and the selected category.
+        string? search = string.IsNullOrWhiteSpace(LibSearch) ? null : LibSearch;
+        IReadOnlyList<InstalledContent> filtered = baseSet
+            .Where(i => Matches(i, search) && MatchesCategory(i))
+            .ToList();
 
         // Targets an unsorted mod can be assigned to: a prompt, then each concrete (version + loader) profile.
         var assignTargets = new List<ProfileOption> { new(string.Empty, "Assign to…") };
@@ -274,6 +304,69 @@ public sealed partial class LibraryViewModel : ObservableObject
         => search is null
            || item.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
            || item.Author.Contains(search, StringComparison.OrdinalIgnoreCase);
+
+    private bool MatchesCategory(InstalledContent item) => SelectedCategoryKey switch
+    {
+        AllKey or "" => true,
+        UncategorizedKey => item.Categories.Count == 0,
+        var key => item.Categories.Any(c => string.Equals(c, key, StringComparison.OrdinalIgnoreCase)),
+    };
+
+    // Builds the category dropdown from the categories actually present on the base set. The filter is
+    // hidden entirely when nothing is categorized (everything would read "uncategorized"), per the design:
+    // the ability only appears once it can do something. Repairs a now-absent selection back to "All".
+    private void RefreshCategoryOptions(IReadOnlyList<InstalledContent> baseSet)
+    {
+        List<string> present = baseSet
+            .SelectMany(i => i.Categories)
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Select(c => c.Trim().ToLowerInvariant())
+            .Distinct()
+            .OrderBy(c => c, StringComparer.Ordinal)
+            .ToList();
+
+        ShowCategoryFilter = present.Count > 0;
+
+        var desired = new List<CategoryOption> { new(AllKey, "All categories") };
+        if (ShowCategoryFilter)
+        {
+            desired.AddRange(present.Select(c => new CategoryOption(c, Prettify(c))));
+            if (baseSet.Any(i => i.Categories.Count == 0))
+            {
+                desired.Add(new CategoryOption(UncategorizedKey, "Uncategorized"));
+            }
+        }
+
+        string target = desired.Any(o => o.Key.Equals(SelectedCategoryKey, StringComparison.OrdinalIgnoreCase))
+            ? SelectedCategoryKey
+            : AllKey;
+
+        _suppressCategory = true;
+        try
+        {
+            if (!Categories.Select(o => o.Key).SequenceEqual(desired.Select(o => o.Key), StringComparer.OrdinalIgnoreCase))
+            {
+                Categories.Clear();
+                foreach (CategoryOption option in desired)
+                {
+                    Categories.Add(option);
+                }
+            }
+
+            SelectedCategoryKey = target; // re-assert (clearing the list can null the bound SelectedValue)
+        }
+        finally
+        {
+            _suppressCategory = false;
+        }
+    }
+
+    // "game-mechanics" → "Game Mechanics"; already-cased display categories pass through unchanged.
+    private static string Prettify(string slug)
+    {
+        string[] words = slug.Replace('_', '-').Split('-', StringSplitOptions.RemoveEmptyEntries);
+        return string.Join(' ', words.Select(w => char.ToUpperInvariant(w[0]) + w[1..]));
+    }
 
     private async Task ToggleAsync(string id)
     {

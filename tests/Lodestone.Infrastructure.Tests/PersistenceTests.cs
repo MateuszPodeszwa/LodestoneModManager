@@ -75,6 +75,7 @@ public class JsonInstalledContentRepositoryTests
                 GameVersions = [GameVersion.Parse("1.21.4")],
                 Dependencies = [new Dependency("fabric-api", DependencyKind.Required)],
                 ProvidedIds = ["sodium"],
+                Categories = ["optimization", "utility"],
             };
             await repo.UpsertAsync(sodium);
         }
@@ -87,6 +88,7 @@ public class JsonInstalledContentRepositoryTests
         loaded.Loader.ShouldBe(Loader.Fabric);
         loaded.GameVersions.ShouldContain(v => v.Value == "1.21.4");
         loaded.Dependencies.ShouldContain(d => d.Identifier == "fabric-api");
+        loaded.Categories.ShouldBe(["optimization", "utility"]);
     }
 
     [Fact]

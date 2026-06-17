@@ -40,26 +40,41 @@
                                  IsChecked="{Binding LibTab, Converter={StaticResource Equals}, ConverterParameter=shaders, Mode=TwoWay}" />
                 </StackPanel>
             </Border>
-            <Grid Width="230" HorizontalAlignment="Right">
-                <TextBox Style="{StaticResource DarkTextBox}" Padding="33,9,12,9"
-                         Text="{Binding LibSearch, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
-                <Path Width="15" Height="15" Margin="11,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="False"
-                      Stretch="Uniform" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.8" StrokeStartLineCap="Round"
-                      Data="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Z M20 20l-3.5-3.5" />
-                <TextBlock Text="Search your content" Foreground="{StaticResource TextMutedBrush}" FontSize="13.5" Margin="33,0,0,0"
-                           VerticalAlignment="Center" IsHitTestVisible="False">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding LibSearch}" Value="">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-            </Grid>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <!-- Category filter — built from the categories present on the current mods; hidden when
+                     nothing is categorized (every item would read "Uncategorized"). -->
+                <ComboBox Width="170" Margin="0,0,12,0" VerticalAlignment="Center"
+                          Style="{StaticResource DarkComboBox}" ItemContainerStyle="{StaticResource DarkComboBoxItem}"
+                          Visibility="{Binding ShowCategoryFilter, Converter={StaticResource BoolToVis}}"
+                          ItemsSource="{Binding Categories}"
+                          SelectedValuePath="Key" SelectedValue="{Binding SelectedCategoryKey, Mode=TwoWay}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Label}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Grid Width="230">
+                    <TextBox Style="{StaticResource DarkTextBox}" Padding="33,9,12,9"
+                             Text="{Binding LibSearch, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                    <Path Width="15" Height="15" Margin="11,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="False"
+                          Stretch="Uniform" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.8" StrokeStartLineCap="Round"
+                          Data="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Z M20 20l-3.5-3.5" />
+                    <TextBlock Text="Search your content" Foreground="{StaticResource TextMutedBrush}" FontSize="13.5" Margin="33,0,0,0"
+                               VerticalAlignment="Center" IsHitTestVisible="False">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding LibSearch}" Value="">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </StackPanel>
         </Grid>
 
         <!-- List -->

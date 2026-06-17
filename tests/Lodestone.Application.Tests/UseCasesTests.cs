@@ -154,6 +154,7 @@ public class InstallFromCatalogUseCaseTests
         result.Value.Item.Version.ShouldBe("0.5.8");
         result.Value.Item.ProjectId.ShouldBe("sodium");
         result.Value.Item.Sha512.ShouldBe("deadbeef");
+        result.Value.Item.Categories.ShouldBe(["optimization"]); // carried from the catalog for the My Content filter
         result.Value.InstalledDependencies.ShouldBeEmpty();
         await repo.Received(1).UpsertAsync(Arg.Any<InstalledContent>(), Arg.Any<CancellationToken>());
     }

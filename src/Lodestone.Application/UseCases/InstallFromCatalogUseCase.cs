@@ -210,6 +210,7 @@ public sealed class InstallFromCatalogUseCase
             Dependencies = chosen.Dependencies,
             ProvidedIds = [project.Slug],
             IsLibrary = project.Categories.Any(c => string.Equals(c, "library", StringComparison.OrdinalIgnoreCase)),
+            Categories = project.Categories.Select(c => c.ToLowerInvariant()).Distinct().ToList(),
         };
 
         await _repository.UpsertAsync(content, ct).ConfigureAwait(false);

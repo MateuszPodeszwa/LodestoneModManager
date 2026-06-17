@@ -22,6 +22,7 @@ internal sealed class InstalledContentDto
     public List<DependencyDto> Dependencies { get; set; } = [];
     public List<string> ProvidedIds { get; set; } = [];
     public bool IsLibrary { get; set; }
+    public List<string> Categories { get; set; } = [];
     public bool UpdateAvailable { get; set; }
 }
 
@@ -64,6 +65,7 @@ internal static class InstalledContentMapper
         }).ToList(),
         ProvidedIds = c.ProvidedIds.ToList(),
         IsLibrary = c.IsLibrary,
+        Categories = c.Categories.ToList(),
         UpdateAvailable = c.UpdateAvailable,
     };
 
@@ -109,6 +111,7 @@ internal static class InstalledContentMapper
             Dependencies = dependencies,
             ProvidedIds = dto.ProvidedIds,
             IsLibrary = dto.IsLibrary,
+            Categories = dto.Categories,
             UpdateAvailable = dto.UpdateAvailable,
         };
     }
