@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Lodestone.Application.Abstractions;
@@ -261,7 +262,19 @@ public sealed class MetaLoaderInstaller : ILoaderInstaller
 
     private async Task<string?> ResolveLatestLoaderAsync(string metaBase, string versionsPath, string game, CancellationToken ct)
     {
-        string json = await _http.GetStringAsync($"{metaBase}/{versionsPath}/{game}", ct).ConfigureAwait(false);
+        using HttpResponseMessage response = await _http.GetAsync($"{metaBase}/{versionsPath}/{game}", ct).ConfigureAwait(false);
+
+        // A 404 means the loader simply hasn't published for this Minecraft version yet — Quilt's meta
+        // returns it for unknown versions. That's "no build available" (a clear, expected outcome the
+        // caller reports as loader.no_version), not a transport failure, so don't let it surface as a raw
+        // "Response status code does not indicate success: 404" network error.
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+        string json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
         using JsonDocument doc = JsonDocument.Parse(json);
         if (doc.RootElement.ValueKind != JsonValueKind.Array || doc.RootElement.GetArrayLength() == 0)
         {
