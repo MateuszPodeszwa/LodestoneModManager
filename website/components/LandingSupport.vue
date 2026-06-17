@@ -20,8 +20,9 @@ const app = useAppConfig()
         <p class="mx-auto mt-4 max-w-[560px] text-[17px] leading-relaxed text-muted">{{ app.support.subtitle }}</p>
       </Reveal>
 
-      <!-- Patreon widget (default — shown when no tiers are configured) -->
-      <Reveal v-if="!app.support.tiers.length" class="mx-auto mt-12 max-w-[680px]">
+      <!-- Patreon widget (default — shown when no tiers are configured). Full-width to
+           match the "Claim your code" widget below it. -->
+      <Reveal v-if="!app.support.tiers.length" class="mt-12">
         <div
           class="group relative overflow-hidden rounded-3xl border border-pink/30 p-8 text-center transition-transform duration-300 hover:-translate-y-1 sm:p-10"
           style="background: linear-gradient(135deg, rgba(226,113,154,0.12), rgba(90,194,109,0.06))"
@@ -45,7 +46,7 @@ const app = useAppConfig()
               :href="app.links.patreon"
               target="_blank"
               rel="noopener"
-              class="mt-7 inline-flex items-center gap-2.5 rounded-xl px-7 py-3.5 text-[15px] font-bold text-white no-underline transition hover:brightness-110"
+              class="mt-7 inline-flex items-center gap-2.5 rounded-xl px-7 py-3.5 text-[15px] font-bold text-white no-underline transition duration-200 will-change-transform hover:-translate-y-0.5 hover:brightness-110"
               style="background: linear-gradient(140deg, #ec5f5b, #d85691); box-shadow: 0 16px 34px -12px rgba(236,95,91,0.6)"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><circle cx="15" cy="9.2" r="6.2" /><rect x="2.5" y="2.6" width="3.6" height="18.8" rx="0.4" /></svg>
