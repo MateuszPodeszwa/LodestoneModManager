@@ -140,6 +140,8 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LoaderActionLabel))]
+    [NotifyPropertyChangedFor(nameof(LoaderHintText))]
+    [NotifyPropertyChangedFor(nameof(ShowLoaderRefresh))]
     private bool _isUpdatingLoader;
 
     /// <summary>Whether the active loader is actually installed for the selected Minecraft version — the
@@ -163,12 +165,44 @@ public sealed partial class SettingsViewModel : ObservableObject
         ? IsActiveLoaderInstalled ? "Updating…" : "Installing…"
         : IsActiveLoaderInstalled ? "Update loader" : "Install";
 
+    /// <summary>A one-line, situation-aware explanation shown under the loader controls.</summary>
+    public string LoaderHintText
+    {
+        get
+        {
+            string name = Loader.ParseLoader().ToDisplayName();
+            if (IsUpdatingLoader)
+            {
+                return $"Installing {name}… if an installer window opens, complete it — Lodestone detects it when you're done.";
+            }
+
+            if (IsActiveLoaderInstalled)
+            {
+                return $"{name} is installed for {LoaderGameVersion}.";
+            }
+
+            return string.IsNullOrWhiteSpace(LoaderGameVersion)
+                ? "Pick the Minecraft version, then install the loader for it."
+                : $"{name} isn't installed for {LoaderGameVersion} yet — install it before adding mods.";
+        }
+    }
+
+    /// <summary>The manual "check again" affordance: shown only while the loader isn't installed (so it
+    /// disappears once installation is detected), letting the user re-scan after an external installer.</summary>
+    public bool ShowLoaderRefresh => !IsActiveLoaderInstalled && !IsUpdatingLoader;
+
+    // Manual re-check (e.g. after finishing an external Forge/NeoForge installer) — re-reads the inventory.
+    [RelayCommand]
+    private void RefreshLoaderStatus() => RaiseLoaderStatus();
+
     // Re-evaluates the detected loader state (called on loader/version change and after an install).
     private void RaiseLoaderStatus()
     {
         OnPropertyChanged(nameof(IsActiveLoaderInstalled));
         OnPropertyChanged(nameof(LoaderStatusLabel));
         OnPropertyChanged(nameof(LoaderActionLabel));
+        OnPropertyChanged(nameof(LoaderHintText));
+        OnPropertyChanged(nameof(ShowLoaderRefresh));
     }
 
     /// <summary>The Minecraft versions actually installed — the choices for which version to set the loader up against.</summary>
@@ -507,22 +541,33 @@ public sealed partial class SettingsViewModel : ObservableObject
             {
                 _bus.Publish(new ToastMessage($"Fetching {loader.ToDisplayName()}",
                     $"Downloading the official {loader.ToDisplayName()} installer for {version}…"));
-                Result<string> result = await _external.LaunchInstallerAsync(loader, version).ConfigureAwait(true);
-                if (result.IsSuccess)
-                {
-                    _bus.Publish(new ToastMessage($"{loader.ToDisplayName()} installer launched",
-                        $"Finish the installer window (v{result.Value} for {version}). Your {loader.ToDisplayName()} profile shows up in My Content once it completes."));
-                }
-                else
+                Result<ExternalInstall> result = await _external.LaunchInstallerAsync(loader, version).ConfigureAwait(true);
+                if (result.IsFailure)
                 {
                     _bus.Publish(new ToastMessage($"Couldn't start {loader.ToDisplayName()}", result.Error.Message, ToastKind.Error));
+                    return;
                 }
+
+                _bus.Publish(new ToastMessage($"{loader.ToDisplayName()} installer opened",
+                    $"Complete it in the installer window — Lodestone detects the {loader.ToDisplayName()} profile for {version} as soon as you're done."));
+
+                // Stay "installing" until the user finishes the external installer (event-driven, no polling),
+                // then re-check so the status and the mod gate update on their own.
+                await result.Value.Completion.ConfigureAwait(true);
+
+                _bus.Publish(_inventory.IsLoaderInstalled(loader, version)
+                    ? new ToastMessage($"{loader.ToDisplayName()} installed", $"Ready for {version} — pick it in your launcher.")
+                    : new ToastMessage($"{loader.ToDisplayName()} not detected",
+                        "The installer closed without adding the profile. If you cancelled it, run Install again.", ToastKind.Warning));
             }
             finally
             {
                 IsUpdatingLoader = false;
             }
         }).ConfigureAwait(true);
+
+        RaiseLoaderStatus(); // the external install finished (or was cancelled) — reflect the real state
+        _bus.Publish(new LibraryChanged());
 
         if (!ran)
         {

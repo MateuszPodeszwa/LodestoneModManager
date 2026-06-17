@@ -38,12 +38,19 @@
                     <Grid Margin="18,16">
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="Loader version" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
-                            <TextBlock Text="Pick the Minecraft version, then install or update the loader for it." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
+                            <TextBlock Text="{Binding LoaderHintText}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" TextWrapping="Wrap" MaxWidth="430" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" IsEnabled="{Binding CanManageLoaders}">
                             <TextBlock Text="Minecraft" FontSize="12.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,10,0" />
                             <ComboBox Width="120" Style="{StaticResource DarkComboBox}" ItemContainerStyle="{StaticResource DarkComboBoxItem}"
                                       ItemsSource="{Binding GameVersions}" SelectedItem="{Binding LoaderGameVersion, Mode=TwoWay}" Margin="0,0,10,0" />
+                            <!-- Manual "check again"; disappears once the loader is detected as installed. -->
+                            <Button Style="{StaticResource GhostButton}" Command="{Binding RefreshLoaderStatusCommand}" Margin="0,0,8,0" ToolTip="Check again"
+                                    Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"
+                                    Visibility="{Binding ShowLoaderRefresh, Converter={StaticResource BoolToVis}}">
+                                <Path Width="15" Height="15" Stretch="Uniform" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.7"
+                                      StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M23 4v6h-6 M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                            </Button>
                             <!-- Detected install status for the selected loader + version — the truth, not just what's selected. -->
                             <TextBlock Text="{Binding LoaderStatusLabel}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0">
                                 <TextBlock.Style>

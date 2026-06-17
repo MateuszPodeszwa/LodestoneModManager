@@ -33,18 +33,18 @@ public sealed class ForgeInstallerLauncher : IExternalLoaderInstaller
 
     public bool Supports(Loader loader) => loader is Loader.Forge or Loader.NeoForge;
 
-    public async Task<Result<string>> LaunchInstallerAsync(Loader loader, GameVersion version, CancellationToken ct = default)
+    public async Task<Result<ExternalInstall>> LaunchInstallerAsync(Loader loader, GameVersion version, CancellationToken ct = default)
     {
         Result<(string Url, string Version)> resolved = await ResolveInstallerAsync(loader, version, ct).ConfigureAwait(false);
         if (resolved.IsFailure)
         {
-            return Result.Failure<string>(resolved.Error);
+            return Result.Failure<ExternalInstall>(resolved.Error);
         }
 
         string? java = FindJava();
         if (java is null)
         {
-            return Result.Failure<string>("loader.no_java",
+            return Result.Failure<ExternalInstall>("loader.no_java",
                 "Couldn't find a Java runtime to run the installer. Launch Minecraft once (it installs Java), or install Java, then try again.");
         }
 
@@ -55,16 +55,17 @@ public sealed class ForgeInstallerLauncher : IExternalLoaderInstaller
         }
         catch (HttpRequestException ex)
         {
-            return Result.Failure<string>("loader.network", ex.Message);
+            return Result.Failure<ExternalInstall>("loader.network", ex.Message);
         }
         catch (IOException ex)
         {
-            return Result.Failure<string>("loader.io", ex.Message);
+            return Result.Failure<ExternalInstall>("loader.io", ex.Message);
         }
 
+        Process? process;
         try
         {
-            Process.Start(new ProcessStartInfo(java, $"-jar \"{jar}\"")
+            process = Process.Start(new ProcessStartInfo(java, $"-jar \"{jar}\"")
             {
                 UseShellExecute = false,
                 WorkingDirectory = Path.GetDirectoryName(jar) ?? Environment.CurrentDirectory,
@@ -72,7 +73,7 @@ public sealed class ForgeInstallerLauncher : IExternalLoaderInstaller
         }
         catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or IOException)
         {
-            return Result.Failure<string>("loader.launch", "Couldn't start the installer: " + ex.Message);
+            return Result.Failure<ExternalInstall>("loader.launch", "Couldn't start the installer: " + ex.Message);
         }
 
         // Record the profile the official installer will create so "Reset to clean" can remove it later.
@@ -83,7 +84,10 @@ public sealed class ForgeInstallerLauncher : IExternalLoaderInstaller
             new LoaderInstall(versionId, loader, version.Value, resolved.Value.Version, DateTimeOffset.UtcNow), ct)
             .ConfigureAwait(false);
 
-        return Result.Success(resolved.Value.Version);
+        // WaitForExitAsync is event-driven (no polling), so the caller can await the installer closing
+        // and then re-check the result without burning CPU.
+        Task completion = process is null ? Task.CompletedTask : process.WaitForExitAsync(ct);
+        return Result.Success(new ExternalInstall(resolved.Value.Version, completion));
     }
 
     // The versions/ directory id each installer creates: Forge writes "<mc>-forge-<build>", NeoForge "neoforge-<build>".
