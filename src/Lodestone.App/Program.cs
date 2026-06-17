@@ -15,25 +15,36 @@ internal static class Program
     public static void Main()
     {
         VelopackApp.Build()
-            // On uninstall, drop the supporter token so a reinstall requires re-pasting a fresh code.
-            .OnBeforeUninstallFastCallback(_ => TryDeleteEntitlements())
+            // On uninstall, purge everything Lodestone persisted so a reinstall starts genuinely clean —
+            // fresh onboarding, no stale settings/library, and the supporter token gone (a reinstall must
+            // re-paste a fresh code).
+            .OnBeforeUninstallFastCallback(_ => PurgeAppData())
             .Run();
         App.Main();
     }
 
-    private static void TryDeleteEntitlements()
+    // Removes only Lodestone's own data: %AppData%\Lodestone (settings, library, entitlements, logs,
+    // trash) and our %LocalAppData%\Lodestone\cache. It deliberately leaves the user's .minecraft (mods,
+    // worlds, loaders) untouched — "Reset to clean" in Settings is the explicit way to undo those — and it
+    // leaves Velopack's own program files for the uninstaller to remove.
+    private static void PurgeAppData()
+    {
+        TryDeleteDirectory(LodestonePaths.Root);
+        TryDeleteDirectory(LodestonePaths.CacheDirectory);
+    }
+
+    private static void TryDeleteDirectory(string path)
     {
         try
         {
-            string path = LodestonePaths.EntitlementsFile;
-            if (File.Exists(path))
+            if (Directory.Exists(path))
             {
-                File.Delete(path);
+                Directory.Delete(path, recursive: true);
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            // Best effort: uninstall must never fail because of our data file.
+            // Best effort: uninstall must never fail because of our data.
         }
     }
 }
