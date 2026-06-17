@@ -81,7 +81,8 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <ContentPresenter Grid.Column="0" ContentSource="Header" VerticalAlignment="Center" />
+                                    <ContentPresenter Grid.Column="0" ContentSource="Header" VerticalAlignment="Center"
+                                                      TextElement.Foreground="{TemplateBinding Foreground}" />
                                     <Path x:Name="chevron" Grid.Column="1" Width="13" Height="13" Margin="14,0,2,0"
                                           Stretch="Uniform" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="2"
                                           StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
