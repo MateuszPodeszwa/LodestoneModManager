@@ -2,6 +2,9 @@
 const app = useAppConfig()
 const toast = useToast()
 const route = useRoute()
+// Shared auth state — clearing it here also updates the nav (otherwise the profile
+// tab lingers until a manual refresh).
+const { clear: clearSession } = useUserSession()
 
 useSeoMeta({
   title: 'Supporter — claim your key',
@@ -84,6 +87,7 @@ async function copyKey() {
 
 async function signOut() {
   await $fetch('/api/auth/logout', { method: 'POST' })
+  await clearSession() // reset the shared session so the nav drops the profile tab immediately
   code.value = null
   expiresAt.value = null
   nextAt.value = null
