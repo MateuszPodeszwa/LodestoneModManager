@@ -16,7 +16,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg" Property="BorderBrush" Value="{StaticResource AccentBorderBrush}" />
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -165,8 +165,8 @@
                                         <TextBlock Text="{Binding Followers}" FontSize="11.5" Foreground="{StaticResource TextSecondaryBrush}" Margin="4,0,0,0" VerticalAlignment="Center" />
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Visibility="{Binding Installed, Converter={StaticResource BoolToVis}}">
-                                        <Path Width="14" Height="14" VerticalAlignment="Center" Stretch="Uniform" Stroke="{StaticResource AccentBrush}" StrokeThickness="2.4" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M5 12l4 4 10-10" />
-                                        <TextBlock Text="Installed" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" Margin="5,0,0,0" VerticalAlignment="Center" />
+                                        <Path Width="14" Height="14" VerticalAlignment="Center" Stretch="Uniform" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.4" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M5 12l4 4 10-10" />
+                                        <TextBlock Text="Installed" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="5,0,0,0" VerticalAlignment="Center" />
                                     </StackPanel>
                                     <Button Content="Install" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right" Padding="16,7"
                                             Command="{Binding InstallCommand}" Visibility="{Binding CanInstall, Converter={StaticResource BoolToVis}}"

@@ -86,7 +86,7 @@
                                     IsEnabled="{Binding DataContext.IsGameReady, RelativeSource={RelativeSource AncestorType=Window}}"
                                     Visibility="{Binding CanInstall, Converter={StaticResource BoolToVis}}">
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Path Width="17" Height="17" Stretch="Uniform" Stroke="{StaticResource AccentTextBrush}" StrokeThickness="2.1" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M12 4v11 M7 11l5 5 5-5 M5 20h14" />
+                                    <Path Width="17" Height="17" Stretch="Uniform" Stroke="{DynamicResource AccentTextBrush}" StrokeThickness="2.1" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M12 4v11 M7 11l5 5 5-5 M5 20h14" />
                                     <TextBlock Text="Install to library" Margin="8,0,0,0" />
                                 </StackPanel>
                             </Button>
@@ -95,7 +95,7 @@
                                     <TextBlock Text="Installing…" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" />
                                     <TextBlock Text="{Binding InstallPercentLabel}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Right" />
                                 </Grid>
-                                <ProgressBar Height="8" Minimum="0" Maximum="100" Value="{Binding InstallPercent}" Background="#17FFFFFF" Foreground="{StaticResource AccentBrush}" BorderThickness="0">
+                                <ProgressBar Height="8" Minimum="0" Maximum="100" Value="{Binding InstallPercent}" Background="#17FFFFFF" Foreground="{DynamicResource AccentBrush}" BorderThickness="0">
                                     <ProgressBar.Template>
                                         <ControlTemplate TargetType="ProgressBar">
                                             <Border Background="{TemplateBinding Background}" CornerRadius="5">
@@ -108,10 +108,10 @@
                                     </ProgressBar.Template>
                                 </ProgressBar>
                             </StackPanel>
-                            <Border Background="{StaticResource AccentFaintBrush}" CornerRadius="10" Padding="13" Visibility="{Binding Installed, Converter={StaticResource BoolToVis}}">
+                            <Border Background="{DynamicResource AccentFaintBrush}" CornerRadius="10" Padding="13" Visibility="{Binding Installed, Converter={StaticResource BoolToVis}}">
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Path Width="17" Height="17" Stretch="Uniform" Stroke="{StaticResource AccentBrush}" StrokeThickness="2.4" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M5 12l4 4 10-10" />
-                                    <TextBlock Text="Installed" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" Margin="8,0,0,0" />
+                                    <Path Width="17" Height="17" Stretch="Uniform" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.4" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M5 12l4 4 10-10" />
+                                    <TextBlock Text="Installed" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="8,0,0,0" />
                                 </StackPanel>
                             </Border>
                         </Grid>

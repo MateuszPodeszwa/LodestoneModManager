@@ -26,14 +26,14 @@
         <Border Grid.Row="0" Background="{StaticResource TitleBarBgBrush}" BorderBrush="{StaticResource BorderFaintBrush}" BorderThickness="0,0,0,1">
             <Grid>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
-                    <Border Width="24" Height="24" CornerRadius="6" Background="{StaticResource AccentTileBrush}">
-                        <Path Width="15" Height="15" Stretch="Uniform" Stroke="{StaticResource AccentTextBrush}" StrokeThickness="2"
+                    <Border Width="24" Height="24" CornerRadius="6" Background="{DynamicResource AccentTileBrush}">
+                        <Path Width="15" Height="15" Stretch="Uniform" Stroke="{DynamicResource AccentTextBrush}" StrokeThickness="2"
                               StrokeLineJoin="Round" Data="M12 3 4 7v10l8 4 8-4V7z M4 7l8 4 8-4 M12 11v10" />
                     </Border>
                     <!-- Supporter badge sits before the title; rectangular corners (r6) match the adjacent logo tile -->
-                    <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="6" Padding="9,3" Margin="10,0,0,0" VerticalAlignment="Center"
+                    <Border Background="{DynamicResource AccentSoftBrush}" CornerRadius="6" Padding="9,3" Margin="10,0,0,0" VerticalAlignment="Center"
                             Visibility="{Binding IsSupporter, Converter={StaticResource BoolToVis}}">
-                        <TextBlock Text="Supporter" Foreground="{StaticResource AccentBrush}" FontSize="11" FontWeight="SemiBold" />
+                        <TextBlock Text="Supporter" Foreground="{DynamicResource AccentBrush}" FontSize="11" FontWeight="SemiBold" />
                     </Border>
                     <TextBlock Text="Lodestone" Foreground="{StaticResource TextPrimaryBrush}" FontSize="13" FontWeight="SemiBold" Margin="10,0,0,0" VerticalAlignment="Center" />
                     <TextBlock Text="Mod Manager" Foreground="{StaticResource TextFaintBrush}" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center" />
@@ -150,9 +150,9 @@
                 Visibility="{Binding Gate.IsBusy, Converter={StaticResource BoolToVis}}">
             <StackPanel>
                 <ProgressBar Height="2.5" IsIndeterminate="{Binding Gate.IsBusy}"
-                             Background="Transparent" BorderThickness="0" BorderBrush="Transparent" Foreground="{StaticResource AccentBrush}" />
+                             Background="Transparent" BorderThickness="0" BorderBrush="Transparent" Foreground="{DynamicResource AccentBrush}" />
                 <StackPanel Orientation="Horizontal" Margin="36,8" VerticalAlignment="Center">
-                    <Ellipse Width="8" Height="8" Fill="{StaticResource AccentBrush}" VerticalAlignment="Center" />
+                    <Ellipse Width="8" Height="8" Fill="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                     <TextBlock Text="{Binding Gate.StatusLabel}" Foreground="{StaticResource TextBodyBrush}" FontSize="12.5" VerticalAlignment="Center" Margin="9,0,0,0" />
                 </StackPanel>
             </StackPanel>

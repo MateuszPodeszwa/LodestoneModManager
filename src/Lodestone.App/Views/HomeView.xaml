@@ -40,7 +40,7 @@
             </Border>
             <Border Style="{StaticResource Card}" Margin="7,0,0,0" Padding="18,16">
                 <StackPanel>
-                    <TextBlock Text="{Binding ActiveVersion}" FontSize="30" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" />
+                    <TextBlock Text="{Binding ActiveVersion}" FontSize="30" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" />
                     <TextBlock Text="Active version" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
                 </StackPanel>
             </Border>
@@ -60,8 +60,8 @@
                 <!-- Idle -->
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                             Visibility="{Binding IsInstalling, Converter={StaticResource InvBoolToVis}}">
-                    <Border Width="54" Height="54" CornerRadius="14" Background="{StaticResource AccentSoftBrush}" HorizontalAlignment="Center">
-                        <Path Width="26" Height="26" Stretch="Uniform" Stroke="{StaticResource AccentBrush}" StrokeThickness="1.8" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Data="M12 16V4 M7 9l5-5 5 5 M5 20h14" />
+                    <Border Width="54" Height="54" CornerRadius="14" Background="{DynamicResource AccentSoftBrush}" HorizontalAlignment="Center">
+                        <Path Width="26" Height="26" Stretch="Uniform" Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.8" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Data="M12 16V4 M7 9l5-5 5 5 M5 20h14" />
                     </Border>
                     <TextBlock Text="Drag &amp; drop to install" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,14,0,0" />
                     <TextBlock Text="Mods (.jar) · Resource packs &amp; shaders (.zip) — or click to browse files" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,5,0,0" />
@@ -86,7 +86,7 @@
                     </TextBlock>
                     <TextBlock Text="{Binding InstallTypeLabel}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
                     <Border Height="7" CornerRadius="5" Background="#17FFFFFF" Margin="0,14,0,0">
-                        <Border HorizontalAlignment="Stretch" CornerRadius="5" Background="{StaticResource AccentBrush}" />
+                        <Border HorizontalAlignment="Stretch" CornerRadius="5" Background="{DynamicResource AccentBrush}" />
                     </Border>
                 </StackPanel>
             </Grid>
@@ -130,7 +130,7 @@
                                                     <Setter Property="Fill" Value="#FF6B6B73" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding Enabled}" Value="True">
-                                                            <Setter Property="Fill" Value="{StaticResource AccentBrush}" />
+                                                            <Setter Property="Fill" Value="{DynamicResource AccentBrush}" />
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -182,8 +182,8 @@
                     <!-- No updates: empty state centred in the fill area, matching the mock's justify-content:center. -->
                     <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,14"
                                 Visibility="{Binding HasUpdates, Converter={StaticResource InvBoolToVis}}">
-                        <Border Width="40" Height="40" CornerRadius="20" Background="{StaticResource AccentSoftBrush}" HorizontalAlignment="Center">
-                            <Path Width="20" Height="20" Stretch="Uniform" Stroke="{StaticResource AccentBrush}" StrokeThickness="2.2" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M5 12l4 4 10-10" />
+                        <Border Width="40" Height="40" CornerRadius="20" Background="{DynamicResource AccentSoftBrush}" HorizontalAlignment="Center">
+                            <Path Width="20" Height="20" Stretch="Uniform" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2.2" StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M5 12l4 4 10-10" />
                         </Border>
                         <TextBlock Text="{Binding UpdatesEmptyTitle}" FontSize="13.5" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" HorizontalAlignment="Center" Margin="0,10,0,0" />
                         <TextBlock Text="{Binding UpdatesEmptySubtitle}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="0,3,0,0" />

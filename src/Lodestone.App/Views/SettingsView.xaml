@@ -60,7 +60,7 @@
                                         <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsActiveLoaderInstalled}" Value="True">
-                                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -99,8 +99,8 @@
                         <StackPanel VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="Early access" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
-                                <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="8" Padding="7,2" Margin="9,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock Text="SUPPORTER" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" />
+                                <Border Background="{DynamicResource AccentSoftBrush}" CornerRadius="8" Padding="7,2" Margin="9,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="SUPPORTER" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" />
                                 </Border>
                             </StackPanel>
                             <TextBlock Text="Get beta builds before everyone else. Unlocked for supporters." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
@@ -132,8 +132,8 @@
                 <StackPanel VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Accent colour" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
-                        <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="8" Padding="7,2" Margin="9,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="SUPPORTER" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" />
+                        <Border Background="{DynamicResource AccentSoftBrush}" CornerRadius="8" Padding="7,2" Margin="9,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="SUPPORTER" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" />
                         </Border>
                     </StackPanel>
                     <TextBlock Text="Personalise the app. Extra colours are unlocked for supporters." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
@@ -148,7 +148,7 @@
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Grid>
-                                            <Ellipse Stroke="{StaticResource AccentBrush}" StrokeThickness="2"
+                                            <Ellipse Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"
                                                      Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}}" />
                                             <Ellipse Fill="{Binding Swatch}" Margin="4" />
                                             <Ellipse Fill="#AA15151A" Margin="4"

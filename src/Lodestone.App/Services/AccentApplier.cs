@@ -25,10 +25,12 @@ public static class SupporterAccents
 }
 
 /// <summary>
-/// Applies an accent colour at runtime by recolouring the shared accent brushes in
-/// <c>Themes/Theme.xaml</c>. Those brushes aren't frozen, so mutating <see cref="SolidColorBrush.Color"/>
-/// updates every <c>StaticResource</c> consumer live — no XAML changes needed. Non-supporters always get
-/// the default; a stored custom accent is ignored unless the caller is a supporter.
+/// Applies an accent colour at runtime. WPF freezes the brushes loaded from the <c>Source</c>'d
+/// <c>Themes/Theme.xaml</c>, and a frozen <see cref="Freezable"/> can't be recoloured in place, so this
+/// <b>replaces</b> the shared accent resources with fresh brushes. Consumers therefore reference the accent
+/// roles with <c>{DynamicResource}</c>, which re-resolves when a resource entry changes — so switching the
+/// accent recolours the whole UI live, with no restart. Non-supporters always get the default; a stored
+/// custom accent is ignored unless the caller is a supporter.
 /// </summary>
 public static class AccentApplier
 {
@@ -51,11 +53,14 @@ public static class AccentApplier
         SetBrush(res, "AccentTextBrush", ContrastText(accent));
         SetBrush(res, "AccentBorderBrush", WithAlpha(accent, 0x66));
 
-        // Gradient accent roles. The brushes carry literal default stops in Theme.xaml; here we recolour the
-        // accent-driven stop(s) on the shared instance so every StaticResource consumer updates live too.
-        // The logo/heart tile is a light→dark accent diagonal; the supporter hero only tints its top stop.
-        SetGradientStops(res, "AccentTileBrush", (0, Lighten(accent, 0.12)), (1, Darken(accent, 0.18)));
-        SetGradientStops(res, "AccentHeroBrush", (0, WithAlpha(accent, 0x22)));
+        // Gradient accent roles are rebuilt and replaced (frozen brushes can't be recoloured in place). The
+        // logo/heart tile is a light→dark accent diagonal; the supporter hero tints its top stop and fades
+        // into the card colour. DynamicResource consumers pick up the replacement live.
+        Color cardBg = res["CardBgColor"] is Color cb ? cb : Parse("#FF26262B");
+        res["AccentTileBrush"] = MakeGradient(new Point(0, 0), new Point(1, 1),
+            (Lighten(accent, 0.12), 0.0), (Darken(accent, 0.18), 1.0));
+        res["AccentHeroBrush"] = MakeGradient(new Point(0, 0), new Point(0, 1),
+            (WithAlpha(accent, 0x22), 0.0), (cardBg, 0.7));
 
         if (res.Contains("AccentColor"))
         {
@@ -94,9 +99,11 @@ public static class AccentApplier
 
     private static void SetBrush(ResourceDictionary res, string key, Color color)
     {
+        // The XAML defaults arrive frozen, so the first apply replaces them; later applies can recolour the
+        // unfrozen replacement in place. Either way DynamicResource consumers re-render.
         if (res[key] is SolidColorBrush brush && !brush.IsFrozen)
         {
-            brush.Color = color; // shared instance → updates every StaticResource binding live
+            brush.Color = color;
         }
         else
         {
@@ -104,21 +111,14 @@ public static class AccentApplier
         }
     }
 
-    // Recolours specific stops of a shared gradient brush in place; stops left unlisted (e.g. the hero's
-    // card-coloured tail) keep their XAML value. A missing or frozen brush is left untouched so the literal
-    // default in Theme.xaml still stands.
-    private static void SetGradientStops(ResourceDictionary res, string key, params (int Index, Color Color)[] stops)
+    private static LinearGradientBrush MakeGradient(Point start, Point end, params (Color Color, double Offset)[] stops)
     {
-        if (res[key] is LinearGradientBrush brush && !brush.IsFrozen)
+        var brush = new LinearGradientBrush { StartPoint = start, EndPoint = end };
+        foreach ((Color color, double offset) in stops)
         {
-            foreach ((int index, Color color) in stops)
-            {
-                if (index >= 0 && index < brush.GradientStops.Count)
-                {
-                    brush.GradientStops[index].Color = color;
-                }
-            }
+            brush.GradientStops.Add(new GradientStop(color, offset));
         }
+        return brush;
     }
 
     private static Color Lighten(Color c, double amount) => Color.FromArgb(
