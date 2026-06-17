@@ -34,6 +34,10 @@ export default defineNuxtConfig({
     patreonCampaignId: '', // optional — restrict to your campaign; blank = accept any returned membership
     // Treat former/declined patrons as supporters too (the app counts "any tier, current or former").
     patreonAllowFormer: 'true',
+    // Owner/teammate allowlist (comma-separated). A campaign owner is NOT a patron of their own campaign,
+    // so list your Patreon user id and/or login email here to be recognised as a supporter (+ beta).
+    patreonOwnerIds: '', // e.g. 12345678  (PATREON_OWNER_IDS)
+    patreonOwnerEmails: '', // e.g. podinatubie@gmail.com  (PATREON_OWNER_EMAILS)
     // Pledge (currently-entitled, cents) at/above which beta early-access is granted. 700 = $7 Supporter tier.
     betaThresholdCents: '700',
 

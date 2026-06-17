@@ -13,6 +13,17 @@ export interface PatreonConfig {
   campaignId: string
   allowFormer: boolean
   betaThresholdCents: number
+  // The campaign owner isn't a member of their own campaign, so they'd never resolve as a patron.
+  // These allowlists (Patreon user ids / emails) grant supporter + beta to the owner and any teammates.
+  ownerIds: string[]
+  ownerEmails: string[]
+}
+
+function csv(value: unknown): string[] {
+  return String(value ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
 }
 
 export function patreonConfig(): PatreonConfig {
@@ -24,6 +35,8 @@ export function patreonConfig(): PatreonConfig {
     campaignId: c.patreonCampaignId,
     allowFormer: String(c.patreonAllowFormer) === 'true',
     betaThresholdCents: Number(c.betaThresholdCents) || 700,
+    ownerIds: csv(c.patreonOwnerIds),
+    ownerEmails: csv(c.patreonOwnerEmails).map((e) => e.toLowerCase()),
   }
 }
 
@@ -112,18 +125,22 @@ export async function fetchEligibility(accessToken: string): Promise<PatreonElig
   const entitledTierId = best?.relationships?.currently_entitled_tiers?.data?.[0]?.id
   if (entitledTierId) tierTitle = tiersById.get(entitledTierId) ?? null
 
+  const email: string | null = user.attributes?.email ?? null
+  // The owner can't be a patron of their own campaign — grant supporter + beta via the allowlist.
+  const isOwner = c.ownerIds.includes(String(user.id)) || (!!email && c.ownerEmails.includes(email.toLowerCase()))
+
   const isActive = patronStatus === 'active_patron'
   const isFormer = patronStatus === 'declined_patron' || patronStatus === 'former_patron'
-  const isPatron = !!best && (isActive || (c.allowFormer && isFormer))
-  const betaAccess = isActive && currentlyEntitledCents >= c.betaThresholdCents
+  const isPatron = isOwner || (!!best && (isActive || (c.allowFormer && isFormer)))
+  const betaAccess = isOwner || (isActive && currentlyEntitledCents >= c.betaThresholdCents)
 
   return {
     patreonUserId: user.id,
     fullName: user.attributes?.full_name ?? null,
-    email: user.attributes?.email ?? null,
+    email,
     imageUrl: user.attributes?.image_url ?? null,
-    patronStatus,
-    tierTitle,
+    patronStatus: patronStatus ?? (isOwner ? 'active_patron' : null),
+    tierTitle: tierTitle ?? (isOwner ? 'Owner' : null),
     currentlyEntitledCents,
     lifetimeSupportCents,
     isPatron,
