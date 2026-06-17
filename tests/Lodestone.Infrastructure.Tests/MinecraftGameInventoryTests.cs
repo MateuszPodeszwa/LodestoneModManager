@@ -108,6 +108,24 @@ public class MinecraftGameInventoryTests
     }
 
     [Fact]
+    public async Task FindLoaderProfile_returns_the_matching_profile_with_its_precise_build()
+    {
+        using var dir = new TempDir();
+        string gameDir = dir.File("game");
+        WriteManifest(gameDir, "fabric-loader-0.16.5-1.21.4", """{ "id": "fabric-loader-0.16.5-1.21.4", "inheritsFrom": "1.21.4" }""");
+
+        var inventory = await BuildAsync(dir, gameDir);
+
+        LoaderProfile? profile = inventory.FindLoaderProfile(Loader.Fabric, GameVersion.Parse("1.21.4"));
+        profile.ShouldNotBeNull();
+        profile.VersionId.ShouldBe("fabric-loader-0.16.5-1.21.4");
+        profile.PreciseLabel.ShouldBe("Fabric loader 0.16.5 · MC 1.21.4"); // the subtext the Settings screen shows
+
+        inventory.FindLoaderProfile(Loader.Forge, GameVersion.Parse("1.21.4")).ShouldBeNull();   // loader not present
+        inventory.FindLoaderProfile(Loader.Fabric, GameVersion.Parse("1.20.1")).ShouldBeNull();  // version not present
+    }
+
+    [Fact]
     public async Task InstalledProfiles_collapses_multiple_loader_builds_for_a_version_to_the_newest()
     {
         using var dir = new TempDir();

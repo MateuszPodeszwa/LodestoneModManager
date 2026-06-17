@@ -147,18 +147,23 @@ public sealed partial class SettingsViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ShowLoaderRefresh))]
     private bool _isUpdatingLoader;
 
-    /// <summary>Whether the active loader is actually installed for the selected Minecraft version — the
-    /// detected truth, so the UI shows "Installed"/"Not installed" rather than just echoing the selection.</summary>
-    public bool IsActiveLoaderInstalled
+    /// <summary>The installed launcher profile for the currently selected loader + Minecraft version, or
+    /// <c>null</c> when that loader isn't installed for it. The detected truth behind both the install-state
+    /// labels and the precise version subtext.</summary>
+    private LoaderProfile? ActiveLoaderProfile
     {
         get
         {
             GameVersion? version = string.IsNullOrWhiteSpace(LoaderGameVersion)
                 ? null
                 : GameVersion.Create(LoaderGameVersion).Match<GameVersion?>(v => v, _ => null);
-            return version is not null && _inventory.IsLoaderInstalled(Loader.ParseLoader(), version);
+            return version is null ? null : _inventory.FindLoaderProfile(Loader.ParseLoader(), version);
         }
     }
+
+    /// <summary>Whether the active loader is actually installed for the selected Minecraft version — the
+    /// detected truth, so the UI shows "Installed"/"Not installed" rather than just echoing the selection.</summary>
+    public bool IsActiveLoaderInstalled => ActiveLoaderProfile is not null;
 
     public string LoaderStatusLabel => IsActiveLoaderInstalled ? "Installed" : "Not installed";
 
@@ -179,9 +184,11 @@ public sealed partial class SettingsViewModel : ObservableObject
                 return $"Installing {name}… if an installer window opens, complete it — Lodestone detects it when you're done.";
             }
 
-            if (IsActiveLoaderInstalled)
+            // When installed, show the exact build (e.g. "Fabric loader 0.16.5 · MC 1.21.4") rather than a
+            // vague "installed for <version>" sentence — the green "Installed" label already states the state.
+            if (ActiveLoaderProfile is { } profile)
             {
-                return $"{name} is installed for {LoaderGameVersion}.";
+                return profile.PreciseLabel;
             }
 
             return string.IsNullOrWhiteSpace(LoaderGameVersion)
