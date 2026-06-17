@@ -17,7 +17,8 @@ public interface IExternalLoaderInstaller
     /// Resolves the latest installer for <paramref name="loader"/> + <paramref name="version"/>, downloads
     /// it, and launches it. Returns the launched installer version on success, or a failure: no published
     /// build for that version (<c>loader.no_version</c>), no Java runtime found (<c>loader.no_java</c>),
-    /// or a network/IO error.
+    /// or a network/IO error. The profile the installer will create is recorded in the loader ledger so a
+    /// later reset can remove it.
     /// </summary>
     Task<Result<string>> LaunchInstallerAsync(Loader loader, GameVersion version, CancellationToken ct = default);
 }

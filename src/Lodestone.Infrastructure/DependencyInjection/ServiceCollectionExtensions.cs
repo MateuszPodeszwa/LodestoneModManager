@@ -53,6 +53,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IGameInventory, MinecraftGameInventory>();
         services.AddSingleton<IContentInstaller, FileSystemContentInstaller>();
         services.AddSingleton<ILauncherVisibility, LauncherProfileStore>();
+        services.AddSingleton<ILoaderLedger, JsonLoaderLedger>();
         services.AddSingleton<IArchiveMetadataReader, ArchiveMetadataReader>();
 
         // ---- HTTP: Modrinth (cached + retrying) and the downloader ----
@@ -91,10 +92,13 @@ public static class ServiceCollectionExtensions
                 sp.GetRequiredService<IHttpClientFactory>().CreateClient("downloads"),
                 sp.GetRequiredService<ISettingsStore>(),
                 sp.GetRequiredService<IGameLocator>(),
-                sp.GetRequiredService<IGameInventory>()));
+                sp.GetRequiredService<IGameInventory>(),
+                sp.GetRequiredService<ILoaderLedger>()));
 
         services.AddSingleton<IExternalLoaderInstaller>(sp =>
-            new ForgeInstallerLauncher(sp.GetRequiredService<IHttpClientFactory>().CreateClient("downloads")));
+            new ForgeInstallerLauncher(
+                sp.GetRequiredService<IHttpClientFactory>().CreateClient("downloads"),
+                sp.GetRequiredService<ILoaderLedger>()));
 
         // ---- Supporter (offline signed codes) ----
         services.AddSingleton<ISupporterCodeVerifier>(_ => new SignedSupporterCodeVerifier(options.SupporterPublicKey));

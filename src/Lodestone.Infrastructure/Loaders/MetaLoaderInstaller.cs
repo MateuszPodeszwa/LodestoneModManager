@@ -21,13 +21,15 @@ public sealed class MetaLoaderInstaller : ILoaderInstaller
     private readonly ISettingsStore _settings;
     private readonly IGameLocator _locator;
     private readonly IGameInventory _inventory;
+    private readonly ILoaderLedger _ledger;
 
-    public MetaLoaderInstaller(HttpClient http, ISettingsStore settings, IGameLocator locator, IGameInventory inventory)
+    public MetaLoaderInstaller(HttpClient http, ISettingsStore settings, IGameLocator locator, IGameInventory inventory, ILoaderLedger ledger)
     {
         _http = http;
         _settings = settings;
         _locator = locator;
         _inventory = inventory;
+        _ledger = ledger;
     }
 
     public bool Supports(Loader loader) => loader is Loader.Fabric or Loader.Quilt;
@@ -152,6 +154,12 @@ public sealed class MetaLoaderInstaller : ILoaderInstaller
 
             WriteVersionProfile(gameDir, versionId, profileJson);
             UpdateLauncherProfiles(gameDir, versionId, $"{loader.ToDisplayName()} {gameVersion.Value}");
+
+            // Track the profile so "Reset to clean" can remove exactly what Lodestone installed.
+            await _ledger.RecordAsync(
+                new LoaderInstall(versionId, loader, gameVersion.Value, loaderVersion, DateTimeOffset.UtcNow), ct)
+                .ConfigureAwait(false);
+
             return new LoaderUpdate(Changed: true, current, loaderVersion);
         }
         catch (HttpRequestException ex)
@@ -168,46 +176,53 @@ public sealed class MetaLoaderInstaller : ILoaderInstaller
         }
     }
 
-    public Task<Result<int>> RemoveManagedAsync(CancellationToken ct = default)
+    // Removes only the loader profiles recorded in the ledger — what Lodestone actually installed,
+    // including Forge/NeoForge set up through their official installers. Anything the user installed
+    // outside Lodestone isn't tracked, so it's left untouched. A recorded profile whose folder is gone
+    // (e.g. an external installer the user cancelled) is simply forgotten.
+    public async Task<Result<int>> RemoveManagedAsync(CancellationToken ct = default)
     {
         string? game = _settings.Current.GameDirectory;
         if (string.IsNullOrWhiteSpace(game) || !_locator.IsValid(game))
         {
-            return Task.FromResult(Result.Failure<int>("game.dir_missing", "Set your Minecraft folder first."));
+            return Result.Failure<int>("game.dir_missing", "Set your Minecraft folder first.");
+        }
+
+        IReadOnlyList<LoaderInstall> tracked = await _ledger.AllAsync(ct).ConfigureAwait(false);
+        if (tracked.Count == 0)
+        {
+            return Result.Success(0);
         }
 
         string versions = Path.Combine(game, "versions");
-        if (!Directory.Exists(versions))
-        {
-            return Task.FromResult(Result.Success(0));
-        }
-
-        var removedIds = new List<string>();
+        var deleted = new List<string>();
+        var forget = new List<string>();
         try
         {
-            foreach (string directory in Directory.EnumerateDirectories(versions))
+            foreach (LoaderInstall install in tracked)
             {
-                string name = Path.GetFileName(directory);
-                if (name.StartsWith("fabric-loader-", StringComparison.OrdinalIgnoreCase) ||
-                    name.StartsWith("quilt-loader-", StringComparison.OrdinalIgnoreCase))
+                forget.Add(install.VersionId);
+                string directory = Path.Combine(versions, install.VersionId);
+                if (Directory.Exists(directory))
                 {
                     Directory.Delete(directory, recursive: true);
-                    removedIds.Add(name);
+                    deleted.Add(install.VersionId);
                 }
             }
 
-            RemoveLauncherProfiles(game, removedIds);
+            RemoveLauncherProfiles(game, deleted);
         }
         catch (IOException ex)
         {
-            return Task.FromResult(Result.Failure<int>("loader.io", ex.Message));
+            return Result.Failure<int>("loader.io", ex.Message);
         }
         catch (UnauthorizedAccessException)
         {
-            return Task.FromResult(Result.Failure<int>("loader.permission", "Lodestone doesn't have permission to remove those files."));
+            return Result.Failure<int>("loader.permission", "Lodestone doesn't have permission to remove those files.");
         }
 
-        return Task.FromResult(Result.Success(removedIds.Count));
+        await _ledger.ForgetAsync(forget, ct).ConfigureAwait(false);
+        return Result.Success(deleted.Count);
     }
 
     // Drops the launcher entries for the version-ids we just removed (keyed by id, with a lastVersionId

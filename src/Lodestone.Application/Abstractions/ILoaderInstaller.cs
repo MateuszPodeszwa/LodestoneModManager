@@ -28,9 +28,10 @@ public interface ILoaderInstaller
     Task<Result<LoaderUpdate>> UpdateAsync(Loader loader, GameVersion gameVersion, CancellationToken ct = default);
 
     /// <summary>
-    /// Removes the loader profiles Lodestone manages (Fabric/Quilt) from <c>versions/</c> and their
-    /// <c>launcher_profiles.json</c> entries, returning how many were removed. Used by "Reset to clean";
-    /// the user's vanilla versions and loaders installed by their own installers are left untouched.
+    /// Removes every loader profile Lodestone recorded installing (Fabric/Quilt and Forge/NeoForge) from
+    /// <c>versions/</c> and their <c>launcher_profiles.json</c> entries, returning how many were removed.
+    /// Used by "Reset to clean"; the user's vanilla versions and any loader they installed outside
+    /// Lodestone aren't in the ledger, so they're left untouched.
     /// </summary>
     Task<Result<int>> RemoveManagedAsync(CancellationToken ct = default);
 }

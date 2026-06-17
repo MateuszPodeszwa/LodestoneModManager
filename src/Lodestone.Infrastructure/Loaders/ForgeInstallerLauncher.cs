@@ -23,8 +23,13 @@ public sealed class ForgeInstallerLauncher : IExternalLoaderInstaller
     private const string NeoForgeMaven = "https://maven.neoforged.net/releases/net/neoforged/neoforge";
 
     private readonly HttpClient _http;
+    private readonly ILoaderLedger _ledger;
 
-    public ForgeInstallerLauncher(HttpClient http) => _http = http;
+    public ForgeInstallerLauncher(HttpClient http, ILoaderLedger ledger)
+    {
+        _http = http;
+        _ledger = ledger;
+    }
 
     public bool Supports(Loader loader) => loader is Loader.Forge or Loader.NeoForge;
 
@@ -70,8 +75,20 @@ public sealed class ForgeInstallerLauncher : IExternalLoaderInstaller
             return Result.Failure<string>("loader.launch", "Couldn't start the installer: " + ex.Message);
         }
 
+        // Record the profile the official installer will create so "Reset to clean" can remove it later.
+        // The installer runs on its own and may be cancelled; a profile that never appears is harmlessly
+        // skipped (and forgotten) at reset time. These ids match what the Forge/NeoForge installers write.
+        string versionId = ExpectedVersionId(loader, version, resolved.Value.Version);
+        await _ledger.RecordAsync(
+            new LoaderInstall(versionId, loader, version.Value, resolved.Value.Version, DateTimeOffset.UtcNow), ct)
+            .ConfigureAwait(false);
+
         return Result.Success(resolved.Value.Version);
     }
+
+    // The versions/ directory id each installer creates: Forge writes "<mc>-forge-<build>", NeoForge "neoforge-<build>".
+    private static string ExpectedVersionId(Loader loader, GameVersion version, string loaderVersion)
+        => loader == Loader.Forge ? $"{version.Value}-forge-{loaderVersion}" : $"neoforge-{loaderVersion}";
 
     /// <summary>Resolves the installer download URL and version (public for testing the version logic).</summary>
     public async Task<Result<(string Url, string Version)>> ResolveInstallerAsync(Loader loader, GameVersion version, CancellationToken ct = default)

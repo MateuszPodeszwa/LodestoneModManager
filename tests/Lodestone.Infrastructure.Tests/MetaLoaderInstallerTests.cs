@@ -12,7 +12,7 @@ namespace Lodestone.Infrastructure.Tests;
 
 public class MetaLoaderInstallerTests
 {
-    private static async Task<(MetaLoaderInstaller Installer, string GameDir)> BuildAsync(
+    private static async Task<(MetaLoaderInstaller Installer, string GameDir, JsonLoaderLedger Ledger)> BuildAsync(
         TempDir dir, MockHttpMessageHandler? mock = null, string? installedVersion = "1.21.4")
     {
         string gameDir = dir.File("game");
@@ -26,7 +26,8 @@ public class MetaLoaderInstallerTests
         await settings.SaveAsync(new LodestoneSettings { GameDirectory = gameDir });
         HttpClient http = (mock ?? new MockHttpMessageHandler()).ToHttpClient();
         var inventory = new MinecraftGameInventory(settings);
-        return (new MetaLoaderInstaller(http, settings, new MinecraftGameLocator(), inventory), gameDir);
+        var ledger = new JsonLoaderLedger(dir.File("loaders.json"));
+        return (new MetaLoaderInstaller(http, settings, new MinecraftGameLocator(), inventory, ledger), gameDir, ledger);
     }
 
     private static void SeedVanilla(string gameDir, string version)
@@ -40,7 +41,7 @@ public class MetaLoaderInstallerTests
     public async Task Supports_only_fabric_and_quilt()
     {
         using var dir = new TempDir();
-        (MetaLoaderInstaller installer, _) = await BuildAsync(dir);
+        (MetaLoaderInstaller installer, _, _) = await BuildAsync(dir);
 
         installer.Supports(Loader.Fabric).ShouldBeTrue();
         installer.Supports(Loader.Quilt).ShouldBeTrue();
@@ -52,7 +53,7 @@ public class MetaLoaderInstallerTests
     public async Task Forge_reports_unsupported_with_guidance()
     {
         using var dir = new TempDir();
-        (MetaLoaderInstaller installer, _) = await BuildAsync(dir);
+        (MetaLoaderInstaller installer, _, _) = await BuildAsync(dir);
 
         Result result = await installer.EnsureInstalledAsync(Loader.Forge, GameVersion.Parse("1.21.4"));
 
@@ -64,7 +65,7 @@ public class MetaLoaderInstallerTests
     public async Task Refuses_when_the_base_game_version_is_not_installed()
     {
         using var dir = new TempDir();
-        (MetaLoaderInstaller installer, _) = await BuildAsync(dir, installedVersion: null);
+        (MetaLoaderInstaller installer, _, _) = await BuildAsync(dir, installedVersion: null);
 
         Result result = await installer.EnsureInstalledAsync(Loader.Fabric, GameVersion.Parse("1.21.4"));
 
@@ -73,7 +74,7 @@ public class MetaLoaderInstallerTests
     }
 
     [Fact]
-    public async Task Installs_fabric_profile_and_launcher_entry()
+    public async Task Installs_fabric_profile_launcher_entry_and_ledger_record()
     {
         using var dir = new TempDir();
         var mock = new MockHttpMessageHandler();
@@ -82,7 +83,7 @@ public class MetaLoaderInstallerTests
         mock.When("https://meta.fabricmc.net/v2/versions/loader/1.21.4/0.16.5/profile/json")
             .Respond("application/json", """{ "id": "fabric-loader-0.16.5-1.21.4", "inheritsFrom": "1.21.4" }""");
 
-        (MetaLoaderInstaller installer, string gameDir) = await BuildAsync(dir, mock);
+        (MetaLoaderInstaller installer, string gameDir, JsonLoaderLedger ledger) = await BuildAsync(dir, mock);
 
         installer.IsInstalled(Loader.Fabric, GameVersion.Parse("1.21.4")).ShouldBeFalse();
 
@@ -97,6 +98,13 @@ public class MetaLoaderInstallerTests
         (await File.ReadAllTextAsync(launcher)).ShouldContain("fabric-loader-0.16.5-1.21.4");
 
         installer.IsInstalled(Loader.Fabric, GameVersion.Parse("1.21.4")).ShouldBeTrue();
+
+        // The install is tracked so a later reset can remove exactly this profile.
+        IReadOnlyList<LoaderInstall> tracked = await ledger.AllAsync();
+        tracked.ShouldHaveSingleItem();
+        tracked[0].VersionId.ShouldBe("fabric-loader-0.16.5-1.21.4");
+        tracked[0].Loader.ShouldBe(Loader.Fabric);
+        tracked[0].LoaderVersion.ShouldBe("0.16.5");
     }
 
     [Fact]
@@ -109,7 +117,7 @@ public class MetaLoaderInstallerTests
         mock.When("https://meta.fabricmc.net/v2/versions/loader/1.21.4/0.16.5/profile/json")
             .Respond("application/json", """{ "id": "fabric-loader-0.16.5-1.21.4", "inheritsFrom": "1.21.4" }""");
 
-        (MetaLoaderInstaller installer, string gameDir) = await BuildAsync(dir, mock);
+        (MetaLoaderInstaller installer, string gameDir, _) = await BuildAsync(dir, mock);
 
         Result<LoaderUpdate> result = await installer.UpdateAsync(Loader.Fabric, GameVersion.Parse("1.21.4"));
 
@@ -130,7 +138,7 @@ public class MetaLoaderInstallerTests
         mock.When("https://meta.fabricmc.net/v2/versions/loader/1.21.4/0.16.5/profile/json")
             .Respond("application/json", """{ "id": "fabric-loader-0.16.5-1.21.4", "inheritsFrom": "1.21.4" }""");
 
-        (MetaLoaderInstaller installer, string gameDir) = await BuildAsync(dir, mock);
+        (MetaLoaderInstaller installer, string gameDir, _) = await BuildAsync(dir, mock);
         Directory.CreateDirectory(Path.Combine(gameDir, "versions", "fabric-loader-0.16.0-1.21.4"));
 
         Result<LoaderUpdate> result = await installer.UpdateAsync(Loader.Fabric, GameVersion.Parse("1.21.4"));
@@ -150,7 +158,7 @@ public class MetaLoaderInstallerTests
         mock.When("https://meta.fabricmc.net/v2/versions/loader/1.21.4")
             .Respond("application/json", """[{ "loader": { "version": "0.16.5", "stable": true } }]""");
 
-        (MetaLoaderInstaller installer, string gameDir) = await BuildAsync(dir, mock);
+        (MetaLoaderInstaller installer, string gameDir, _) = await BuildAsync(dir, mock);
         Directory.CreateDirectory(Path.Combine(gameDir, "versions", "fabric-loader-0.16.5-1.21.4"));
 
         Result<LoaderUpdate> result = await installer.UpdateAsync(Loader.Fabric, GameVersion.Parse("1.21.4"));
@@ -164,7 +172,7 @@ public class MetaLoaderInstallerTests
     public async Task InstalledVersion_reports_the_newest_build_present()
     {
         using var dir = new TempDir();
-        (MetaLoaderInstaller installer, string gameDir) = await BuildAsync(dir);
+        (MetaLoaderInstaller installer, string gameDir, _) = await BuildAsync(dir);
         Directory.CreateDirectory(Path.Combine(gameDir, "versions", "fabric-loader-0.16.0-1.21.4"));
         Directory.CreateDirectory(Path.Combine(gameDir, "versions", "fabric-loader-0.16.5-1.21.4"));
 
@@ -172,21 +180,43 @@ public class MetaLoaderInstallerTests
     }
 
     [Fact]
-    public async Task RemoveManaged_deletes_fabric_quilt_but_keeps_vanilla_and_forge()
+    public async Task RemoveManaged_deletes_only_ledger_tracked_profiles_and_keeps_manual_ones()
     {
         using var dir = new TempDir();
-        (MetaLoaderInstaller installer, string gameDir) = await BuildAsync(dir); // seeds vanilla 1.21.4
+        (MetaLoaderInstaller installer, string gameDir, JsonLoaderLedger ledger) = await BuildAsync(dir); // seeds vanilla 1.21.4
+
+        // Installed by Lodestone (tracked): a Fabric profile and a Forge profile from the external installer.
         Directory.CreateDirectory(Path.Combine(gameDir, "versions", "fabric-loader-0.16.5-1.21.4"));
+        Directory.CreateDirectory(Path.Combine(gameDir, "versions", "1.20.1-forge-47.2.0"));
+        await ledger.RecordAsync(new LoaderInstall("fabric-loader-0.16.5-1.21.4", Loader.Fabric, "1.21.4", "0.16.5", DateTimeOffset.UtcNow));
+        await ledger.RecordAsync(new LoaderInstall("1.20.1-forge-47.2.0", Loader.Forge, "1.20.1", "47.2.0", DateTimeOffset.UtcNow));
+
+        // Installed by the user outside Lodestone (untracked): a Quilt profile.
         Directory.CreateDirectory(Path.Combine(gameDir, "versions", "quilt-loader-0.26.0-1.21.4"));
-        Directory.CreateDirectory(Path.Combine(gameDir, "versions", "1.20.1-forge-47.2.0")); // user's own installer
 
         Result<int> result = await installer.RemoveManagedAsync();
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(2);
-        Directory.Exists(Path.Combine(gameDir, "versions", "fabric-loader-0.16.5-1.21.4")).ShouldBeFalse();
-        Directory.Exists(Path.Combine(gameDir, "versions", "quilt-loader-0.26.0-1.21.4")).ShouldBeFalse();
-        Directory.Exists(Path.Combine(gameDir, "versions", "1.20.1-forge-47.2.0")).ShouldBeTrue(); // left alone
-        Directory.Exists(Path.Combine(gameDir, "versions", "1.21.4")).ShouldBeTrue(); // vanilla kept
+        Directory.Exists(Path.Combine(gameDir, "versions", "fabric-loader-0.16.5-1.21.4")).ShouldBeFalse(); // tracked → removed
+        Directory.Exists(Path.Combine(gameDir, "versions", "1.20.1-forge-47.2.0")).ShouldBeFalse();          // tracked Forge → removed
+        Directory.Exists(Path.Combine(gameDir, "versions", "quilt-loader-0.26.0-1.21.4")).ShouldBeTrue();     // manual → left alone
+        Directory.Exists(Path.Combine(gameDir, "versions", "1.21.4")).ShouldBeTrue();                          // vanilla kept
+        (await ledger.AllAsync()).ShouldBeEmpty();                                                             // ledger cleared
+    }
+
+    [Fact]
+    public async Task RemoveManaged_forgets_a_tracked_profile_whose_folder_is_gone()
+    {
+        using var dir = new TempDir();
+        (MetaLoaderInstaller installer, _, JsonLoaderLedger ledger) = await BuildAsync(dir);
+        // e.g. the user cancelled the external NeoForge installer, so the recorded profile was never created.
+        await ledger.RecordAsync(new LoaderInstall("neoforge-21.1.9", Loader.NeoForge, "1.21.1", "21.1.9", DateTimeOffset.UtcNow));
+
+        Result<int> result = await installer.RemoveManagedAsync();
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe(0);                   // nothing on disk to delete
+        (await ledger.AllAsync()).ShouldBeEmpty();  // but the stale record is forgotten
     }
 }

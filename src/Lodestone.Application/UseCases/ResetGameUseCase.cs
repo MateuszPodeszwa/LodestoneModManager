@@ -10,9 +10,10 @@ public sealed record ResetSummary(int ContentRemoved, int LoadersRemoved);
 
 /// <summary>
 /// Resets the Minecraft install to a pre-Lodestone, pre-loader state: soft-deletes every piece of
-/// content Lodestone tracks (mods/packs/shaders go to the recoverable trash), removes the Fabric/Quilt
-/// loader profiles Lodestone installed, and clears the active-profile selection. The user's vanilla
-/// versions, their worlds, and any loader they installed with its own installer are left untouched.
+/// content Lodestone tracks (mods/packs/shaders go to the recoverable trash), removes the loader profiles
+/// Lodestone installed (tracked in the ledger — Fabric/Quilt and Forge/NeoForge), and clears the
+/// active-profile selection. The user's vanilla versions, their worlds, and any loader they installed
+/// outside Lodestone are left untouched.
 /// </summary>
 public sealed class ResetGameUseCase
 {

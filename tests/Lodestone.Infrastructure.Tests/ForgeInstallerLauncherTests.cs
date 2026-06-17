@@ -7,7 +7,7 @@ namespace Lodestone.Infrastructure.Tests;
 
 public class ForgeInstallerLauncherTests
 {
-    private static ForgeInstallerLauncher Build(MockHttpMessageHandler mock) => new(mock.ToHttpClient());
+    private static ForgeInstallerLauncher Build(MockHttpMessageHandler mock) => new(mock.ToHttpClient(), new FakeLoaderLedger());
 
     [Fact]
     public async Task Resolves_the_recommended_forge_installer()

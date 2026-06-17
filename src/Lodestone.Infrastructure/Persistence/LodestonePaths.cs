@@ -15,6 +15,10 @@ public static class LodestonePaths
 
     public static string EntitlementsFile => Path.Combine(Root, "entitlements.json");
 
+    /// <summary>Tracks the loader profiles Lodestone installed (Fabric/Quilt and Forge/NeoForge), so a reset
+    /// removes exactly those and never a loader the user installed themselves.</summary>
+    public static string LoaderLedgerFile => Path.Combine(Root, "loaders.json");
+
     /// <summary>Holds launcher profiles temporarily hidden by profile switching, so they can be restored
     /// verbatim (with the user's custom JVM args etc.) when their profile is reactivated.</summary>
     public static string LauncherStashFile => Path.Combine(Root, "launcher-stash.json");
