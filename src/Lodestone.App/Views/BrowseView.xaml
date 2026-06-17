@@ -31,7 +31,7 @@
             <StackPanel>
                 <TextBlock Text="Browse mods" Style="{StaticResource H1}" />
                 <TextBlock Style="{StaticResource Subtitle}" Margin="0,4,0,0">
-                    <Run Text="{Binding ResultCountLabel}" /><Run Text=" · one-click install to your library" />
+                    <Run Text="{Binding ResultCountLabel, Mode=OneWay}" /><Run Text=" · one-click install to your library" />
                 </TextBlock>
             </StackPanel>
             <Border Style="{StaticResource SegmentBar}" HorizontalAlignment="Right" VerticalAlignment="Bottom">
