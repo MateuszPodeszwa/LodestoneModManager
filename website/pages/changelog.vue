@@ -25,11 +25,23 @@ const entries = computed(() => {
         htmlUrl: latest.value.htmlUrl,
         notesHtml: '',
         notesMarkdown: '',
+        notes: [] as { type: 'new' | 'improved' | 'fixed'; text: string }[],
       },
     ]
   }
   return []
 })
+
+// Release codenames (e.g. "Spawn Point") are editorial — they live in app.config.ts.
+const codenames = computed<Record<string, string>>(() => (app.releases?.names ?? {}) as Record<string, string>)
+const codenameFor = (version: string) => codenames.value[version] || null
+
+// Per-note tag pill styling, mirroring the original design's NEW / IMPROVED / FIXED tags.
+const noteTag: Record<string, { label: string; color: string; bg: string }> = {
+  new: { label: 'NEW', color: '#5ac26d', bg: 'rgba(90,194,109,0.15)' },
+  improved: { label: 'IMPROVED', color: '#5a91c2', bg: 'rgba(90,145,194,0.16)' },
+  fixed: { label: 'FIXED', color: '#d2a96a', bg: 'rgba(210,169,106,0.16)' },
+}
 </script>
 
 <template>
@@ -47,10 +59,15 @@ const entries = computed(() => {
       <Reveal v-for="(r, i) in entries" :key="r.tag" class="grid grid-cols-1 gap-3 sm:grid-cols-[150px_1fr] sm:gap-7">
         <!-- left meta -->
         <div class="relative pb-2 sm:pb-8">
-          <div class="inline-flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-1.5">
             <span class="font-pixel text-lg font-bold text-[#f3f3f5]">{{ r.tag }}</span>
             <span v-if="r.latest" class="rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-bold tracking-[0.5px] text-[#10130f]">LATEST</span>
-            <span v-else-if="r.prerelease" class="rounded-full bg-grape/20 px-1.5 py-0.5 text-[10px] font-bold tracking-[0.5px] text-grape">BETA</span>
+          </div>
+          <!-- badges: codename (major release), beta + patron early access -->
+          <div v-if="codenameFor(r.version) || r.prerelease" class="mt-2 flex flex-wrap gap-1.5">
+            <span v-if="codenameFor(r.version)" class="rounded-full border border-gold/40 bg-gold/[0.12] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.5px] text-gold">{{ codenameFor(r.version) }}</span>
+            <span v-if="r.prerelease" class="rounded-full bg-grape/20 px-2 py-0.5 text-[10px] font-bold tracking-[0.5px] text-grape">BETA</span>
+            <span v-if="r.prerelease" class="rounded-full bg-pink/[0.16] px-2 py-0.5 text-[10px] font-bold tracking-[0.5px] text-pink">EARLY ACCESS</span>
           </div>
           <div class="mt-1.5 text-[12.5px] text-dim">{{ formatDate(r.date) }}</div>
         </div>
@@ -58,7 +75,14 @@ const entries = computed(() => {
         <div class="relative border-l border-white/[0.08] pb-9 pl-7">
           <div class="absolute -left-1.5 top-1 h-[11px] w-[11px] rounded-[3px]" :style="{ background: dotColors[i % dotColors.length], boxShadow: '0 0 0 4px #141519' }" />
           <div class="text-xl font-bold tracking-[-0.2px] text-[#f3f3f5]">{{ r.name }}</div>
-          <div v-if="r.notesHtml" class="changelog-notes mt-3 text-[14.5px] leading-relaxed text-soft" v-html="r.notesHtml" />
+          <!-- per-commit notes, tagged NEW / IMPROVED / FIXED (from the commits in this release) -->
+          <div v-if="r.notes && r.notes.length" class="mt-3.5 flex flex-col gap-2.5">
+            <div v-for="(n, ni) in r.notes" :key="ni" class="flex items-start gap-3">
+              <span class="mt-px w-[70px] flex-none rounded-md py-[3px] text-center font-pixel text-[10.5px] font-bold tracking-[0.5px]" :style="{ color: noteTag[n.type].color, background: noteTag[n.type].bg }">{{ noteTag[n.type].label }}</span>
+              <span class="text-[14px] leading-snug text-soft">{{ n.text }}</span>
+            </div>
+          </div>
+          <div v-else-if="r.notesHtml" class="changelog-notes mt-3 text-[14.5px] leading-relaxed text-soft" v-html="r.notesHtml" />
           <a v-else :href="r.htmlUrl" target="_blank" rel="noopener" class="mt-3 inline-block text-sm font-semibold text-brand no-underline hover:underline">Read the release notes on GitHub →</a>
         </div>
       </Reveal>

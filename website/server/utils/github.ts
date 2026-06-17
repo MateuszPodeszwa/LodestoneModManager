@@ -124,6 +124,102 @@ export async function getLatestBeta(): Promise<NormalizedRelease | null> {
   return all.find((r) => r.prerelease) ?? null
 }
 
+// ── Per-release changelog notes, derived from the commits in each release ──────
+// GitHub release bodies are empty (Velopack doesn't write them), so the changelog
+// lists the actual commits between tags instead — categorized like the design.
+export interface ChangeNote {
+  type: 'new' | 'improved' | 'fixed'
+  text: string
+}
+
+// Conventional-commit type → changelog category.
+const NOTE_CATEGORY: Record<string, ChangeNote['type']> = {
+  feat: 'new',
+  feature: 'new',
+  add: 'new',
+  fix: 'fixed',
+  bugfix: 'fixed',
+  hotfix: 'fixed',
+  revert: 'fixed',
+  perf: 'improved',
+  refactor: 'improved',
+  improve: 'improved',
+  improvement: 'improved',
+  change: 'improved',
+  update: 'improved',
+}
+// Housekeeping commit types that don't belong in a user-facing changelog.
+const NOTE_SKIP = new Set(['chore', 'ci', 'build', 'docs', 'doc', 'test', 'tests', 'style', 'release', 'deps', 'dep', 'wip'])
+// Scopes outside the app itself (this is a monorepo) — kept out of the app changelog.
+const NOTE_SKIP_SCOPE = new Set(['website', 'site', 'web', 'design', 'repo', 'meta', 'deploy', 'ci'])
+
+function tidyNoteText(text: string): string {
+  let t = text.trim().replace(/\s*\(#\d+\)\s*$/g, '').replace(/\s+/g, ' ')
+  if (t) t = t.charAt(0).toUpperCase() + t.slice(1)
+  return t.replace(/[.\s]+$/, '')
+}
+
+function commitToNote(subject: string): ChangeNote | null {
+  const line = subject.trim()
+  if (!line || /^merge\b/i.test(line)) return null
+  // Only structured (conventional) commits make the changelog — keeps noise out.
+  const m = line.match(/^(\w+)(?:\(([^)]*)\))?(!)?:\s*(.+)$/)
+  if (!m) return null
+  const type = m[1].toLowerCase()
+  const scope = (m[2] ?? '').toLowerCase()
+  if (NOTE_SKIP.has(type) || NOTE_SKIP_SCOPE.has(scope)) return null
+  const text = tidyNoteText(m[4])
+  return text ? { type: NOTE_CATEGORY[type] ?? 'improved', text } : null
+}
+
+/** Turn commit subjects into de-duplicated, capped changelog notes. */
+export function commitsToNotes(subjects: string[], max = 24): ChangeNote[] {
+  const out: ChangeNote[] = []
+  const seen = new Set<string>()
+  for (const s of subjects) {
+    const note = commitToNote(s)
+    if (!note) continue
+    const key = note.text.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(note)
+    if (out.length >= max) break
+  }
+  return out
+}
+
+// Published compares never change, so cache them indefinitely (no TTL).
+const compareCache = new Map<string, string[]>()
+
+/** Commit subjects added between two tags (newest first). Empty when base is null or on error. */
+export async function getCommitSubjects(base: string | null, head: string): Promise<string[]> {
+  if (!base) return []
+  const key = `${base}...${head}`
+  const cached = compareCache.get(key)
+  if (cached) return cached
+  const config = useRuntimeConfig()
+  try {
+    const res = await $fetch<any>(
+      `https://api.github.com/repos/${config.githubRepo}/compare/${base}...${head}?per_page=100`,
+      { headers: ghHeaders() },
+    )
+    const subjects: string[] = (res.commits ?? [])
+      .map((c: any) => String(c.commit?.message ?? '').split('\n')[0].trim())
+      .filter(Boolean)
+    subjects.reverse() // GitHub returns oldest-first — show newest first
+    compareCache.set(key, subjects)
+    return subjects
+  } catch (e) {
+    console.error('[github] compare failed', key, e)
+    return []
+  }
+}
+
+/** Changelog notes for a release, derived from the commits since the previous tag. */
+export async function getReleaseNotes(tag: string, previousTag: string | null): Promise<ChangeNote[]> {
+  return commitsToNotes(await getCommitSubjects(previousTag, tag))
+}
+
 /**
  * SHA-256 (hex) for an asset. Uses GitHub's digest when present; otherwise streams
  * the asset once and caches the hash (keyed by URL).
