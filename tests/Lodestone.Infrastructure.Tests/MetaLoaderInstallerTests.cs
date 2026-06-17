@@ -1,4 +1,5 @@
 using System.IO;
+using System.Net;
 using Lodestone.Application.Abstractions;
 using Lodestone.Application.Settings;
 using Lodestone.Domain;
@@ -71,6 +72,24 @@ public class MetaLoaderInstallerTests
 
         result.IsFailure.ShouldBeTrue();
         result.Error.Code.ShouldBe("loader.base_missing");
+    }
+
+    [Fact]
+    public async Task Reports_no_version_when_the_meta_api_has_no_build_for_the_version()
+    {
+        // Quilt's meta returns 404 for a Minecraft version it hasn't released for yet (e.g. a brand-new
+        // calendar version). That's "no build available", not a transport failure, so it must surface as
+        // loader.no_version rather than leaking a raw "404 (Not Found)" network error.
+        using var dir = new TempDir();
+        var mock = new MockHttpMessageHandler();
+        mock.When("https://meta.quiltmc.org/v3/versions/loader/26.2").Respond(HttpStatusCode.NotFound);
+
+        (MetaLoaderInstaller installer, _, _) = await BuildAsync(dir, mock, installedVersion: "26.2");
+
+        Result result = await installer.EnsureInstalledAsync(Loader.Quilt, GameVersion.Parse("26.2"));
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.Code.ShouldBe("loader.no_version");
     }
 
     [Fact]
