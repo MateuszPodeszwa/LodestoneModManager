@@ -176,6 +176,7 @@ public sealed class InstallFromCatalogUseCase
         var content = new InstalledContent(project.Id, project.Name, project.Type)
         {
             Author = project.Author,
+            IconUrl = project.IconUrl,
             Version = chosen.VersionNumber,
             Loader = contentLoader,
             GameVersions = chosen.GameVersions,

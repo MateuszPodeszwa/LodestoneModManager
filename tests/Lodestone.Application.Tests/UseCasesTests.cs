@@ -230,6 +230,10 @@ public class RefreshUpdatesUseCaseTests
         source.IsConfigured.Returns(true);
         source.GetVersionsAsync("iris", Arg.Any<CancellationToken>())
             .Returns(Result.Success<IReadOnlyList<ProjectVersion>>([NewerBuild()]));
+        source.GetProjectAsync("iris", Arg.Any<CancellationToken>())
+            .Returns(Result.Success(new CatalogProject(
+                "iris", "iris", "Iris Shaders", "coderbot", ContentType.Mod, "Shaders",
+                1_000_000, 5_000, [], [Loader.Fabric], [GameVersion.Parse("1.21.4")], "modrinth")));
 
         var registry = Substitute.For<IModSourceRegistry>();
         registry.Find("modrinth").Returns(source);

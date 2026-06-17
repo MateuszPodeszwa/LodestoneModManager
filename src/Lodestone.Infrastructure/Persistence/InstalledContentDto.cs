@@ -9,6 +9,7 @@ internal sealed class InstalledContentDto
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = nameof(ContentType.Mod);
     public string Author { get; set; } = "Unknown";
+    public string? IconUrl { get; set; }
     public string Version { get; set; } = "1.0.0";
     public string Loader { get; set; } = nameof(Domain.Loader.None);
     public List<string> GameVersions { get; set; } = [];
@@ -43,6 +44,7 @@ internal static class InstalledContentMapper
         Name = c.Name,
         Type = c.Type.ToString(),
         Author = c.Author,
+        IconUrl = c.IconUrl,
         Version = c.Version,
         Loader = c.Loader.ToString(),
         GameVersions = c.GameVersions.Select(v => v.Value).ToList(),
@@ -94,6 +96,7 @@ internal static class InstalledContentMapper
         return new InstalledContent(dto.Id, dto.Name, type)
         {
             Author = dto.Author,
+            IconUrl = dto.IconUrl,
             Version = dto.Version,
             Loader = Enum.TryParse(dto.Loader, out Loader loader) ? loader : Loader.None,
             GameVersions = versions,

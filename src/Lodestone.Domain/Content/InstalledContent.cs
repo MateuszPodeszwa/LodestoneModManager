@@ -25,6 +25,9 @@ public sealed class InstalledContent
 
     public string Author { get; set; } = "Unknown";
 
+    /// <summary>Catalog icon URL (Modrinth/CurseForge) shown in My Content; null for local files.</summary>
+    public string? IconUrl { get; set; }
+
     public string Version { get; set; } = "1.0.0";
 
     /// <summary><see cref="Loader.None"/> for packs/shaders.</summary>

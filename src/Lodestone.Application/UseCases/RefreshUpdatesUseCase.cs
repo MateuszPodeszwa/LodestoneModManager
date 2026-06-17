@@ -58,6 +58,19 @@ public sealed class RefreshUpdatesUseCase
                 continue;
             }
 
+            // Backfill a missing catalog icon (installs before icons were captured predate this field) so
+            // My Content shows real artwork instead of the letter avatar. One-time per item: once the icon
+            // is stored this block is skipped on subsequent refreshes.
+            if (string.IsNullOrWhiteSpace(item.IconUrl))
+            {
+                Result<CatalogProject> meta = await source.GetProjectAsync(item.ProjectId!, ct).ConfigureAwait(false);
+                if (meta.IsSuccess && !string.IsNullOrWhiteSpace(meta.Value.IconUrl))
+                {
+                    item.IconUrl = meta.Value.IconUrl;
+                    await _repository.UpsertAsync(item, ct).ConfigureAwait(false);
+                }
+            }
+
             Result<IReadOnlyList<ProjectVersion>> versions =
                 await source.GetVersionsAsync(item.ProjectId!, ct).ConfigureAwait(false);
             if (versions.IsFailure)

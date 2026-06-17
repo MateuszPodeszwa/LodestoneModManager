@@ -34,6 +34,10 @@ public sealed partial class ContentItemViewModel : ObservableObject
 
     public string AvatarLetter => char.ToUpperInvariant(Name.Length > 0 ? Name[0] : '?').ToString();
 
+    public string? IconUrl => _model.IconUrl;
+
+    public bool HasIcon => !string.IsNullOrWhiteSpace(_model.IconUrl);
+
     public bool HasLoader => _model.Loader != Loader.None;
 
     public string LoaderLabel => _model.Loader.ToDisplayName();

@@ -69,8 +69,12 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <Border Grid.Column="0" Width="42" Height="42" CornerRadius="10" Background="{Binding Name, Converter={StaticResource NameToColor}}">
-                                <TextBlock Text="{Binding AvatarLetter}" Foreground="White" FontWeight="Bold" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Border Grid.Column="0" Width="42" Height="42" CornerRadius="10" ClipToBounds="True" Background="{Binding Name, Converter={StaticResource NameToColor}}">
+                                <Grid>
+                                    <TextBlock Text="{Binding AvatarLetter}" Foreground="White" FontWeight="Bold" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <Image Source="{Binding IconUrl}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"
+                                           Visibility="{Binding HasIcon, Converter={StaticResource BoolToVis}}" />
+                                </Grid>
                             </Border>
 
                             <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
