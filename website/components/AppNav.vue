@@ -4,6 +4,16 @@ const open = ref(false)
 const route = useRoute()
 watch(() => route.fullPath, () => (open.value = false))
 
+// Auth state so the nav can swap "Sign in" for the account + "Sign out" when logged in.
+const { loggedIn, user, clear } = useUserSession()
+
+async function signOut() {
+  await $fetch('/api/auth/logout', { method: 'POST' })
+  await clear()
+  open.value = false
+  await navigateTo('/')
+}
+
 const navLinks = [
   { label: 'About', to: '/#about' },
   { label: 'How it works', to: '/#tutorial' },
@@ -36,7 +46,23 @@ const navLinks = [
     </div>
 
     <div class="ml-auto flex items-center gap-2.5">
+      <template v-if="loggedIn">
+        <NuxtLink
+          to="/supporter"
+          class="hidden items-center gap-2 rounded-lg border border-white/[0.12] px-3 py-1.5 text-sm font-semibold text-[#e8e8ea] no-underline transition hover:bg-white/[0.07] sm:inline-flex"
+        >
+          <img v-if="user?.imageUrl" :src="user.imageUrl" alt="" class="h-6 w-6 rounded-md object-cover" />
+          <span class="max-w-[120px] truncate">{{ user?.name || 'Account' }}</span>
+        </NuxtLink>
+        <button
+          class="hidden rounded-lg border border-white/[0.12] px-3.5 py-2 text-sm font-semibold text-soft transition hover:bg-white/[0.07] sm:inline-block"
+          @click="signOut"
+        >
+          Sign out
+        </button>
+      </template>
       <NuxtLink
+        v-else
         to="/supporter"
         class="hidden rounded-lg border border-white/[0.12] px-3.5 py-2 text-sm font-semibold text-[#e8e8ea] no-underline transition hover:bg-white/[0.07] sm:inline-block"
       >
@@ -76,9 +102,17 @@ const navLinks = [
         >
           {{ l.label }}
         </NuxtLink>
-        <NuxtLink to="/supporter" class="rounded-lg px-3 py-2.5 text-[15px] font-medium text-soft no-underline hover:bg-white/[0.06]">
+        <NuxtLink v-if="!loggedIn" to="/supporter" class="rounded-lg px-3 py-2.5 text-[15px] font-medium text-soft no-underline hover:bg-white/[0.06]">
           Sign in
         </NuxtLink>
+        <template v-else>
+          <NuxtLink to="/supporter" class="rounded-lg px-3 py-2.5 text-[15px] font-medium text-soft no-underline hover:bg-white/[0.06]">
+            {{ user?.name || 'Account' }}
+          </NuxtLink>
+          <button class="rounded-lg px-3 py-2.5 text-left text-[15px] font-medium text-soft hover:bg-white/[0.06]" @click="signOut">
+            Sign out
+          </button>
+        </template>
       </div>
     </Transition>
   </nav>
