@@ -37,15 +37,13 @@ Releases feed**, split by whether a release is marked a *pre-release*:
 - **On the website:** the Supporter page shows a **Download beta** button to entitled patrons,
   resolving to the latest pre-release installer via `/api/download/beta`.
 
-> **Two caveats worth knowing:**
-> 1. **It's soft-gated, not secret.** The repo is public, so a pre-release is still downloadable
->    straight from the GitHub Releases page. The gates stop the normal in-app/website paths, not a
->    determined manual download. For true privacy, serve beta packages from an authenticated
->    endpoint instead of public GitHub.
-> 2. **The app can't enforce a tier.** The signed code carries only the holder + issue time (no
->    pledge amount), so in-app early access unlocks for **any** supporter, whereas the website's
->    Download beta button requires the `NUXT_BETA_THRESHOLD_CENTS` pledge (default $7). To gate the
->    in-app channel by tier too, you'd have to encode an entitlement level into the signed code.
+Beta access is for **any active patron** — the same bar as a supporter code (there are no pledge
+tiers), consistent across the app and the website.
+
+> **One caveat worth knowing — it's soft-gated, not secret.** Because the repo is public, a
+> pre-release is still downloadable straight from the GitHub Releases page. The gates stop the normal
+> in-app and website paths, not a determined manual download. For true privacy you'd serve beta
+> packages from an authenticated endpoint instead of public GitHub.
 
 ## Security model (offline, no backend)
 

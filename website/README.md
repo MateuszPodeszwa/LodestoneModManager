@@ -78,7 +78,6 @@ descriptions are in [`.env.example`](./.env.example).
 | `NUXT_PATREON_CLIENT_ID` / `_SECRET` | ✅ for sign-in | Patreon OAuth client credentials |
 | `NUXT_PATREON_REDIRECT_URI` | ✅ for sign-in | `https://lodestonemc.net/api/auth/patreon/callback` |
 | `NUXT_PATREON_CAMPAIGN_ID` | optional | Restrict eligibility to your campaign |
-| `NUXT_BETA_THRESHOLD_CENTS` | optional | Pledge (cents) that unlocks the website's beta download (default `700`) |
 | `NUXT_GITHUB_REPO` | optional | Defaults to `MateuszPodeszwa/LodestoneModManager` |
 | `NUXT_GITHUB_TOKEN` | optional | Raises the GitHub API rate limit |
 | `DATABASE_URL` | auto on Railway | Postgres connection (the plugin injects it) |
