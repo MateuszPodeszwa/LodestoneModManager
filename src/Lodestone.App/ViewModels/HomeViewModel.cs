@@ -186,13 +186,14 @@ public sealed partial class HomeViewModel : ObservableObject
             return;
         }
 
-        bool ran = await _gate.RunAsync(async () =>
+        bool ran = await _gate.RunAsync("Installing…", async () =>
         {
             GameVersion? target = ResolveTargetVersion();
 
             foreach (string path in paths)
             {
                 string name = Path.GetFileNameWithoutExtension(path);
+                _gate.StatusLabel = $"Installing {name}…"; // per-file label on the activity bar
                 IsInstalling = true;
                 InstallName = name;
                 InstallTypeLabel = "Reading…";

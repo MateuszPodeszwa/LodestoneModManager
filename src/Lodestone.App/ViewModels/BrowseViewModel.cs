@@ -353,7 +353,7 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
             return;
         }
 
-        bool ran = await _gate.RunAsync(async () =>
+        bool ran = await _gate.RunAsync($"Installing {item.Name}…", async () =>
         {
             item.Installing = true;
             try

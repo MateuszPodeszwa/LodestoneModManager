@@ -19,6 +19,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="42" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- ===================== Title bar ===================== -->
@@ -146,5 +147,20 @@
 
         <views:ToastHost Grid.RowSpan="2" DataContext="{Binding Toasts}" IsHitTestVisible="False"
                          VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="20" />
+
+        <!-- ===================== Global activity bar ===================== -->
+        <!-- A thin indeterminate bar + label at the very bottom while any install/loader operation runs.
+             Collapsed (and not animating) when idle, so it costs nothing at rest. -->
+        <Border Grid.Row="2" Background="{StaticResource TitleBarBgBrush}" BorderBrush="{StaticResource BorderFaintBrush}" BorderThickness="0,1,0,0"
+                Visibility="{Binding Gate.IsBusy, Converter={StaticResource BoolToVis}}">
+            <StackPanel>
+                <ProgressBar Height="2.5" IsIndeterminate="{Binding Gate.IsBusy}"
+                             Background="Transparent" BorderThickness="0" BorderBrush="Transparent" Foreground="{StaticResource AccentBrush}" />
+                <StackPanel Orientation="Horizontal" Margin="36,8" VerticalAlignment="Center">
+                    <Ellipse Width="8" Height="8" Fill="{StaticResource AccentBrush}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Gate.StatusLabel}" Foreground="{StaticResource TextBodyBrush}" FontSize="12.5" VerticalAlignment="Center" Margin="9,0,0,0" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

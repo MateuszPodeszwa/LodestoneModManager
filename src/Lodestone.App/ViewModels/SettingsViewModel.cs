@@ -481,7 +481,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             return;
         }
 
-        bool ran = await _gate.RunAsync(async () =>
+        bool ran = await _gate.RunAsync($"Setting up {loader.ToDisplayName()}…", async () =>
         {
             IsUpdatingLoader = true;
             try
@@ -534,7 +534,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             return;
         }
 
-        bool ran = await _gate.RunAsync(async () =>
+        bool ran = await _gate.RunAsync($"Setting up {loader.ToDisplayName()}…", async () =>
         {
             IsUpdatingLoader = true;
             try

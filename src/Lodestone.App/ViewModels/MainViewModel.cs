@@ -92,6 +92,9 @@ public sealed partial class MainViewModel : ObservableObject
     public OnboardingViewModel Onboarding { get; }
     public ToastsViewModel Toasts { get; }
 
+    /// <summary>The app-wide operation gate, surfaced so the shell can show the global activity bar.</summary>
+    public OperationGate Gate => _gate;
+
     [ObservableProperty] private object _currentScreen;
     [ObservableProperty] private string _route = "home";
     [ObservableProperty] private bool _showOnboarding;
@@ -128,11 +131,16 @@ public sealed partial class MainViewModel : ObservableObject
         // Per spec: the mod updater runs on app start (and on manual refresh) — never on a timer.
         _ = RunStartupRefreshAsync();
 
-        // Make sure the configured loader is actually installed (Fabric/Quilt), quietly, on start —
-        // but only when we have a concrete version to target (otherwise there's nothing to install against).
-        if (IsGameReady && ResolveTarget() is { } startupVersion)
+        // Make sure the configured loader is actually installed (Fabric/Quilt) on start — only when we have a
+        // concrete version, the loader is one we install directly, and it isn't already there (so the activity
+        // bar shows a real install, never a flash for a no-op).
+        Loader startupLoader = _settings.Current.DefaultLoader;
+        if (IsGameReady && ResolveTarget() is { } startupVersion
+            && _loaderInstaller.Supports(startupLoader)
+            && !_loaderInstaller.IsInstalled(startupLoader, startupVersion))
         {
-            _ = _loaderInstaller.EnsureInstalledAsync(_settings.Current.DefaultLoader, startupVersion);
+            _ = _gate.RunAsync($"Setting up {startupLoader.ToDisplayName()}…",
+                () => _loaderInstaller.EnsureInstalledAsync(startupLoader, startupVersion));
         }
     }
 
@@ -159,9 +167,13 @@ public sealed partial class MainViewModel : ObservableObject
 
         GameVersion? version = ResolveTarget();
         await _reconcile.ExecuteAsync(version).ConfigureAwait(true);
-        if (version is { } loaderVersion)
+        Loader defaultLoader = _settings.Current.DefaultLoader;
+        if (version is { } loaderVersion
+            && _loaderInstaller.Supports(defaultLoader)
+            && !_loaderInstaller.IsInstalled(defaultLoader, loaderVersion))
         {
-            _ = _loaderInstaller.EnsureInstalledAsync(_settings.Current.DefaultLoader, loaderVersion);
+            _ = _gate.RunAsync($"Setting up {defaultLoader.ToDisplayName()}…",
+                () => _loaderInstaller.EnsureInstalledAsync(defaultLoader, loaderVersion));
         }
 
         _bus.Publish(new LibraryChanged());
@@ -246,7 +258,7 @@ public sealed partial class MainViewModel : ObservableObject
             return;
         }
 
-        bool ran = await _gate.RunAsync(async () =>
+        bool ran = await _gate.RunAsync($"Installing {detail.Name}…", async () =>
         {
             detail.Installing = true;
             var progress = new Progress<TransferProgress>(p =>
