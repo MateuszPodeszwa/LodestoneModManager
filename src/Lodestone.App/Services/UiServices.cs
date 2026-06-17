@@ -37,8 +37,10 @@ public interface IDialogService
 
     void OpenUrl(string url);
 
-    /// <summary>Modal yes/no confirmation; returns true only when the user explicitly confirms.</summary>
-    bool Confirm(string title, string message);
+    /// <summary>Modal yes/no confirmation; returns true only when the user explicitly confirms. Set
+    /// <paramref name="warning"/> to false for benign prompts (e.g. an available update) so the dialog
+    /// shows an information icon instead of a warning triangle.</summary>
+    bool Confirm(string title, string message, bool warning = true);
 }
 
 /// <summary>Default <see cref="IDialogService"/> using native Win32 dialogs and the OS shell to open URLs.</summary>
@@ -67,6 +69,7 @@ public sealed class DialogService : IDialogService
         }
     }
 
-    public bool Confirm(string title, string message)
-        => MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes;
+    public bool Confirm(string title, string message, bool warning = true)
+        => MessageBox.Show(message, title, MessageBoxButton.YesNo,
+            warning ? MessageBoxImage.Warning : MessageBoxImage.Information) == MessageBoxResult.Yes;
 }

@@ -121,7 +121,9 @@ This is the part you asked about. Once a user has installed Lodestone via `Setup
    (It also re‑checks when they hit the in‑app **Check for updates** button on Home / in Settings.)
    There is **no background service** — the check happens on launch and on demand only, by design.
 3. If a newer release exists, Velopack **downloads only the difference** (a small delta, not the whole
-   60 MB), then swaps it in and **restarts the app on the new version**.
+   60 MB) in the background, then Lodestone asks **"restart now to finish updating?"** — choosing *No*
+   applies it automatically the next time the app is closed. Early‑access (pre‑release) builds are only
+   offered to supporters who have early access on, and are clearly labelled as such when offered.
 4. The user never visits GitHub, never re‑downloads manually, and you never email anyone.
 
 So your release cadence is simply: *change code → `git tag` → `git push`*. Everything after that is

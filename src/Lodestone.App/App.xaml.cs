@@ -6,6 +6,7 @@ using Lodestone.App.ViewModels;
 using Lodestone.Application.Abstractions;
 using Lodestone.Application.Settings;
 using Lodestone.Application.Supporter;
+using Lodestone.Application.UseCases;
 using Lodestone.Infrastructure.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -38,6 +39,10 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IUiDispatcher, UiDispatcher>();
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<IAppUpdater, VelopackAppUpdater>();
+        // App self-update: the channel gate lives in the Application layer (testable); the coordinator
+        // drives check → download → restart-prompt and is shared by startup and the Settings button.
+        services.AddTransient<CheckAppUpdateUseCase>();
+        services.AddSingleton<AppUpdateCoordinator>();
         services.AddSingleton<OperationGate>();
 
         // View models

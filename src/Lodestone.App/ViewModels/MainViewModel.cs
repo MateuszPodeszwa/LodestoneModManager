@@ -29,6 +29,7 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly IModSourceRegistry _registry;
     private readonly IGameInventory _inventory;
     private readonly OperationGate _gate;
+    private readonly AppUpdateCoordinator _appUpdates;
 
     public MainViewModel(
         HomeViewModel home,
@@ -52,7 +53,8 @@ public sealed partial class MainViewModel : ObservableObject
         ILoaderInstaller loaderInstaller,
         IModSourceRegistry registry,
         IGameInventory inventory,
-        OperationGate gate)
+        OperationGate gate,
+        AppUpdateCoordinator appUpdates)
     {
         Home = home;
         Library = library;
@@ -76,6 +78,7 @@ public sealed partial class MainViewModel : ObservableObject
         _registry = registry;
         _inventory = inventory;
         _gate = gate;
+        _appUpdates = appUpdates;
 
         Browse.OpenDetailRequested = OpenDetail;
         Onboarding.Completed += OnOnboardingCompleted;
@@ -130,6 +133,11 @@ public sealed partial class MainViewModel : ObservableObject
 
         // Per spec: the mod updater runs on app start (and on manual refresh) — never on a timer.
         _ = RunStartupRefreshAsync();
+
+        // The app self-updater also runs on start (after a short settle): it checks the channel the user
+        // is entitled to, quietly downloads any newer build, then asks whether to restart now. It's a
+        // no-op on dev/portable builds (not Velopack-installed) and stays silent when already up to date.
+        _ = _appUpdates.CheckOnStartupAsync();
 
         // Make sure the configured loader is actually installed (Fabric/Quilt) on start — only when we have a
         // concrete version, the loader is one we install directly, and it isn't already there (so the activity

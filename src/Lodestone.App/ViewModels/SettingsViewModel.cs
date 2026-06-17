@@ -53,6 +53,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly OperationGate _gate;
     private readonly IExternalLoaderInstaller _external;
     private readonly IModSourceRegistry _registry;
+    private readonly AppUpdateCoordinator _appUpdates;
     private bool _ready;
 
     public SettingsViewModel(
@@ -68,7 +69,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         ResetGameUseCase reset,
         OperationGate gate,
         IExternalLoaderInstaller external,
-        IModSourceRegistry registry)
+        IModSourceRegistry registry,
+        AppUpdateCoordinator appUpdates)
     {
         _settings = settings;
         _dialog = dialog;
@@ -83,6 +85,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         _gate = gate;
         _external = external;
         _registry = registry;
+        _appUpdates = appUpdates;
         _gate.PropertyChanged += (_, _) => OnPropertyChanged(nameof(CanManageLoaders));
         ReloadFromSettings();
         string version = _updater.CurrentVersion;
@@ -418,30 +421,10 @@ public sealed partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private void IncreaseConcurrent() => Concurrent = Math.Min(LodestoneSettings.MaxConcurrentDownloads, Concurrent + 1);
 
+    // Routes through the shared coordinator so the button actually installs (download → restart prompt),
+    // applying the same supporter/early-access channel gate as the startup check — not just reports.
     [RelayCommand]
-    private async Task CheckUpdatesAsync()
-    {
-        Result<UpdateCheckResult> result = await _updater.CheckAsync(_settings.Current.UpdateChannel).ConfigureAwait(true);
-        if (result.IsFailure)
-        {
-            _bus.Publish(new ToastMessage("Couldn't check for updates", result.Error.Message, ToastKind.Error));
-            return;
-        }
-
-        if (result.Value.UpdateAvailable)
-        {
-            string? latest = result.Value.LatestVersion;
-            string? name = ReleaseNames.For(latest);
-            string detail = latest is null ? "A new version is ready to install."
-                : name is null ? $"Version {latest} is ready to install."
-                : $"Version {latest} “{name}” is ready to install.";
-            _bus.Publish(new ToastMessage("Update available", detail));
-        }
-        else
-        {
-            _bus.Publish(new ToastMessage("You're up to date", $"Lodestone {result.Value.CurrentVersion} is the latest version."));
-        }
-    }
+    private Task CheckUpdatesAsync() => _appUpdates.CheckManuallyAsync();
 
     [RelayCommand]
     private async Task UpdateLoaderAsync()
