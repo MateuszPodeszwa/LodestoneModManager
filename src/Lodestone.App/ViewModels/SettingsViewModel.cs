@@ -52,6 +52,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly ResetGameUseCase _reset;
     private readonly OperationGate _gate;
     private readonly IExternalLoaderInstaller _external;
+    private readonly IModSourceRegistry _registry;
     private bool _ready;
 
     public SettingsViewModel(
@@ -66,7 +67,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         IUiDispatcher ui,
         ResetGameUseCase reset,
         OperationGate gate,
-        IExternalLoaderInstaller external)
+        IExternalLoaderInstaller external,
+        IModSourceRegistry registry)
     {
         _settings = settings;
         _dialog = dialog;
@@ -80,6 +82,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         _reset = reset;
         _gate = gate;
         _external = external;
+        _registry = registry;
         _gate.PropertyChanged += (_, _) => OnPropertyChanged(nameof(CanManageLoaders));
         ReloadFromSettings();
         string version = _updater.CurrentVersion;
@@ -117,6 +120,10 @@ public sealed partial class SettingsViewModel : ObservableObject
     /// <summary>Accent themes beyond the default are a supporter perk.</summary>
     public bool CanUseThemes => _supporter.IsSupporter;
 
+    /// <summary>The CurseForge fallback is only meaningful once CurseForge has an API key configured;
+    /// until then the toggle is disabled and shown off, mirroring the Browse source picker.</summary>
+    public bool IsCurseForgeAvailable => _registry.Find("curseforge")?.IsConfigured == true;
+
     [ObservableProperty] private string? _gameDir;
     [ObservableProperty] private string _loader = "fabric";
     [ObservableProperty] private string? _loaderGameVersion;
@@ -150,7 +157,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         // Early access is a supporter perk: never reflect Beta to a non-supporter.
         _earlyAccess = s.UpdateChannel == UpdateChannel.Beta && _supporter.IsSupporter;
         _concurrent = s.ConcurrentDownloads;
-        _curseFallback = s.CurseForgeFallback;
+        // Never surface the fallback as on while CurseForge can't actually be used.
+        _curseFallback = s.CurseForgeFallback && IsCurseForgeAvailable;
         _closeToTray = s.CloseToTray;
         RefreshGameVersions();
         RebuildAccents();
@@ -551,7 +559,9 @@ public sealed partial class SettingsViewModel : ObservableObject
         s.NotifyUpdates = Notify;
         s.UpdateChannel = EarlyAccess && _supporter.IsSupporter ? UpdateChannel.Beta : UpdateChannel.Stable;
         s.ConcurrentDownloads = Concurrent;
-        s.CurseForgeFallback = CurseFallback;
+        // The toggle is gated off when CurseForge is unconfigured; don't let saves of other settings
+        // clobber the stored preference in that state.
+        s.CurseForgeFallback = IsCurseForgeAvailable ? CurseFallback : s.CurseForgeFallback;
         s.CloseToTray = CloseToTray;
         _ = _settings.SaveAsync(s);
     }

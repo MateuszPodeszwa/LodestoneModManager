@@ -150,7 +150,9 @@
                         <TextBlock Text="Use CurseForge as fallback" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
                         <TextBlock Text="Modrinth is searched first; fall back to CurseForge when needed." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
                     </StackPanel>
-                    <ToggleButton Style="{StaticResource ToggleSwitch}" HorizontalAlignment="Right" IsChecked="{Binding CurseFallback, Mode=TwoWay}" />
+                    <ToggleButton Style="{StaticResource ToggleSwitch}" HorizontalAlignment="Right" IsChecked="{Binding CurseFallback, Mode=TwoWay}"
+                                  IsEnabled="{Binding IsCurseForgeAvailable}" ToolTipService.ShowOnDisabled="True"
+                                  ToolTip="Configure a CurseForge API key to enable this source (see docs/HANDOFF.md)." />
                 </Grid>
                 <Border BorderBrush="{StaticResource BorderFaintBrush}" BorderThickness="0,1,0,0">
                     <Grid Margin="18,16">
