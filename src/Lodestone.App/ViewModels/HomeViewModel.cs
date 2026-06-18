@@ -186,7 +186,7 @@ public sealed partial class HomeViewModel : ObservableObject
             return;
         }
 
-        bool ran = await _gate.RunAsync("Installing…", async () =>
+        await _gate.RunInstallAsync("Installing…", async () =>
         {
             GameVersion? target = ResolveTargetVersion();
 
@@ -213,11 +213,6 @@ public sealed partial class HomeViewModel : ObservableObject
             IsInstalling = false;
             _bus.Publish(new LibraryChanged());
         }).ConfigureAwait(true);
-
-        if (!ran)
-        {
-            _bus.Publish(new ToastMessage("Please wait", "Another install is still running — try again in a moment.", ToastKind.Info));
-        }
     }
 
     [RelayCommand]

@@ -159,7 +159,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         if (loader != Loader.None &&
             GameVersion.Create(version).Match<GameVersion?>(v => v, _ => null) is { } gameVersion)
         {
-            await _gate.RunAsync($"Switching to {version} · {loader.ToDisplayName()}…", async () =>
+            await _gate.RunExclusiveAsync($"Switching to {version} · {loader.ToDisplayName()}…", async () =>
             {
                 Result<ProfileSwitch> switched = await _switch.ExecuteAsync(gameVersion, loader).ConfigureAwait(true);
                 if (switched.IsFailure)

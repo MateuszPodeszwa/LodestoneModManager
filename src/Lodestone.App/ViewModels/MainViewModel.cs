@@ -147,7 +147,7 @@ public sealed partial class MainViewModel : ObservableObject
             && _loaderInstaller.Supports(startupLoader)
             && !_loaderInstaller.IsInstalled(startupLoader, startupVersion))
         {
-            _ = _gate.RunAsync($"Setting up {startupLoader.ToDisplayName()}…",
+            _ = _gate.RunExclusiveAsync($"Setting up {startupLoader.ToDisplayName()}…",
                 () => _loaderInstaller.EnsureInstalledAsync(startupLoader, startupVersion));
         }
     }
@@ -180,7 +180,7 @@ public sealed partial class MainViewModel : ObservableObject
             && _loaderInstaller.Supports(defaultLoader)
             && !_loaderInstaller.IsInstalled(defaultLoader, loaderVersion))
         {
-            _ = _gate.RunAsync($"Setting up {defaultLoader.ToDisplayName()}…",
+            _ = _gate.RunExclusiveAsync($"Setting up {defaultLoader.ToDisplayName()}…",
                 () => _loaderInstaller.EnsureInstalledAsync(defaultLoader, loaderVersion));
         }
 
@@ -266,7 +266,7 @@ public sealed partial class MainViewModel : ObservableObject
             return;
         }
 
-        bool ran = await _gate.RunAsync($"Installing {detail.Name}…", async () =>
+        await _gate.RunInstallAsync($"Installing {detail.Name}…", async () =>
         {
             detail.Installing = true;
             var progress = new Progress<TransferProgress>(p =>
@@ -295,11 +295,6 @@ public sealed partial class MainViewModel : ObservableObject
                 _bus.Publish(new ToastMessage("Couldn't install", result.Error.Message, ToastKind.Error));
             }
         }).ConfigureAwait(true);
-
-        if (!ran)
-        {
-            _bus.Publish(new ToastMessage("Please wait", "Another install is still running — try again in a moment.", ToastKind.Info));
-        }
     }
 
     private static string DescribeInstall(string name, CatalogInstall install)
