@@ -15,6 +15,8 @@ public sealed partial class CatalogItemViewModel : ObservableObject
     public CatalogItemViewModel(
         CatalogProject project,
         bool installed,
+        bool compatible,
+        string? incompatibilityReason,
         Func<CatalogItemViewModel, Task> install,
         Action<CatalogProject> open)
     {
@@ -22,6 +24,8 @@ public sealed partial class CatalogItemViewModel : ObservableObject
         _install = install;
         _open = open;
         _installed = installed;
+        IsCompatible = compatible;
+        IncompatibilityReason = incompatibilityReason ?? string.Empty;
         Chips = new ObservableCollection<string>(project.Categories.Take(2));
     }
 
@@ -51,9 +55,24 @@ public sealed partial class CatalogItemViewModel : ObservableObject
     [ObservableProperty]
     private bool _installing;
 
-    public bool CanInstall => !Installed && !Installing;
+    /// <summary>Whether this project has a build for the active loader + version, decided from the
+    /// catalog metadata at search time (see <see cref="CatalogCompatibility"/>).</summary>
+    public bool IsCompatible { get; }
 
-    partial void OnInstalledChanged(bool value) => OnPropertyChanged(nameof(CanInstall));
+    /// <summary>Show the "Incompatible" badge in place of the Install button: the project doesn't
+    /// support the active version and isn't already installed (an installed copy shows "Installed").</summary>
+    public bool IsIncompatible => !IsCompatible && !Installed;
+
+    /// <summary>Tooltip for the incompatible badge — why it can't be installed for the active version.</summary>
+    public string IncompatibilityReason { get; }
+
+    public bool CanInstall => !Installed && !Installing && IsCompatible;
+
+    partial void OnInstalledChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanInstall));
+        OnPropertyChanged(nameof(IsIncompatible));
+    }
 
     partial void OnInstallingChanged(bool value) => OnPropertyChanged(nameof(CanInstall));
 

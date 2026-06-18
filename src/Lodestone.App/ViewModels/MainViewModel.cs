@@ -217,16 +217,18 @@ public sealed partial class MainViewModel : ObservableObject
             (string.Equals(i.ProjectId, project.Id, StringComparison.OrdinalIgnoreCase) ||
              string.Equals(i.Id, project.Id, StringComparison.OrdinalIgnoreCase))
             && i.ServesProfile(activeLoader, activeTarget));
-        var detail = new DetailViewModel(project, installed, InstallFromDetailAsync, () => CurrentDetail = null, () => _dialog.OpenUrl(BuildProjectUrl(project)));
+        (bool compatible, string? reason) = CatalogCompatibility.Evaluate(project, activeTarget, activeLoader);
+        var detail = new DetailViewModel(project, installed, compatible, reason, InstallFromDetailAsync, () => CurrentDetail = null, () => _dialog.OpenUrl(BuildProjectUrl(project)));
         CurrentDetail = detail;
 
-        // Enrich with the full project (long description + screenshot gallery) once it loads.
+        // Enrich with the full project (long description + screenshot gallery) once it loads. The full
+        // project carries the same loader/version lists, so the compatibility verdict is unchanged.
         IModSource source = _registry.Find(project.Source) ?? _registry.Primary;
         Result<CatalogProject> full = await source.GetProjectAsync(project.Id).ConfigureAwait(true);
         if (full.IsSuccess && ReferenceEquals(CurrentDetail, detail))
         {
             CatalogProject merged = project with { Body = full.Value.Body, GalleryUrls = full.Value.GalleryUrls };
-            CurrentDetail = new DetailViewModel(merged, installed, InstallFromDetailAsync, () => CurrentDetail = null, () => _dialog.OpenUrl(BuildProjectUrl(merged)));
+            CurrentDetail = new DetailViewModel(merged, installed, compatible, reason, InstallFromDetailAsync, () => CurrentDetail = null, () => _dialog.OpenUrl(BuildProjectUrl(merged)));
         }
     }
 

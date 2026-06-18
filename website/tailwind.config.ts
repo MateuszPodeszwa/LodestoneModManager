@@ -1,8 +1,5 @@
 import type { Config } from 'tailwindcss'
 
-// Design tokens lifted straight from the Claude-Design prototype so the site
-// matches the app's look. Use these as Tailwind classes, e.g. `text-brand`,
-// `bg-surface`, `font-pixel`.
 export default <Partial<Config>>{
   content: [
     './components/**/*.{vue,js,ts}',

@@ -114,6 +114,16 @@
                                     <TextBlock Text="Installed" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="8,0,0,0" />
                                 </StackPanel>
                             </Border>
+                            <!-- No build for the active loader + version: explain why instead of offering an install that would fail. -->
+                            <Border Background="#24E3B341" BorderBrush="{StaticResource WarningBrush}" BorderThickness="1" CornerRadius="10" Padding="13"
+                                    Visibility="{Binding IsIncompatible, Converter={StaticResource BoolToVis}}">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Path Width="17" Height="17" VerticalAlignment="Center" Stretch="Uniform" Stroke="{StaticResource WarningBrush}" StrokeThickness="2"
+                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M12 9v4 M12 17h.01 M10.3 4 3.3 16a2 2 0 0 0 1.7 3h14a2 2 0 0 0 1.7-3L13.7 4a2 2 0 0 0-3.4 0Z" />
+                                    <TextBlock Text="{Binding IncompatibilityReason}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource WarningBrush}"
+                                               TextWrapping="Wrap" VerticalAlignment="Center" Margin="9,0,0,0" />
+                                </StackPanel>
+                            </Border>
                         </Grid>
                     </StackPanel>
                 </StackPanel>
