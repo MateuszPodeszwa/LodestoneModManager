@@ -129,6 +129,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ReconcileLibraryUseCase>();
         services.AddTransient<SwitchProfileUseCase>();
         services.AddTransient<ResetGameUseCase>();
+        services.AddTransient<ResolveDependencyNamesUseCase>();
 
         return services;
     }
