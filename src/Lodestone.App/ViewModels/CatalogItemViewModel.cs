@@ -63,7 +63,7 @@ public sealed partial class CatalogItemViewModel : ObservableObject
     /// support the active version and isn't already installed (an installed copy shows "Installed").</summary>
     public bool IsIncompatible => !IsCompatible && !Installed;
 
-    /// <summary>Tooltip for the incompatible badge — why it can't be installed for the active version.</summary>
+    /// <summary>Tooltip for the incompatible badge - why it can't be installed for the active version.</summary>
     public string IncompatibilityReason { get; }
 
     public bool CanInstall => !Installed && !Installing && IsCompatible;

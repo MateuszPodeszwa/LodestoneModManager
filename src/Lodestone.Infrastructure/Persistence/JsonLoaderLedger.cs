@@ -5,7 +5,7 @@ namespace Lodestone.Infrastructure.Persistence;
 /// <summary>
 /// File-backed <see cref="ILoaderLedger"/>: a small JSON list of the loader profiles Lodestone installed,
 /// stored alongside its other data. Writes are atomic (see <see cref="JsonStore"/>) and the list is tiny
-/// (one entry per installed loader profile), so each call reads the current file rather than caching —
+/// (one entry per installed loader profile), so each call reads the current file rather than caching -
 /// keeping it correct even if another process edited it. Installs are serialised by the app's operation
 /// gate, so there is no concurrent writer to contend with.
 /// </summary>

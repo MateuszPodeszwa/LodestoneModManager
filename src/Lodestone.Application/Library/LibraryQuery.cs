@@ -17,7 +17,7 @@ public sealed class SupportsVersionSpecification(GameVersion version) : Specific
     public override bool IsSatisfiedBy(InstalledContent candidate) => candidate.SupportsVersion(version);
 }
 
-/// <summary>Matches content built for a specific loader — used to isolate one profile's mods.</summary>
+/// <summary>Matches content built for a specific loader - used to isolate one profile's mods.</summary>
 public sealed class OfLoaderSpecification(Loader loader) : Specification<InstalledContent>
 {
     public override bool IsSatisfiedBy(InstalledContent candidate) => candidate.Loader == loader;

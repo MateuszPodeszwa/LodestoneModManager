@@ -44,7 +44,7 @@ public sealed record CompatibilityIssue(
     };
 
     /// <summary>
-    /// A terse, badge-sized restatement of the problem for the My Content list — e.g. "Requires Fabric API",
+    /// A terse, badge-sized restatement of the problem for the My Content list - e.g. "Requires Fabric API",
     /// "Incompatible with X", "Library unused". Deliberately short so several badges fit on one row without
     /// clipping on narrow widths; the full sentence stays in <see cref="Message"/> (shown in the tooltip).
     /// Names the related mod (<see cref="RelatedName"/>) when the kind is about another piece of content, and

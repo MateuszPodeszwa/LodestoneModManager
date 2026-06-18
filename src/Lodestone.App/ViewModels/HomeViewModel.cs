@@ -130,7 +130,7 @@ public sealed partial class HomeViewModel : ObservableObject
         PackCount = all.Count(i => i.Type == ContentType.ResourcePack);
         ShaderCount = all.Count(i => i.Type == ContentType.Shader);
 
-        // Show the real selection: the concrete version, "All" when any version is installed, or "—" when none.
+        // Show the real selection: the concrete version, "All" when any version is installed, or "-" when none.
         ActiveVersion = ActiveProfile.Selected(_settings.Current)?.Value
             ?? (_inventory.InstalledVersions().Count > 0 ? "All" : "—");
 
@@ -153,7 +153,7 @@ public sealed partial class HomeViewModel : ObservableObject
     }
 
     // "Notify me about updates" gates whether pending updates are surfaced on Home. When it's off we
-    // don't badge them — but we stay honest about it rather than claiming everything is up to date.
+    // don't badge them - but we stay honest about it rather than claiming everything is up to date.
     private void ApplyUpdatesSurface()
     {
         int pending = _pendingUpdates;
@@ -190,7 +190,7 @@ public sealed partial class HomeViewModel : ObservableObject
         {
             GameVersion? target = ResolveTargetVersion();
 
-            // When the active loader isn't installed for the target version, mods can't load — skip dropped
+            // When the active loader isn't installed for the target version, mods can't load - skip dropped
             // mod files up front with the same gate toast Browse/My Content show (resource packs and shaders
             // are loader-independent and still install). The use case re-checks authoritatively per file.
             bool loaderReady = ActiveProfile.IsLoaderReady(_settings.Current, _inventory, usesLoader: true);

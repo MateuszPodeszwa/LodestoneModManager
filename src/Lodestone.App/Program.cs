@@ -15,7 +15,7 @@ internal static class Program
     public static void Main()
     {
         VelopackApp.Build()
-            // On uninstall, purge everything Lodestone persisted so a reinstall starts genuinely clean —
+            // On uninstall, purge everything Lodestone persisted so a reinstall starts genuinely clean -
             // fresh onboarding, no stale settings/library, and the supporter token gone (a reinstall must
             // re-paste a fresh code).
             .OnBeforeUninstallFastCallback(_ => PurgeAppData())
@@ -25,7 +25,7 @@ internal static class Program
 
     // Removes only Lodestone's own data: %AppData%\Lodestone (settings, library, entitlements, logs,
     // trash) and our %LocalAppData%\Lodestone\cache. It deliberately leaves the user's .minecraft (mods,
-    // worlds, loaders) untouched — "Reset to clean" in Settings is the explicit way to undo those — and it
+    // worlds, loaders) untouched - "Reset to clean" in Settings is the explicit way to undo those - and it
     // leaves Velopack's own program files for the uninstaller to remove.
     private static void PurgeAppData()
     {

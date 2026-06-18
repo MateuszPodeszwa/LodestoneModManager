@@ -4,7 +4,7 @@ using Lodestone.Domain.Compatibility;
 namespace Lodestone.Application.Compatibility.Rules;
 
 /// <summary>
-/// Flags installed content that can't run on <em>any</em> Minecraft version the user actually has —
+/// Flags installed content that can't run on <em>any</em> Minecraft version the user actually has -
 /// e.g. a mod built only for 1.21.4 when only 1.20.1 is installed. This is the "warn, don't block"
 /// counterpart to the loader install gate: mod installs are allowed (you may be pre-staging), but the
 /// problem is surfaced in My Content rather than failing silently. Stays quiet when the installed set

@@ -79,7 +79,7 @@ public sealed class VersionLabelConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => Binding.DoNothing;
 }
 
-/// <summary>Hashes a name to a stable colour from the prototype's avatar palette.</summary>
+/// <summary>Hashes a name to a stable colour from a fixed avatar palette.</summary>
 public sealed class NameToColorBrushConverter : IValueConverter
 {
     private static readonly Color[] Palette =

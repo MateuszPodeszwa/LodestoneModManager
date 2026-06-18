@@ -26,7 +26,7 @@ public sealed record LocalContentMetadata(
 
 /// <summary>
 /// Reads loader metadata from a <c>.jar</c>/<c>.zip</c>/<c>.litemod</c>/<c>.mcpack</c>. The
-/// implementation dispatches to per-format parsers (fabric.mod.json / mods.toml / quilt.mod.json) —
+/// implementation dispatches to per-format parsers (fabric.mod.json / mods.toml / quilt.mod.json) -
 /// a Strategy hidden behind this single port.
 /// </summary>
 public interface IArchiveMetadataReader

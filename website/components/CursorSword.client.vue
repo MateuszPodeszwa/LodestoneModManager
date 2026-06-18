@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Custom Minecraft stone-sword cursor: follows the pointer, swings on left-click
-// and jabs on right-click. Self-contained (no GSAP dependency) and fail-safe —
+// and jabs on right-click. Self-contained (no GSAP dependency) and fail-safe -
 // the native cursor is only hidden once the sword image has actually loaded, so
 // a missing image or touch device just falls back to the normal cursor.
 const wrap = ref<HTMLElement | null>(null)

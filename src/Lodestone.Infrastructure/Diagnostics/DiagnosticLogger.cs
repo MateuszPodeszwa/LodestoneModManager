@@ -5,7 +5,7 @@ namespace Lodestone.Infrastructure.Diagnostics;
 
 /// <summary>
 /// Mirrors user-facing toast notifications into the on-disk log via <see cref="LodestoneLog"/>, so the
-/// diagnostic log captures everything the user was told — successes and, crucially, failures — without
+/// diagnostic log captures everything the user was told - successes and, crucially, failures - without
 /// every publisher having to log explicitly. This is the single chokepoint that makes the logs useful
 /// for bug reports. Attach once at startup and dispose the returned token to detach.
 /// </summary>
@@ -37,7 +37,7 @@ public static class DiagnosticLogger
         }
     }
 
-    /// <summary>Formats a toast as one log line — "Title: Body", or just the title when the body is empty.
+    /// <summary>Formats a toast as one log line - "Title: Body", or just the title when the body is empty.
     /// Pure and side-effect-free so the formatting can be unit-tested without touching the log file.</summary>
     public static string Describe(ToastMessage toast)
     {

@@ -3,7 +3,7 @@ import { getDb } from '~~/server/utils/db'
 import { genState, REGEN_WINDOW_MS } from '~~/server/utils/keylock'
 
 // Mint a fresh supporter code for the signed-in patron, enforcing the 1-hour
-// regen cooldown. We store counts/timestamps — never the code itself.
+// regen cooldown. We store counts/timestamps - never the code itself.
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   const user = session.user

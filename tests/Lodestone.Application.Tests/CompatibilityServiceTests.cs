@@ -40,7 +40,7 @@ public class CompatibilityServiceTests
     public void Missing_dependency_borrows_a_display_name_from_another_item_that_declares_it()
     {
         // iris knows the dependency only by its Modrinth id, but sodium declares the same id with a
-        // human name — the rule borrows it offline so the badge reads "Requires Cloth Config".
+        // human name - the rule borrows it offline so the badge reads "Requires Cloth Config".
         var iris = Make.Mod("iris", deps: [Make.Requires("9s6osm5g")], versions: ["1.21.4"]);
         var sodium = Make.Mod(
             "sodium",

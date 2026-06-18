@@ -4,11 +4,11 @@ namespace Lodestone.Application.Concurrency;
 /// Coordinates the app's disk-mutating work into two classes so that downloads can run concurrently
 /// without racing the operations that can't:
 /// <list type="bullet">
-/// <item><b>Shared</b> — content installs and updates. Any number may run at once; the real download
+/// <item><b>Shared</b> - content installs and updates. Any number may run at once; the real download
 /// parallelism is bounded separately by the "concurrent downloads" setting (the HTTP downloader's
 /// semaphore). Installs of distinct items write distinct files and the library repository serializes its
 /// own writes, so concurrent installs don't corrupt anything.</item>
-/// <item><b>Exclusive</b> — loader install/update, profile switch and reset. These rewrite shared
+/// <item><b>Exclusive</b> - loader install/update, profile switch and reset. These rewrite shared
 /// structures (<c>versions/</c>, <c>launcher_profiles.json</c>, or enable/disable files in <c>mods/</c>)
 /// that would race with installs or with each other, so they run strictly alone.</item>
 /// </list>
@@ -32,7 +32,7 @@ public sealed class OperationCoordinator
     /// must not assume a particular thread; read <see cref="IsBusy"/> for the current aggregate state.</summary>
     public event Action? StateChanged;
 
-    /// <summary>True while any operation — a shared install or an exclusive op — is in flight.</summary>
+    /// <summary>True while any operation - a shared install or an exclusive op - is in flight.</summary>
     public bool IsBusy
     {
         get

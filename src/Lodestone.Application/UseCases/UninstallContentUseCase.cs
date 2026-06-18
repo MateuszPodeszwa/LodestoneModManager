@@ -20,7 +20,7 @@ public sealed class UninstallContentUseCase
         Domain.InstalledContent? item = await _repository.FindAsync(id, ct).ConfigureAwait(false);
         if (item is null)
         {
-            return Result.Success(); // already gone — idempotent
+            return Result.Success(); // already gone - idempotent
         }
 
         if (!string.IsNullOrWhiteSpace(item.FileName))

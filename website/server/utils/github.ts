@@ -126,7 +126,7 @@ export async function getLatestBeta(): Promise<NormalizedRelease | null> {
 
 // ── Per-release changelog notes, derived from the commits in each release ──────
 // GitHub release bodies are empty (Velopack doesn't write them), so the changelog
-// lists the actual commits between tags instead — categorized like the design.
+// lists the actual commits between tags instead - categorized like the design.
 export interface ChangeNote {
   type: 'new' | 'improved' | 'fixed'
   text: string
@@ -150,7 +150,7 @@ const NOTE_CATEGORY: Record<string, ChangeNote['type']> = {
 }
 // Housekeeping commit types that don't belong in a user-facing changelog.
 const NOTE_SKIP = new Set(['chore', 'ci', 'build', 'docs', 'doc', 'test', 'tests', 'style', 'release', 'deps', 'dep', 'wip'])
-// Scopes outside the app itself (this is a monorepo) — kept out of the app changelog.
+// Scopes outside the app itself (this is a monorepo) - kept out of the app changelog.
 const NOTE_SKIP_SCOPE = new Set(['website', 'site', 'web', 'design', 'repo', 'meta', 'deploy', 'ci'])
 
 function tidyNoteText(text: string): string {
@@ -162,7 +162,7 @@ function tidyNoteText(text: string): string {
 function commitToNote(subject: string): ChangeNote | null {
   const line = subject.trim()
   if (!line || /^merge\b/i.test(line)) return null
-  // Only structured (conventional) commits make the changelog — keeps noise out.
+  // Only structured (conventional) commits make the changelog - keeps noise out.
   const m = line.match(/^(\w+)(?:\(([^)]*)\))?(!)?:\s*(.+)$/)
   if (!m) return null
   const type = m[1].toLowerCase()
@@ -206,7 +206,7 @@ export async function getCommitSubjects(base: string | null, head: string): Prom
     const subjects: string[] = (res.commits ?? [])
       .map((c: any) => String(c.commit?.message ?? '').split('\n')[0].trim())
       .filter(Boolean)
-    subjects.reverse() // GitHub returns oldest-first — show newest first
+    subjects.reverse() // GitHub returns oldest-first - show newest first
     compareCache.set(key, subjects)
     return subjects
   } catch (e) {

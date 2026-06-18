@@ -20,7 +20,7 @@ const app = useAppConfig()
         <p class="mx-auto mt-4 max-w-[560px] text-[17px] leading-relaxed text-muted">{{ app.support.subtitle }}</p>
       </Reveal>
 
-      <!-- Patreon widget (default — shown when no tiers are configured). Full-width to
+      <!-- Patreon widget (default - shown when no tiers are configured). Full-width to
            match the "Claim your code" widget below it. -->
       <Reveal v-if="!app.support.tiers.length" class="mt-12">
         <div

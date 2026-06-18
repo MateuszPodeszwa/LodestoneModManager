@@ -11,7 +11,7 @@ public enum VersionSatisfaction
     /// <summary>The installed version definitively fails a constraint we fully understand.</summary>
     Violated,
 
-    /// <summary>The constraint (or version) is too complex/odd to evaluate safely — never flagged.</summary>
+    /// <summary>The constraint (or version) is too complex/odd to evaluate safely - never flagged.</summary>
     Unknown,
 }
 
@@ -47,7 +47,7 @@ public static partial class VersionConstraint
         string bound = match.Groups["ver"].Value;
         if (!SimpleVersionPattern().IsMatch(bound))
         {
-            return VersionSatisfaction.Unknown; // bound isn't a plain dotted number — don't guess
+            return VersionSatisfaction.Unknown; // bound isn't a plain dotted number - don't guess
         }
 
         int comparison = VersionComparer.CompareNumeric(installedVersion, bound);

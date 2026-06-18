@@ -38,7 +38,7 @@ public sealed partial class ContentItemViewModel : ObservableObject
     /// <summary>The profiles this item can be assigned to (a leading "Assign to…" prompt, then each profile).</summary>
     public IReadOnlyList<ProfileOption> AssignTargets { get; }
 
-    /// <summary>A mod adopted without a known version — eligible for manual sorting in My Content.</summary>
+    /// <summary>A mod adopted without a known version - eligible for manual sorting in My Content.</summary>
     public bool IsUnsorted => _model.Type.UsesLoader() && _model.GameVersions.Count == 0;
 
     /// <summary>Show the inline "assign to a profile" picker only when it's unsorted and there's a target.</summary>
@@ -51,7 +51,7 @@ public sealed partial class ContentItemViewModel : ObservableObject
     {
         if (!string.IsNullOrEmpty(value))
         {
-            _ = _onAssign(Id, value); // user picked a profile from the prompt — sort it there
+            _ = _onAssign(Id, value); // user picked a profile from the prompt - sort it there
         }
     }
 

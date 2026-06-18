@@ -11,7 +11,7 @@ public sealed record SupporterCode(string Holder, DateTimeOffset IssuedAt);
 
 /// <summary>
 /// The granted supporter status. Perks are <b>cosmetic/convenience only</b> (badge, accent themes,
-/// early-access channel) — core functionality is never gated. Once redeemed it is permanent (there is
+/// early-access channel) - core functionality is never gated. Once redeemed it is permanent (there is
 /// no recurring expiry); it is only cleared by removing the code or uninstalling.
 /// </summary>
 public sealed record SupporterEntitlement(string Holder, DateTimeOffset ActivatedAt);
@@ -19,7 +19,7 @@ public sealed record SupporterEntitlement(string Holder, DateTimeOffset Activate
 /// <summary>
 /// The token persisted on disk: the original signed <see cref="Code"/> plus display metadata. Storing
 /// the signed code (rather than a plain "is supporter" flag) is what makes the saved state
-/// tamper-resistant — it is re-verified against the embedded public key on load, so editing the file
+/// tamper-resistant - it is re-verified against the embedded public key on load, so editing the file
 /// can't fabricate supporter status without a genuinely signed code.
 /// </summary>
 public sealed record StoredEntitlement(string Code, string Holder, DateTimeOffset ActivatedAt);

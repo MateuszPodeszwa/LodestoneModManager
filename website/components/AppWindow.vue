@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// Faithful reproduction of the in-app UI mock (design: AppMock.dc.html).
+// Faithful reproduction of the in-app UI window.
 // `screen` switches the visible view: home | browse | library | updates | support.
 const props = withDefaults(defineProps<{ screen?: string }>(), { screen: 'home' })
 

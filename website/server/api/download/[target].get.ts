@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
   if (target === 'beta') {
     const session = await getUserSession(event)
     if (!session.user?.betaAccess) {
-      // Not entitled — send them to the supporter page to unlock beta access.
+      // Not entitled - send them to the supporter page to unlock beta access.
       return sendRedirect(event, '/supporter?need=beta', 302)
     }
     const beta = await getLatestBeta()

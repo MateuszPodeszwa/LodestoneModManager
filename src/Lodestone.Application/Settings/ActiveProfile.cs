@@ -6,7 +6,7 @@ namespace Lodestone.Application.Settings;
 /// <summary>
 /// The single source of truth for resolving the "active version" from settings. Replaces the
 /// hardcoded <c>1.21.4</c> fallbacks that used to be scattered across the view-models: a concrete
-/// install target now comes from what the user selected, or — failing that — the newest version they
+/// install target now comes from what the user selected, or - failing that - the newest version they
 /// actually have installed, never a fabricated default.
 /// </summary>
 public static class ActiveProfile

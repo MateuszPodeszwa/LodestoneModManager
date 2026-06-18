@@ -68,7 +68,7 @@ const year = new Date().getFullYear()
         </div>
       </div>
 
-      <!-- support the project (donate — kept distinct from Help) -->
+      <!-- support the project (donate - kept distinct from Help) -->
       <div>
         <div class="font-pixel text-[13px] font-semibold uppercase tracking-wide text-faint">Support the project</div>
         <div class="mt-4 flex flex-col gap-2.5">

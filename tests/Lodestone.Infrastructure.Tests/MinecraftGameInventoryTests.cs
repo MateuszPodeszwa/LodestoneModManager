@@ -33,7 +33,7 @@ public class MinecraftGameInventoryTests
 
         var inventory = await BuildAsync(dir, gameDir);
 
-        // 1.21.4 appears as both vanilla and the Fabric profile's base — collapsed to one, newest first.
+        // 1.21.4 appears as both vanilla and the Fabric profile's base - collapsed to one, newest first.
         inventory.InstalledVersions().Select(v => v.Value).ShouldBe(["1.21.4", "1.20.1"]);
     }
 

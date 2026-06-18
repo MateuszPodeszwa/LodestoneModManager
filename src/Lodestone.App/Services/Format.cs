@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace Lodestone.App.Services;
 
-/// <summary>Display formatting helpers mirroring the prototype's fmtNum/fmtSize.</summary>
+/// <summary>Display formatting helpers for counts and byte sizes.</summary>
 public static class Format
 {
     public static string Number(long n)

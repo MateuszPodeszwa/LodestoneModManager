@@ -28,7 +28,7 @@ public static class SupporterAccents
 /// Applies an accent colour at runtime. WPF freezes the brushes loaded from the <c>Source</c>'d
 /// <c>Themes/Theme.xaml</c>, and a frozen <see cref="Freezable"/> can't be recoloured in place, so this
 /// <b>replaces</b> the shared accent resources with fresh brushes. Consumers therefore reference the accent
-/// roles with <c>{DynamicResource}</c>, which re-resolves when a resource entry changes — so switching the
+/// roles with <c>{DynamicResource}</c>, which re-resolves when a resource entry changes - so switching the
 /// accent recolours the whole UI live, with no restart. Non-supporters always get the default; a stored
 /// custom accent is ignored unless the caller is a supporter.
 /// </summary>
@@ -70,7 +70,7 @@ public static class AccentApplier
 
     /// <summary>The accent currently applied to the app resources (the default before any apply). Lets non-WPF
     /// surfaces such as the WebView2 description read the same accent the brushes use. Reads it back from
-    /// <c>AccentBrush</c> — the one resource <see cref="Apply"/> always updates — rather than the
+    /// <c>AccentBrush</c> - the one resource <see cref="Apply"/> always updates - rather than the
     /// <c>AccentColor</c> token, which is only refreshed when present at the top level.</summary>
     public static Color CurrentAccent()
     {
@@ -135,7 +135,7 @@ public static class AccentApplier
 
     private static Color WithAlpha(Color c, byte alpha) => Color.FromArgb(alpha, c.R, c.G, c.B);
 
-    // Dark text on light accents, light text on dark ones (matches the prototype's accent-text role).
+    // Dark text on light accents, light text on dark ones (the accent-text role).
     private static Color ContrastText(Color c)
     {
         double luminance = (0.299 * c.R) + (0.587 * c.G) + (0.114 * c.B);

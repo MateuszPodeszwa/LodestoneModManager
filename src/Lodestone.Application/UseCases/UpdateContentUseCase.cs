@@ -16,7 +16,7 @@ public interface IUpdateContentUseCase
 
 /// <summary>
 /// Replaces an installed item's file with a newer build. Downloads &amp; verifies first, soft-deletes
-/// the old file, then places the new one — so a failed download leaves the working install intact.
+/// the old file, then places the new one - so a failed download leaves the working install intact.
 /// </summary>
 public sealed class UpdateContentUseCase : IUpdateContentUseCase
 {

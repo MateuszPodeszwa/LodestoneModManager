@@ -147,7 +147,7 @@ public sealed class FileSystemContentInstaller : IContentInstaller
             }
             else
             {
-                return Task.FromResult(Result.Success()); // already gone — idempotent
+                return Task.FromResult(Result.Success()); // already gone - idempotent
             }
         }
 

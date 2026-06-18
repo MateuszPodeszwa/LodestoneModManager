@@ -7,7 +7,7 @@
 //   signature= ECDSA P-256 over the *payload bytes*, SHA-256, IEEE-P1363 (raw r‖s)
 //
 // .NET's ECDsa.SignData defaults to IEEE-P1363, so Node MUST set
-// `dsaEncoding: 'ieee-p1363'` (its default is DER — which the app would reject).
+// `dsaEncoding: 'ieee-p1363'` (its default is DER - which the app would reject).
 import { createPrivateKey, createPublicKey, sign as nodeSign, verify as nodeVerify } from 'node:crypto'
 
 function b64urlEncode(buf: Buffer): string {

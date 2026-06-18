@@ -23,7 +23,7 @@ public static class ContentTypeExtensions
         _ => "mods",
     };
 
-    /// <summary>Human-friendly label matching the design's wording.</summary>
+    /// <summary>Human-friendly label for the content type.</summary>
     public static string ToDisplayName(this ContentType type) => type switch
     {
         ContentType.Mod => "Mod",

@@ -32,7 +32,7 @@ public sealed class VelopackAppUpdater : IAppUpdater
             }
             catch (Exception)
             {
-                // not Velopack-installed — fall back to the assembly version
+                // not Velopack-installed - fall back to the assembly version
             }
 
             return AssemblyVersion();
@@ -72,7 +72,7 @@ public sealed class VelopackAppUpdater : IAppUpdater
                 return Result.Success(new UpdateCheckResult(false, CurrentVersion, null));
             }
 
-            // A semver pre-release suffix (e.g. "0.1.3-beta.1") marks an early-access build — surface it so
+            // A semver pre-release suffix (e.g. "0.1.3-beta.1") marks an early-access build - surface it so
             // the UI can label it clearly. This is channel-independent: the Beta feed also serves stable builds.
             string latest = _pending.TargetFullRelease.Version.ToString();
             bool prerelease = latest.Contains('-', StringComparison.Ordinal);
@@ -113,7 +113,7 @@ public sealed class VelopackAppUpdater : IAppUpdater
     public Result ApplyOnExit() => Apply(restartNow: false);
 
     // Applies the update downloaded by DownloadAsync. restartNow relaunches immediately (the process
-    // exits); otherwise the update is staged to install the next time the app closes — no relaunch now.
+    // exits); otherwise the update is staged to install the next time the app closes - no relaunch now.
     private Result Apply(bool restartNow)
     {
         if (_pending is null)

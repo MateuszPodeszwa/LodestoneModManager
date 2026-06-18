@@ -53,7 +53,7 @@
                                 <Path Width="15" Height="15" Stretch="Uniform" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.7"
                                       StrokeLineJoin="Round" StrokeStartLineCap="Round" Data="M23 4v6h-6 M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                             </Button>
-                            <!-- Detected install status for the selected loader + version — the truth, not just what's selected. -->
+                            <!-- Detected install status for the selected loader + version - the truth, not just what's selected. -->
                             <TextBlock Text="{Binding LoaderStatusLabel}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">

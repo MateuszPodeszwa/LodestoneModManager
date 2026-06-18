@@ -19,7 +19,7 @@ public sealed class LodestoneSettings
     public const int MinConcurrentDownloads = 1;
     public const int MaxConcurrentDownloads = 6;
 
-    /// <summary>The "All versions" sentinel — the safe default, since we can't assume any specific
+    /// <summary>The "All versions" sentinel - the safe default, since we can't assume any specific
     /// Minecraft version is installed. The UI resolves a concrete target from the game inventory.</summary>
     public const string DefaultSelectedVersion = "all";
 

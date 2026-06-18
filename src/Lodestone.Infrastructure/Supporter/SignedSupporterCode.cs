@@ -9,7 +9,7 @@ namespace Lodestone.Infrastructure.Supporter;
 
 /// <summary>
 /// The signed body of a supporter code. <c>iat</c> (issued-at, UTC unix seconds) drives the app-side
-/// 1-hour activation window; <c>k</c> is the kind (always "supporter" for now — all patrons are equal).
+/// 1-hour activation window; <c>k</c> is the kind (always "supporter" for now - all patrons are equal).
 /// </summary>
 internal sealed record SupporterCodePayload(
     [property: JsonPropertyName("v")] int Version,
@@ -20,7 +20,7 @@ internal sealed record SupporterCodePayload(
 /// <summary>
 /// Verifies offline supporter codes of the form <c>base64url(payload).base64url(signature)</c> using
 /// an embedded ECDSA P-256 public key. No payment processing or network call is involved; the private
-/// key never ships. Verification only checks the signature and decodes the claims — the 1-hour
+/// key never ships. Verification only checks the signature and decodes the claims - the 1-hour
 /// activation window is enforced by <see cref="SupporterService"/> so the policy can't be smuggled in
 /// (or extended) by a leaked code.
 /// </summary>
@@ -97,7 +97,7 @@ public sealed class SignedSupporterCodeVerifier : ISupporterCodeVerifier
 }
 
 /// <summary>
-/// Issues supporter codes. Run by the maintainer (offline) with the private key — e.g. via the
+/// Issues supporter codes. Run by the maintainer (offline) with the private key - e.g. via the
 /// <c>lodestone</c> CLI after a Patreon pledge. Never bundled with a shipped build.
 /// </summary>
 public static class SupporterCodeIssuer

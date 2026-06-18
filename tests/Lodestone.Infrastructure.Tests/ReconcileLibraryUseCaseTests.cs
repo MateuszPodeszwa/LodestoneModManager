@@ -76,7 +76,7 @@ public class ReconcileLibraryUseCaseTests
             repo, new FileSystemContentInstaller(settings, dir.File("trash")), new ArchiveMetadataReader(),
             settings, new MinecraftGameLocator(), new MinecraftGameInventory(settings));
 
-        await useCase.ExecuteAsync(targetVersion: null); // no target — attribution comes from the profile
+        await useCase.ExecuteAsync(targetVersion: null); // no target - attribution comes from the profile
 
         InstalledContent item = (await repo.GetAllAsync()).Single(i => i.Name == "Sodium");
         item.Loader.ShouldBe(Loader.Fabric);
@@ -101,7 +101,7 @@ public class ReconcileLibraryUseCaseTests
             repo, new FileSystemContentInstaller(settings, dir.File("trash")), new ArchiveMetadataReader(),
             settings, new MinecraftGameLocator(), new MinecraftGameInventory(settings));
 
-        // Even with a target version, two Fabric profiles make it ambiguous — leave it Unknown, don't guess.
+        // Even with a target version, two Fabric profiles make it ambiguous - leave it Unknown, don't guess.
         await useCase.ExecuteAsync(GameVersion.Parse("1.21.4"));
 
         InstalledContent item = (await repo.GetAllAsync()).Single(i => i.Name == "Sodium");

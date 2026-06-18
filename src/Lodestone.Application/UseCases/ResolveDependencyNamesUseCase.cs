@@ -10,8 +10,8 @@ namespace Lodestone.Application.UseCases;
 /// version metadata only carries each dependency's project id, so a mod added before install-time name
 /// capture existed (or one imported from disk) renders "Requires 9s6osm5g" in the compatibility report
 /// instead of "Requires Cloth Config". This pass resolves the real project name for each dependency id
-/// still missing one — via the declaring item's mod source (a <c>GetProjectAsync</c> the caching source
-/// memoises) — and persists it, so the badge becomes readable.
+/// still missing one - via the declaring item's mod source (a <c>GetProjectAsync</c> the caching source
+/// memoises) - and persists it, so the badge becomes readable.
 ///
 /// Best-effort: ids that can't be resolved (a loader mod-id that isn't a source slug, or a network error)
 /// are left untouched. The network is only hit for ids whose name isn't already known, so once a library
@@ -38,7 +38,7 @@ public sealed class ResolveDependencyNamesUseCase
         IReadOnlyList<InstalledContent> items = await _repository.GetAllAsync(ct).ConfigureAwait(false);
 
         // Group the dependency ids still missing a name by the source that can resolve them (the declaring
-        // item's source — a dependency id is a project id/slug within that same source).
+        // item's source - a dependency id is a project id/slug within that same source).
         var pending = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
         foreach (InstalledContent item in items)
         {

@@ -53,7 +53,7 @@ public sealed class Result<T> : Result
     private Result(Error error)
         : base(false, error) => _value = default;
 
-    /// <summary>The success value. Throws if the result is a failure — guard with <see cref="Result.IsSuccess"/>.</summary>
+    /// <summary>The success value. Throws if the result is a failure - guard with <see cref="Result.IsSuccess"/>.</summary>
     public T Value => IsSuccess
         ? _value!
         : throw new InvalidOperationException($"Cannot read the value of a failed result ({Error}).");

@@ -114,7 +114,7 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <!-- "Minecraft not detected" banner — blocks installs until a valid folder is set -->
+                <!-- "Minecraft not detected" banner - blocks installs until a valid folder is set -->
                 <Border Grid.Row="0" Background="#1FE3B341" BorderBrush="#55E3B341" BorderThickness="0,0,0,1" Padding="36,12"
                         Visibility="{Binding IsGameReady, Converter={StaticResource InvBoolToVis}}">
                     <Grid>

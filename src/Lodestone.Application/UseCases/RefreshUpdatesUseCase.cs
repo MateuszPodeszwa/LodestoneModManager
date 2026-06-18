@@ -11,8 +11,8 @@ namespace Lodestone.Application.UseCases;
 public sealed record UpdateSummary(int UpdatesAvailable, int Updated);
 
 /// <summary>
-/// Checks every catalog-sourced item for a newer compatible build. Runs only when invoked — on app
-/// start and on manual refresh — never on a timer. When auto-update is on, enabled items are updated
+/// Checks every catalog-sourced item for a newer compatible build. Runs only when invoked - on app
+/// start and on manual refresh - never on a timer. When auto-update is on, enabled items are updated
 /// in place; otherwise they are flagged so the UI can badge them.
 /// </summary>
 public sealed class RefreshUpdatesUseCase
@@ -80,8 +80,8 @@ public sealed class RefreshUpdatesUseCase
 
             // Check each build against a version it actually supports: the active one when this build serves
             // it, otherwise the build's own newest version. The same mod can be installed for several
-            // profiles (issue #44), so a build set aside for another version mustn't be checked against — and
-            // updated to — the active profile's version.
+            // profiles (issue #44), so a build set aside for another version mustn't be checked against - and
+            // updated to - the active profile's version.
             GameVersion? checkVersion = activeVersion is not null && item.SupportsVersion(activeVersion)
                 ? activeVersion
                 : item.GameVersions.OrderByDescending(v => v).FirstOrDefault() ?? activeVersion;

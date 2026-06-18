@@ -12,7 +12,7 @@ public sealed record CatalogInstall(InstalledContent Item, IReadOnlyList<string>
 
 /// <summary>
 /// One-click install from the Browse screen: resolve the best compatible build, download &amp; verify
-/// it, place it, and record it — then do the same for any <see cref="DependencyKind.Required"/>
+/// it, place it, and record it - then do the same for any <see cref="DependencyKind.Required"/>
 /// dependencies the build declares (transitively), so the user isn't left with a mod that can't load.
 /// Refuses to install a build that doesn't match the active game version and loader (the resolver
 /// returns nothing in that case); a dependency that can't be resolved is left for the compatibility
@@ -55,7 +55,7 @@ public sealed class InstallFromCatalogUseCase
     {
         // "Already installed" is profile-scoped: the same mod can live in several profiles at once (its own
         // build per profile), so it's a duplicate only when an existing build serves *this* (loader + version)
-        // profile. A build for a different version or loader is a separate profile — it's installed alongside
+        // profile. A build for a different version or loader is a separate profile - it's installed alongside
         // rather than blocked or overwritten. Packs/shaders are loader-agnostic, so any present copy counts.
         IReadOnlyList<InstalledContent> existing = await _repository.GetAllAsync(ct).ConfigureAwait(false);
         if (existing.Any(i => IsSameProject(i, project.Id) && i.ServesProfile(loader, targetVersion)))
@@ -110,8 +110,8 @@ public sealed class InstallFromCatalogUseCase
 
     /// <summary>Breadth-first install of every still-missing required dependency, transitively.</summary>
     /// <param name="resolvedNames">Accumulates <c>identifier -&gt; human project name</c> for every
-    /// dependency a project was resolved for — including ones already installed or that failed to
-    /// install — so the caller can backfill missing dependency display names.</param>
+    /// dependency a project was resolved for - including ones already installed or that failed to
+    /// install - so the caller can backfill missing dependency display names.</param>
     /// <param name="installedItems">Accumulates each item newly written to the repository in this run,
     /// so the caller can re-persist them once dependency names are known.</param>
     private async Task InstallRequiredDependenciesAsync(
@@ -140,7 +140,7 @@ public sealed class InstallFromCatalogUseCase
             Result<CatalogProject> project = await source.GetProjectAsync(identifier, ct).ConfigureAwait(false);
             if (project.IsFailure)
             {
-                continue; // can't resolve metadata — the compatibility engine will flag it as missing
+                continue; // can't resolve metadata - the compatibility engine will flag it as missing
             }
 
             // Record the human name as soon as we have it, before any skip below, so even
@@ -157,7 +157,7 @@ public sealed class InstallFromCatalogUseCase
                 await InstallOneAsync(source, project.Value, targetVersion, loader, null, ct).ConfigureAwait(false);
             if (installedDependency.IsFailure)
             {
-                continue; // e.g. no build for this version yet — leave it for the compatibility report
+                continue; // e.g. no build for this version yet - leave it for the compatibility report
             }
 
             installed.Add(project.Value.Name);
@@ -216,7 +216,7 @@ public sealed class InstallFromCatalogUseCase
         }
     }
 
-    /// <summary>Resolves, downloads, verifies, places and records a single project. No duplicate check —
+    /// <summary>Resolves, downloads, verifies, places and records a single project. No duplicate check -
     /// callers decide whether the project should be (re)installed.</summary>
     private async Task<Result<InstalledContent>> InstallOneAsync(
         IModSource source,
@@ -291,7 +291,7 @@ public sealed class InstallFromCatalogUseCase
     }
 
     // The record id for a freshly installed build. The first build of a project keeps the bare project id
-    // (so existing libraries are unchanged); any later build — the same mod for another profile — gets a
+    // (so existing libraries are unchanged); any later build - the same mod for another profile - gets a
     // profile-scoped id so it's a distinct record with its own file instead of overwriting the first. The
     // caller has already ruled out a build that serves this exact profile, so we never clobber a live one.
     private async Task<string> ResolveRecordIdAsync(string projectId, Loader loader, GameVersion version, CancellationToken ct)
@@ -299,7 +299,7 @@ public sealed class InstallFromCatalogUseCase
             ? projectId
             : $"{projectId}@{loader.ToSlug()}-{version.Value}";
 
-    // A library record represents the given catalog project when either its id or its project id matches —
+    // A library record represents the given catalog project when either its id or its project id matches -
     // coexisting builds share the project id while taking distinct record ids.
     private static bool IsSameProject(InstalledContent item, string projectId)
         => string.Equals(item.ProjectId, projectId, StringComparison.OrdinalIgnoreCase)

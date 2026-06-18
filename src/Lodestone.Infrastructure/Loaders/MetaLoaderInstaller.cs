@@ -12,7 +12,7 @@ namespace Lodestone.Infrastructure.Loaders;
 
 /// <summary>
 /// Installs Fabric or Quilt by fetching a launcher profile from their meta APIs and writing it into
-/// <c>versions/</c> plus a <c>launcher_profiles.json</c> entry — exactly what their official installers do,
+/// <c>versions/</c> plus a <c>launcher_profiles.json</c> entry - exactly what their official installers do,
 /// but without a Java step (libraries are fetched by the launcher on first run). Forge/NeoForge are
 /// reported unsupported because they need their own Java installers.
 /// </summary>
@@ -177,7 +177,7 @@ public sealed class MetaLoaderInstaller : ILoaderInstaller
         }
     }
 
-    // Removes only the loader profiles recorded in the ledger — what Lodestone actually installed,
+    // Removes only the loader profiles recorded in the ledger - what Lodestone actually installed,
     // including Forge/NeoForge set up through their official installers. Anything the user installed
     // outside Lodestone isn't tracked, so it's left untouched. A recorded profile whose folder is gone
     // (e.g. an external installer the user cancelled) is simply forgotten.
@@ -227,7 +227,7 @@ public sealed class MetaLoaderInstaller : ILoaderInstaller
     }
 
     // Drops the launcher entries for the version-ids we just removed (keyed by id, with a lastVersionId
-    // fallback), backing up launcher_profiles.json first — the user's own profiles are left alone.
+    // fallback), backing up launcher_profiles.json first - the user's own profiles are left alone.
     private static void RemoveLauncherProfiles(string gameDir, List<string> versionIds)
     {
         string path = Path.Combine(gameDir, "launcher_profiles.json");
@@ -264,7 +264,7 @@ public sealed class MetaLoaderInstaller : ILoaderInstaller
     {
         using HttpResponseMessage response = await _http.GetAsync($"{metaBase}/{versionsPath}/{game}", ct).ConfigureAwait(false);
 
-        // A 404 means the loader simply hasn't published for this Minecraft version yet — Quilt's meta
+        // A 404 means the loader simply hasn't published for this Minecraft version yet - Quilt's meta
         // returns it for unknown versions. That's "no build available" (a clear, expected outcome the
         // caller reports as loader.no_version), not a transport failure, so don't let it surface as a raw
         // "Response status code does not indicate success: 404" network error.

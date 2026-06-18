@@ -1,4 +1,4 @@
-// Lodestone headless CLI — a thin surface over the same core the WPF app uses. Today it hosts the
+// Lodestone headless CLI - a thin surface over the same core the WPF app uses. Today it hosts the
 // supporter-code tooling the maintainer runs offline (key generation, issuing, verifying), proving
 // the core is fully usable without any UI.
 

@@ -179,7 +179,7 @@
                         <Button Content="Update all" Style="{StaticResource PrimaryButton}" Command="{Binding UpdateAllCommand}" Margin="0,14,0,0" />
                     </StackPanel>
 
-                    <!-- No updates: empty state centred in the fill area, matching the mock's justify-content:center. -->
+                    <!-- No updates: empty state centred in the fill area. -->
                     <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,14"
                                 Visibility="{Binding HasUpdates, Converter={StaticResource InvBoolToVis}}">
                         <Border Width="40" Height="40" CornerRadius="20" Background="{DynamicResource AccentSoftBrush}" HorizontalAlignment="Center">

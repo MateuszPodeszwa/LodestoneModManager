@@ -83,7 +83,7 @@ public class ActiveProfileTests
     public void IsLoaderReady_is_true_for_loader_independent_content()
     {
         var settings = new LodestoneSettings { SelectedVersion = "1.20.1", DefaultLoader = Loader.None };
-        IGameInventory inv = Inventory(); // no loader, nothing installed — still fine for packs/shaders
+        IGameInventory inv = Inventory(); // no loader, nothing installed - still fine for packs/shaders
 
         ActiveProfile.IsLoaderReady(settings, inv, usesLoader: false).ShouldBeTrue();
     }

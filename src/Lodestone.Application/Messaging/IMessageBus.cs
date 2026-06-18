@@ -2,7 +2,7 @@ namespace Lodestone.Application.Messaging;
 
 /// <summary>
 /// A minimal in-process publish/subscribe bus (lightweight Mediator). Used to surface cross-cutting
-/// signals — most visibly toast notifications — without view models holding references to each other.
+/// signals - most visibly toast notifications - without view models holding references to each other.
 /// </summary>
 public interface IMessageBus
 {
@@ -11,7 +11,7 @@ public interface IMessageBus
     IDisposable Subscribe<TMessage>(Action<TMessage> handler);
 }
 
-/// <summary>A request to show a transient toast (see the design's bottom-right notifications).</summary>
+/// <summary>A request to show a transient toast (bottom-right notifications).</summary>
 public sealed record ToastMessage(string Title, string Body, ToastKind Kind = ToastKind.Success);
 
 /// <summary>Broadcast after the library changes so other screens (Home, Library) refresh.</summary>

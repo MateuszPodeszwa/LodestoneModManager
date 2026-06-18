@@ -122,10 +122,10 @@ export async function fetchEligibility(accessToken: string): Promise<PatreonElig
   if (entitledTierId) tierTitle = tiersById.get(entitledTierId) ?? null
 
   const email: string | null = user.attributes?.email ?? null
-  // The owner can't be a patron of their own campaign — grant supporter + beta via the allowlist.
+  // The owner can't be a patron of their own campaign - grant supporter + beta via the allowlist.
   const isOwner = c.ownerIds.includes(String(user.id)) || (!!email && c.ownerEmails.includes(email.toLowerCase()))
 
-  // Supporter status — and every perk, including beta early access — requires an ACTIVE, paying
+  // Supporter status - and every perk, including beta early access - requires an ACTIVE, paying
   // membership. There are no pledge tiers: any paid pledge counts. Former/declined patrons and free
   // followers don't qualify. The owner allowlist covers the maintainer.
   const isActive = patronStatus === 'active_patron'

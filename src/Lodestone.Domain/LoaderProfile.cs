@@ -3,7 +3,7 @@ namespace Lodestone.Domain;
 /// <summary>
 /// An installed launcher profile: a base game version paired with the loader installed against it
 /// (<see cref="Loader.None"/> for plain vanilla), plus the <c>versions/</c> folder id that backs it.
-/// This is the unit a Lodestone "profile" switches between — a specific game version + loader, with its
+/// This is the unit a Lodestone "profile" switches between - a specific game version + loader, with its
 /// own set of mods.
 /// </summary>
 public sealed record LoaderProfile(GameVersion GameVersion, Loader Loader, string VersionId)
@@ -19,7 +19,7 @@ public sealed record LoaderProfile(GameVersion GameVersion, Loader Loader, strin
 
     /// <summary>
     /// The loader's own build version, parsed from <see cref="VersionId"/> by each loader's launcher
-    /// folder convention — e.g. "0.16.5" from "fabric-loader-0.16.5-1.21.4", "47.2.0" from
+    /// folder convention - e.g. "0.16.5" from "fabric-loader-0.16.5-1.21.4", "47.2.0" from
     /// "1.20.1-forge-47.2.0", "21.1.65" from "neoforge-21.1.65". <c>null</c> for vanilla, or when the id
     /// doesn't follow the expected shape (callers then fall back to the loader name alone).
     /// </summary>
@@ -58,7 +58,7 @@ public sealed record LoaderProfile(GameVersion GameVersion, Loader Loader, strin
     }
 
     // The text between prefix and suffix when the value is wrapped by both (and there is something
-    // between them), else null — so an id that doesn't match the expected convention degrades gracefully
+    // between them), else null - so an id that doesn't match the expected convention degrades gracefully
     // instead of yielding a garbled version.
     private static string? Between(string value, string prefix, string suffix)
         => value.Length > prefix.Length + suffix.Length &&

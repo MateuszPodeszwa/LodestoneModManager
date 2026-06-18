@@ -10,7 +10,7 @@ public sealed record CategoryGroup(string Key, IReadOnlyList<InstalledContent> I
 
 /// <summary>
 /// Lays the un-filtered ("All categories") library out as category sections. Each item is placed under a
-/// single section — its <em>primary</em> (first declared) category — so a multi-tag mod is listed once, not
+/// single section - its <em>primary</em> (first declared) category - so a multi-tag mod is listed once, not
 /// duplicated. Items that declare no category fall into a trailing "uncategorized" bucket. Sections are
 /// ordered by slug to mirror the My Content category dropdown, with "uncategorized" pinned last.
 /// </summary>
@@ -25,7 +25,7 @@ public static class LibraryGrouping
     /// </summary>
     public static IReadOnlyList<CategoryGroup> ByPrimaryCategory(IEnumerable<InstalledContent> items)
     {
-        // Build the buckets in first-seen order, then sort only the section order — the rows inside a
+        // Build the buckets in first-seen order, then sort only the section order - the rows inside a
         // section keep the caller's ordering, exactly like the flat list does.
         var buckets = new Dictionary<string, List<InstalledContent>>(StringComparer.Ordinal);
 

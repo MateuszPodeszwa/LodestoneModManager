@@ -2,19 +2,19 @@
 const app = useAppConfig()
 const toast = useToast()
 const route = useRoute()
-// Shared auth state — clearing it here also updates the nav (otherwise the profile
+// Shared auth state - clearing it here also updates the nav (otherwise the profile
 // tab lingers until a manual refresh).
 const { clear: clearSession } = useUserSession()
 
 useSeoMeta({
   title: 'Supporter — claim your key',
   description: 'Sign in with Patreon to verify your membership and generate a Lodestone supporter key. Codes are valid for one hour.',
-  robots: 'noindex', // account area — keep it out of search results
+  robots: 'noindex', // account area - keep it out of search results
 })
 
 const { data: me, refresh, pending } = await useFetch('/api/me')
 
-// Local key state (we never persist the code — the patron is responsible for it).
+// Local key state (we never persist the code - the patron is responsible for it).
 const code = ref<string | null>(null)
 const expiresAt = ref<number | null>(null)
 const nextAt = ref<number | null>(null)

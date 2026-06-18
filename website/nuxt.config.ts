@@ -17,7 +17,7 @@ export default defineNuxtConfig({
 
   // Runtime config. Anything under `public` is exposed to the browser; everything
   // else is server-only (never shipped to the client). Values are populated from
-  // environment variables in production — see `.env.example`.
+  // environment variables in production - see `.env.example`.
   runtimeConfig: {
     // ── Server-only secrets ──────────────────────────────────────────────
     // PKCS#8 ECDSA P-256 private key (base64, single line) used to SIGN supporter
@@ -31,7 +31,7 @@ export default defineNuxtConfig({
     patreonClientId: '',
     patreonClientSecret: '',
     patreonRedirectUri: '', // e.g. https://lodestonemc.net/api/auth/patreon/callback
-    patreonCampaignId: '', // optional — restrict to your campaign; blank = accept any returned membership
+    patreonCampaignId: '', // optional - restrict to your campaign; blank = accept any returned membership
     // Owner/teammate allowlist (comma-separated). A campaign owner is NOT a patron of their own campaign,
     // so list your Patreon user id and/or login email here to be recognised as a supporter (+ beta).
     patreonOwnerIds: '', // e.g. 12345678  (PATREON_OWNER_IDS)
@@ -49,7 +49,7 @@ export default defineNuxtConfig({
   },
 
   app: {
-    // Smooth cross-page fade — see assets/css/main.css (.page-* classes).
+    // Smooth cross-page fade - see assets/css/main.css (.page-* classes).
     pageTransition: { name: 'page', mode: 'out-in' },
     head: {
       htmlAttrs: { lang: 'en' },

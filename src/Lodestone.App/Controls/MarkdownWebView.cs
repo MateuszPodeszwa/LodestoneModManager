@@ -11,7 +11,7 @@ namespace Lodestone.App.Controls;
 /// Renders a mod description (Markdown + embedded HTML) with full website fidelity inside a hardened
 /// WebView2. JavaScript is disabled and a strict CSP is applied (see <see cref="MarkdownDocument"/>),
 /// and any link the user clicks opens in their default browser instead of navigating inside the app.
-/// The browser process is created lazily — the first time the detail modal is shown — so it adds no
+/// The browser process is created lazily - the first time the detail modal is shown - so it adds no
 /// cost to app start-up.
 /// </summary>
 public sealed class MarkdownWebView : WebView2
@@ -80,7 +80,7 @@ public sealed class MarkdownWebView : WebView2
         }
         catch (Exception ex)
         {
-            // No WebView2 runtime (or it failed to start): leave the area blank — the modal still shows
+            // No WebView2 runtime (or it failed to start): leave the area blank - the modal still shows
             // the stats and the "Open on Modrinth" button. Allow a later attempt on the next open.
             _initStarted = false;
             Lodestone.Infrastructure.Persistence.LodestoneLog.Error("WebView2 initialisation failed", ex);

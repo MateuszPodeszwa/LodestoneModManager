@@ -372,7 +372,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- Actions: one aligned row — primary/secondary calls-to-action on the left, the quiet
+            <!-- Actions: one aligned row - primary/secondary calls-to-action on the left, the quiet
                  "remove" action pushed to the right so every button shares a single baseline. -->
             <Grid Margin="2,20,2,2">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">

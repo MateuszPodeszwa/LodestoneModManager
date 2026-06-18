@@ -12,7 +12,7 @@ namespace Lodestone.Infrastructure.FileSystem;
 /// <summary>
 /// File-backed <see cref="ILauncherVisibility"/>. Hides inactive modded profiles by moving their
 /// <c>launcher_profiles.json</c> entries (matched by <c>lastVersionId</c>) into a stash file, verbatim,
-/// and restores them on demand — so the user's custom JVM args, game dirs and icons survive a switch.
+/// and restores them on demand - so the user's custom JVM args, game dirs and icons survive a switch.
 /// <c>launcher_profiles.json</c> is backed up to <c>.bak</c> before every edit; vanilla and unrelated
 /// profiles are left untouched.
 /// </summary>
@@ -40,7 +40,7 @@ public sealed class LauncherProfileStore : ILauncherVisibility
         string path = Path.Combine(game, "launcher_profiles.json");
         if (!File.Exists(path))
         {
-            return Result.Success(); // no launcher file yet — nothing to hide
+            return Result.Success(); // no launcher file yet - nothing to hide
         }
 
         try

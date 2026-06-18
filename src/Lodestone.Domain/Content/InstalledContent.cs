@@ -16,7 +16,7 @@ public sealed class InstalledContent
         Type = type;
     }
 
-    /// <summary>Stable identity — a source project id, or a generated slug for local files.</summary>
+    /// <summary>Stable identity - a source project id, or a generated slug for local files.</summary>
     public string Id { get; }
 
     public string Name { get; set; }
@@ -66,11 +66,11 @@ public sealed class InstalledContent
     /// <summary>Mod-ids/slugs this item itself provides, so other items' dependencies can resolve to it.</summary>
     public IReadOnlyList<string> ProvidedIds { get; set; } = [];
 
-    /// <summary>True when this is a support library (e.g. Fabric API) — used to flag unused libraries.</summary>
+    /// <summary>True when this is a support library (e.g. Fabric API) - used to flag unused libraries.</summary>
     public bool IsLibrary { get; set; }
 
     /// <summary>Catalog categories this item belongs to (e.g. <c>optimization</c>, <c>library</c>), lower-cased
-    /// source slugs. Empty for local/adopted files whose metadata doesn't declare any — those read as
+    /// source slugs. Empty for local/adopted files whose metadata doesn't declare any - those read as
     /// "uncategorized" and drive the My Content category filter.</summary>
     public IReadOnlyList<string> Categories { get; set; } = [];
 
@@ -87,7 +87,7 @@ public sealed class InstalledContent
     public bool MatchesLoaderProfile(Loader activeLoader) => !Type.UsesLoader() || Loader == activeLoader;
 
     /// <summary>
-    /// True when this content is installed for the given (loader + version) profile — the same mod can be
+    /// True when this content is installed for the given (loader + version) profile - the same mod can be
     /// installed for several profiles at once, each its own build, so "installed" is profile-scoped, not
     /// global. A mod matches only when its loader is the profile's and it supports that version; loader-
     /// independent content (resource packs, shaders) matches on presence alone. A null <paramref name="version"/>

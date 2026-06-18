@@ -2,9 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ============================================================
-         Design tokens — colours lifted verbatim from the prototype
-         (Lodestone Mod Manager.dc.html). rgba() values are converted
-         to #AARRGGBB.
+         Design tokens. rgba() values are converted to #AARRGGBB.
          ============================================================ -->
 
     <!-- Surfaces -->
@@ -60,7 +58,7 @@
     <SolidColorBrush x:Key="AccentFaintBrush" Color="#125AC26D" />
     <SolidColorBrush x:Key="AccentBorderBrush" Color="#665AC26D" />
 
-    <!-- Gradient accent roles. Defaults are the prototype greens; AccentApplier recolours the accent-driven
+    <!-- Gradient accent roles. Defaults are the base greens; AccentApplier recolours the accent-driven
          stops in place so they track the selected accent live (see Services/AccentApplier.cs). -->
     <LinearGradientBrush x:Key="AccentTileBrush" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Color="#6FCE80" Offset="0" />
@@ -121,7 +119,7 @@
         <Setter Property="CornerRadius" Value="12" />
     </Style>
 
-    <!-- Slim scrollbars echoing the prototype -->
+    <!-- Slim scrollbars -->
     <Style TargetType="ScrollBar">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Width" Value="11" />

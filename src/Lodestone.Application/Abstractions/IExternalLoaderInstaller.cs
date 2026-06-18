@@ -4,12 +4,12 @@ using Lodestone.Domain.Common;
 namespace Lodestone.Application.Abstractions;
 
 /// <summary>A launched external installer: the build version it will install, and a task that completes
-/// when the installer process exits — so the caller can show progress and re-check the result without
+/// when the installer process exits - so the caller can show progress and re-check the result without
 /// polling.</summary>
 public sealed record ExternalInstall(string Version, Task Completion);
 
 /// <summary>
-/// Installs the loaders Lodestone can't write directly — Forge and NeoForge — by downloading their
+/// Installs the loaders Lodestone can't write directly - Forge and NeoForge - by downloading their
 /// official installer and launching it (their own Java GUI does the work). Once the user completes it,
 /// the resulting profile is picked up by <see cref="IGameInventory"/>. This is distinct from
 /// <see cref="ILoaderInstaller"/>, which installs Fabric/Quilt directly through their meta APIs.

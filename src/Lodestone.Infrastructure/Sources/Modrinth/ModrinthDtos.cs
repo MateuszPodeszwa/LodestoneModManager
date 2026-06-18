@@ -12,7 +12,7 @@ internal sealed class ModrinthSearchResponse
     [JsonPropertyName("total_hits")] public int TotalHits { get; set; }
 }
 
-/// <summary>One search hit — a condensed project summary used to build a Browse card.</summary>
+/// <summary>One search hit - a condensed project summary used to build a Browse card.</summary>
 internal sealed class ModrinthHit
 {
     [JsonPropertyName("project_id")] public string ProjectId { get; set; } = string.Empty;

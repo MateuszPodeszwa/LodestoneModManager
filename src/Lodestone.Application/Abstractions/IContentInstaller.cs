@@ -24,7 +24,7 @@ public sealed record PlaceResult(string FileName, long SizeBytes, bool ReplacedE
 /// Places content files into the correct <c>.minecraft</c> subfolder and manages their on-disk
 /// enabled/uninstalled state. The vanilla launcher shares one folder per content type across all
 /// game versions, so "profiles" are a metadata concept (see <see cref="InstalledContent.GameVersions"/>),
-/// not separate folders — which is exactly why compatibility checking matters.
+/// not separate folders - which is exactly why compatibility checking matters.
 /// </summary>
 public interface IContentInstaller
 {

@@ -21,7 +21,7 @@ public sealed class MissingRequiredDependencyRule : ICompatibilityRule
             if (index.Resolve(dep.Identifier).Count == 0)
             {
                 // If this item only knows the raw id (Modrinth gives no name for the dependency it
-                // declares), borrow a human name another installed item declared for the same id —
+                // declares), borrow a human name another installed item declared for the same id -
                 // purely from in-memory context, no network. Keeps the badge readable on older installs
                 // until the next reconcile/update backfills the name onto this item too.
                 string label = string.IsNullOrWhiteSpace(dep.DisplayName)
@@ -38,7 +38,7 @@ public sealed class MissingRequiredDependencyRule : ICompatibilityRule
 
     /// <summary>
     /// Finds a human display name another installed item declares for <paramref name="identifier"/>,
-    /// so a dependency known only by its raw id can still render readably. Offline only — it reads the
+    /// so a dependency known only by its raw id can still render readably. Offline only - it reads the
     /// scan context, never a mod source.
     /// </summary>
     private static string? BorrowDisplayName(string identifier, InstalledContent self, CompatibilityContext context)

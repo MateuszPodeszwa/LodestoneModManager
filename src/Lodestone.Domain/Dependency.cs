@@ -21,7 +21,7 @@ public enum DependencyKind
 /// a Modrinth <c>project_id</c> for catalog data, or a loader mod-id/slug for locally inspected jars.
 /// The compatibility engine resolves identifiers against installed content. <see cref="VersionRange"/>
 /// is the version constraint the declaring item asks for (e.g. <c>&gt;=0.100.0</c>), when the source
-/// provides one — Fabric/Quilt jar metadata carries it; Modrinth does not, so it stays null there.
+/// provides one - Fabric/Quilt jar metadata carries it; Modrinth does not, so it stays null there.
 /// </summary>
 public sealed record Dependency(
     string Identifier,

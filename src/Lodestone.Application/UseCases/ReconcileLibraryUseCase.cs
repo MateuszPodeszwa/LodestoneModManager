@@ -10,7 +10,7 @@ namespace Lodestone.Application.UseCases;
 /// <summary>
 /// Auto-discovery: scans the game's mods/resourcepacks/shaderpacks folders and imports any files that
 /// aren't already in the library (e.g. mods the user dropped in manually, or an existing install Lodestone
-/// is seeing for the first time). Purely additive — it never deletes records, so it's safe to run on every
+/// is seeing for the first time). Purely additive - it never deletes records, so it's safe to run on every
 /// start/refresh.
 /// </summary>
 public sealed class ReconcileLibraryUseCase
@@ -92,11 +92,11 @@ public sealed class ReconcileLibraryUseCase
                     versions =
                         meta is { GameVersionsOrEmpty.Count: > 0 } ? meta.GameVersionsOrEmpty.ToList()
                         : loaderKnown && OnlyVersionFor(profiles, loader) is { } only ? [only]
-                        : []; // ambiguous (0 or >1 profiles for this loader) — leave "Unknown" rather than guess wrong
+                        : []; // ambiguous (0 or >1 profiles for this loader) - leave "Unknown" rather than guess wrong
                 }
                 else
                 {
-                    // Packs and shaders are loader-agnostic and version-tolerant — keep the active version as a soft tag.
+                    // Packs and shaders are loader-agnostic and version-tolerant - keep the active version as a soft tag.
                     versions = meta is { GameVersionsOrEmpty.Count: > 0 }
                         ? meta.GameVersionsOrEmpty.ToList()
                         : targetVersion is not null ? [targetVersion] : [];

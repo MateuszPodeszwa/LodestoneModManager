@@ -131,7 +131,7 @@ public sealed partial class MainViewModel : ObservableObject
         // Network-backed work is fire-and-forget so the shell never blocks on it.
         _ = Browse.EnsureLoadedAsync();
 
-        // Per spec: the mod updater runs on app start (and on manual refresh) — never on a timer.
+        // Per spec: the mod updater runs on app start (and on manual refresh) - never on a timer.
         _ = RunStartupRefreshAsync();
 
         // The app self-updater also runs on start (after a short settle): it checks the channel the user
@@ -139,7 +139,7 @@ public sealed partial class MainViewModel : ObservableObject
         // no-op on dev/portable builds (not Velopack-installed) and stays silent when already up to date.
         _ = _appUpdates.CheckOnStartupAsync();
 
-        // Make sure the configured loader is actually installed (Fabric/Quilt) on start — only when we have a
+        // Make sure the configured loader is actually installed (Fabric/Quilt) on start - only when we have a
         // concrete version, the loader is one we install directly, and it isn't already there (so the activity
         // bar shows a real install, never a flash for a no-op).
         Loader startupLoader = _settings.Current.DefaultLoader;

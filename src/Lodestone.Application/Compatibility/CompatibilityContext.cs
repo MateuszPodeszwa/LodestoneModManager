@@ -14,7 +14,7 @@ public sealed record CompatibilityContext(
 {
     /// <summary>
     /// The base game versions actually installed on disk. Used to flag content that can't run on
-    /// anything the user has installed. Empty means "unknown" — the dependent rule then stays silent.
+    /// anything the user has installed. Empty means "unknown" - the dependent rule then stays silent.
     /// </summary>
     public IReadOnlyList<GameVersion> InstalledGameVersions { get; init; } = [];
 }

@@ -108,7 +108,7 @@ public sealed partial class MinecraftGameInventory : IGameInventory
             }
             catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
             {
-                // Unreadable/corrupt manifest — fall through to the folder-name heuristic.
+                // Unreadable/corrupt manifest - fall through to the folder-name heuristic.
             }
         }
 

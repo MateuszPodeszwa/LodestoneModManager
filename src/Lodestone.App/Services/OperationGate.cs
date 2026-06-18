@@ -6,7 +6,7 @@ namespace Lodestone.App.Services;
 /// <summary>
 /// App-wide gate for disk-mutating operations: it surfaces a single busy/label state for the global
 /// activity bar and for disabling controls that must not run mid-operation, and classifies work via an
-/// <see cref="OperationCoordinator"/> as either concurrent <i>installs</i> (content downloads — their real
+/// <see cref="OperationCoordinator"/> as either concurrent <i>installs</i> (content downloads - their real
 /// parallelism is bounded by the "concurrent downloads" setting in the HTTP downloader) or <i>exclusive</i>
 /// operations (loader install/update, profile switch, reset) that run strictly alone. Observable state is
 /// always raised on the UI thread.

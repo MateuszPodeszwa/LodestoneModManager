@@ -19,7 +19,7 @@
                                 <DropShadowEffect BlurRadius="24" ShadowDepth="5" Opacity="0.45" Color="Black" />
                             </Border.Effect>
                             <!-- A real TextBlock (not a ContentPresenter) so the message wraps and gets an explicit
-                                 colour — a templated ContentPresenter would render the text black on this dark card. -->
+                                 colour, since a templated ContentPresenter would render the text black on this dark card. -->
                             <TextBlock Text="{TemplateBinding Content}" Foreground="{StaticResource TextBodyBrush}"
                                        FontSize="12.5" TextWrapping="Wrap" />
                         </Border>
@@ -110,7 +110,7 @@
                                 <TextBlock Text="Update" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                             </Border>
 
-                            <!-- compatibility badges — one per issue, worst severity first. The short label sits on
+                            <!-- compatibility badges - one per issue, worst severity first. The short label sits on
                                  the badge; the full message is in the (dark) tooltip on hover. Badges wrap to the next
                                  line when the row runs out of width, so several never clip on narrow windows. -->
                             <ItemsControl ItemsSource="{Binding Issues}" Margin="6,0,0,0" VerticalAlignment="Center"
@@ -144,7 +144,7 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                        <!-- Inline sorter for an adopted mod with no known version — pick the profile it belongs to. -->
+                        <!-- Inline sorter for an adopted mod with no known version - pick the profile it belongs to. -->
                         <ComboBox Width="160" Style="{StaticResource DarkComboBox}" ItemContainerStyle="{StaticResource DarkComboBoxItem}"
                                   Margin="0,0,12,0" VerticalAlignment="Center"
                                   Visibility="{Binding CanAssign, Converter={StaticResource BoolToVis}}"
@@ -204,7 +204,7 @@
                 </StackPanel>
             </Border>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <!-- Category filter — built from the categories present on the current mods; hidden when
+                <!-- Category filter - built from the categories present on the current mods; hidden when
                      nothing is categorized (every item would read "Uncategorized"). On "All categories" the
                      list below groups itself into one section per category (issue #5). -->
                 <ComboBox Width="170" Margin="0,0,12,0" VerticalAlignment="Center"
@@ -253,12 +253,12 @@
             </StackPanel>
         </Border>
 
-        <!-- List — flat, when a specific category is selected or there's nothing to group by. -->
+        <!-- List - flat, when a specific category is selected or there's nothing to group by. -->
         <ItemsControl ItemsSource="{Binding Items}" Margin="0,18,0,0"
                       ItemTemplate="{StaticResource ContentItemTemplate}"
                       Visibility="{Binding IsGrouped, Converter={StaticResource InvBoolToVis}}" />
 
-        <!-- List — grouped into labelled category sections on "All categories" (issue #5). Each section is a
+        <!-- List - grouped into labelled category sections on "All categories" (issue #5). Each section is a
              big, greyed, uppercase header (the shared SectionLabel aesthetic) over its mods; non-collapsible. -->
         <ItemsControl ItemsSource="{Binding Sections}" Margin="0,10,0,0"
                       Visibility="{Binding IsGrouped, Converter={StaticResource BoolToVis}}">

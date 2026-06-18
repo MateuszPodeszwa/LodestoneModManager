@@ -23,7 +23,7 @@ public sealed partial class AccentSwatchViewModel(AccentOption option, bool unlo
     public bool SupporterOnly { get; } = option.SupporterOnly;
 
     // Frozen so the brush carries no thread affinity: the swatch is a fixed palette colour (only the shared
-    // AccentBrush is mutated for live re-colouring), so it's safe to freeze — and a frozen brush can be
+    // AccentBrush is mutated for live re-colouring), so it's safe to freeze - and a frozen brush can be
     // created and bound from any thread, immune to WPF's "DependencySource on same Thread" cross-thread trap.
     public Brush Swatch { get; } = Frozen(AccentApplier.Parse(option.Hex));
 
@@ -38,7 +38,7 @@ public sealed partial class AccentSwatchViewModel(AccentOption option, bool unlo
     }
 }
 
-/// <summary>The Settings screen — every control is wired to <see cref="LodestoneSettings"/> and saved on change.</summary>
+/// <summary>The Settings screen - every control is wired to <see cref="LodestoneSettings"/> and saved on change.</summary>
 public sealed partial class SettingsViewModel : ObservableObject
 {
     private readonly ISettingsStore _settings;
@@ -96,7 +96,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
         // Keep the screen in sync when the folder/settings are changed elsewhere (e.g. the shell banner).
         // SaveAsync raises Changed on a thread-pool thread (it awaits the file write with ConfigureAwait(false)),
-        // so marshal back onto the UI thread before rebuilding bound state — RebuildAccents creates the swatch
+        // so marshal back onto the UI thread before rebuilding bound state - RebuildAccents creates the swatch
         // brushes, and any DependencyObject bound to the UI must be created on the UI thread.
         _settings.Changed += (_, _) => _ui.Post(() =>
         {
@@ -162,14 +162,14 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
-    /// <summary>Whether the active loader is actually installed for the selected Minecraft version — the
+    /// <summary>Whether the active loader is actually installed for the selected Minecraft version - the
     /// detected truth, so the UI shows "Installed"/"Not installed" rather than just echoing the selection.</summary>
     public bool IsActiveLoaderInstalled => ActiveLoaderProfile is not null;
 
     public string LoaderStatusLabel => IsActiveLoaderInstalled ? "Installed" : "Not installed";
 
     /// <summary>The action button reads "Install" until the loader is detected as installed for the
-    /// selected version, then "Update loader" — so selecting a loader never implies it's installed.</summary>
+    /// selected version, then "Update loader" - so selecting a loader never implies it's installed.</summary>
     public string LoaderActionLabel => IsUpdatingLoader
         ? IsActiveLoaderInstalled ? "Updating…" : "Installing…"
         : IsActiveLoaderInstalled ? "Update loader" : "Install";
@@ -186,7 +186,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             }
 
             // When installed, show the exact build (e.g. "Fabric loader 0.16.5 · MC 1.21.4") rather than a
-            // vague "installed for <version>" sentence — the green "Installed" label already states the state.
+            // vague "installed for <version>" sentence - the green "Installed" label already states the state.
             if (ActiveLoaderProfile is { } profile)
             {
                 return profile.PreciseLabel;
@@ -202,7 +202,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     /// disappears once installation is detected), letting the user re-scan after an external installer.</summary>
     public bool ShowLoaderRefresh => !IsActiveLoaderInstalled && !IsUpdatingLoader;
 
-    // Manual re-check (e.g. after finishing an external Forge/NeoForge installer) — re-reads the inventory.
+    // Manual re-check (e.g. after finishing an external Forge/NeoForge installer) - re-reads the inventory.
     [RelayCommand]
     private void RefreshLoaderStatus() => RaiseLoaderStatus();
 
@@ -216,7 +216,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowLoaderRefresh));
     }
 
-    /// <summary>The Minecraft versions actually installed — the choices for which version to set the loader up against.</summary>
+    /// <summary>The Minecraft versions actually installed - the choices for which version to set the loader up against.</summary>
     public ObservableCollection<string> GameVersions { get; } = [];
 
     public void ReloadFromSettings()
@@ -274,7 +274,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     }
 
     // Rebuilds the installed-version choices and defaults the loader target to the active selection
-    // (when concrete and installed), else the newest installed version — never a hardcoded guess.
+    // (when concrete and installed), else the newest installed version - never a hardcoded guess.
     private void RefreshGameVersions()
     {
         IReadOnlyList<GameVersion> installed = _inventory.InstalledVersions();
@@ -299,7 +299,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
-    // Selecting a loader sets it active — it does NOT install it. Installing is an explicit step (the
+    // Selecting a loader sets it active - it does NOT install it. Installing is an explicit step (the
     // "Install" button), so "active" (what's selected) is never mistaken for "installed" (what's on disk).
     partial void OnLoaderChanged(string value)
     {
@@ -370,7 +370,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
-    // Removes every mod/pack/shader and Fabric/Quilt loader Lodestone installed — a clean, pre-loader
+    // Removes every mod/pack/shader and Fabric/Quilt loader Lodestone installed - a clean, pre-loader
     // Minecraft. Gated behind an explicit confirmation; removed content goes to Lodestone's trash.
     [RelayCommand]
     private async Task ResetToCleanAsync()
@@ -439,12 +439,12 @@ public sealed partial class SettingsViewModel : ObservableObject
     private void IncreaseConcurrent() => Concurrent = Math.Min(LodestoneSettings.MaxConcurrentDownloads, Concurrent + 1);
 
     // Routes through the shared coordinator so the button actually installs (download → restart prompt),
-    // applying the same supporter/early-access channel gate as the startup check — not just reports.
+    // applying the same supporter/early-access channel gate as the startup check - not just reports.
     [RelayCommand]
     private Task CheckUpdatesAsync() => _appUpdates.CheckManuallyAsync();
 
     // Opens the folder holding Lodestone's diagnostic logs with the newest log selected, so it's easy to
-    // attach them to a bug report — the action the website's "Where are my logs?" FAQ points users to.
+    // attach them to a bug report - the action the website's "Where are my logs?" FAQ points users to.
     // Falls back to the logs folder itself when nothing has been logged yet (RevealInExplorer creates it).
     [RelayCommand]
     private void OpenLogs() => _dialog.RevealInExplorer(LodestoneLog.LatestLogFile() ?? LodestonePaths.LogsDirectory);
@@ -520,7 +520,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             }
         }).ConfigureAwait(true);
 
-        RaiseLoaderStatus(); // a Fabric/Quilt install completes synchronously — reflect it now
+        RaiseLoaderStatus(); // a Fabric/Quilt install completes synchronously - reflect it now
         _bus.Publish(new LibraryChanged()); // let Browse/Home re-evaluate the loader gate
 
         if (!ran)
@@ -529,7 +529,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
     }
 
-    // Downloads and launches the official Forge/NeoForge installer for the chosen Minecraft version —
+    // Downloads and launches the official Forge/NeoForge installer for the chosen Minecraft version -
     // their own GUI completes the install. Gated so it can't overlap another operation.
     private async Task RunExternalInstallerAsync(Loader loader)
     {
@@ -574,7 +574,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             }
         }).ConfigureAwait(true);
 
-        RaiseLoaderStatus(); // the external install finished (or was cancelled) — reflect the real state
+        RaiseLoaderStatus(); // the external install finished (or was cancelled) - reflect the real state
         _bus.Publish(new LibraryChanged());
 
         if (!ran)

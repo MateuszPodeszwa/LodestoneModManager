@@ -14,7 +14,7 @@ public sealed record LoaderInstall(
     DateTimeOffset InstalledAt);
 
 /// <summary>
-/// A persistent ledger of the loader profiles Lodestone has installed — Fabric/Quilt written directly, and
+/// A persistent ledger of the loader profiles Lodestone has installed - Fabric/Quilt written directly, and
 /// Forge/NeoForge created by their official installers. It is the single source of truth for which
 /// <c>versions/</c> profiles are Lodestone-managed, so "Reset to clean" removes exactly those and never a
 /// loader the user set up outside Lodestone.

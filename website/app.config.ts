@@ -2,7 +2,7 @@
 // ║  EDIT YOUR WEBSITE CONTENT HERE                                        ║
 // ║                                                                        ║
 // ║  This is the one file you edit to change text, links, pricing tiers,   ║
-// ║  features and FAQ — no need to touch any other code. Save and the site ║
+// ║  features and FAQ - no need to touch any other code. Save and the site ║
 // ║  updates. (Version numbers, the changelog and download checksums are   ║
 // ║  pulled automatically from GitHub Releases, so you don't edit those.)  ║
 // ╚══════════════════════════════════════════════════════════════════════╝
@@ -12,14 +12,14 @@ export default defineAppConfig({
     github: 'https://github.com/MateuszPodeszwa/LodestoneModManager',
     githubIssues: 'https://github.com/MateuszPodeszwa/LodestoneModManager/issues',
     patreon: 'https://www.patreon.com/c/mateuszpodeszwa',
-    // Discord is "work in progress" — leave blank to keep it greyed out with a
+    // Discord is "work in progress" - leave blank to keep it greyed out with a
     // hover tooltip. Paste an invite URL here to enable it everywhere at once.
     discord: '',
   },
 
   // ── Releases ──────────────────────────────────────────────────────────
   // Editorial codenames shown as a badge on the changelog (versions, dates,
-  // notes and downloads are all pulled live from GitHub — only the names are here).
+  // notes and downloads are all pulled live from GitHub - only the names are here).
   releases: {
     names: {
       '0.1.0': 'Spawn Point',
@@ -54,7 +54,7 @@ export default defineAppConfig({
     ],
   },
 
-  // ── Trust strip (home page) — privacy / lightweight reassurances ───────
+  // ── Trust strip (home page) - privacy / lightweight reassurances ───────
   trust: {
     eyebrow: 'Private & lightweight',
     title: 'Yours, and yours alone',

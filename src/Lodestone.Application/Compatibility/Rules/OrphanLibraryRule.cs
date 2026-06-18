@@ -5,7 +5,7 @@ namespace Lodestone.Application.Compatibility.Rules;
 
 /// <summary>
 /// Informational: a library (e.g. Fabric API) that no installed mod declares a dependency on. Not a
-/// problem — just a hint that it may be safe to remove.
+/// problem - just a hint that it may be safe to remove.
 /// </summary>
 public sealed class OrphanLibraryRule : ICompatibilityRule
 {

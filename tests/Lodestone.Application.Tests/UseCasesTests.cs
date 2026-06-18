@@ -164,7 +164,7 @@ public class InstallFromCatalogUseCaseTests
     [Fact]
     public async Task Refuses_to_install_what_is_already_installed_for_the_same_profile()
     {
-        // Already installed for 1.21.4 Fabric — re-installing for that exact profile is a genuine duplicate.
+        // Already installed for 1.21.4 Fabric - re-installing for that exact profile is a genuine duplicate.
         (InstallFromCatalogUseCase useCase, _) = Build([SodiumBuild()], existing: Make.Mod("sodium", versions: ["1.21.4"]));
 
         Result<CatalogInstall> result =
@@ -222,7 +222,7 @@ public class InstallFromCatalogUseCaseTests
     public async Task Installs_alongside_a_build_for_a_different_loader_keeping_the_old_one()
     {
         // Sodium is already installed for Quilt; installing for Fabric is a different profile, so it coexists
-        // as its own build — the Quilt build is kept, not removed (issue #44).
+        // as its own build - the Quilt build is kept, not removed (issue #44).
         var source = Substitute.For<IModSource>();
         source.IsConfigured.Returns(true);
         source.GetVersionsAsync("sodium", Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<ProjectVersion>>([SodiumBuild(Loader.Fabric)]));
@@ -601,7 +601,7 @@ public class SwitchProfileUseCaseTests
         Result<ProfileSwitch> result = await useCase.ExecuteAsync(GameVersion.Parse("1.20.1"), Loader.Fabric);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Enabled.ShouldBe(0); // nothing flipped on — a stays off, b was already on
+        result.Value.Enabled.ShouldBe(0); // nothing flipped on - a stays off, b was already on
         result.Value.Disabled.ShouldBe(0);
         a.Enabled.ShouldBeFalse();
         b.Enabled.ShouldBeTrue();
@@ -626,7 +626,7 @@ public class SwitchProfileUseCaseTests
         result.Value.Enabled.ShouldBe(1); // b still got enabled
         result.Value.Disabled.ShouldBe(0);
         b.Enabled.ShouldBeTrue();
-        missing.Enabled.ShouldBeTrue(); // orphan left untouched — nothing on disk to flip
+        missing.Enabled.ShouldBeTrue(); // orphan left untouched - nothing on disk to flip
         await installer.Received(1).SetEnabledAsync(ContentType.Mod, "missing.jar", false, Arg.Any<CancellationToken>());
         await repo.Received(1).UpsertAsync(Arg.Any<InstalledContent>(), Arg.Any<CancellationToken>()); // only b persisted
     }
@@ -634,7 +634,7 @@ public class SwitchProfileUseCaseTests
     [Fact]
     public async Task A_locked_file_still_aborts_the_switch()
     {
-        // Unlike a missing file, a locked file (game running) is a real, fixable stop — keep failing fast.
+        // Unlike a missing file, a locked file (game running) is a real, fixable stop - keep failing fast.
         InstalledContent a = Mod("a", Loader.Fabric, "1.21.4", enabled: true);
         (SwitchProfileUseCase useCase, IContentInstaller installer, IInstalledContentRepository repo) = Build(a);
 
@@ -716,7 +716,7 @@ public class RefreshUpdatesUseCaseTests
     public async Task Does_not_offer_a_build_set_aside_for_another_version_an_update_to_the_active_version()
     {
         // Iris is installed for 1.21.4 (set aside while 1.21.9 is the active profile). The only catalog build
-        // is for 1.21.9 — it must NOT be flagged as an update to the 1.21.4 build (issue #44): a build is only
+        // is for 1.21.9 - it must NOT be flagged as an update to the 1.21.4 build (issue #44): a build is only
         // checked against a version it actually supports.
         var item = Make.Mod("iris", projectId: "iris", versions: ["1.21.4"]);
         item.Version = "1.8.0";

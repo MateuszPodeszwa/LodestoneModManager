@@ -325,7 +325,7 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
             _ => ModSortOrder.Relevance,
         };
 
-        // Filter to the active profile: version always (when not "All"), and the loader for mods only —
+        // Filter to the active profile: version always (when not "All"), and the loader for mods only -
         // so e.g. with Fabric selected you only see Fabric mods for that version.
         GameVersion? version = ActiveProfile.Selected(_settings.Current);
 
@@ -352,7 +352,7 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
             return;
         }
 
-        // Mods need their loader installed first (resource packs/shaders don't — IsActiveLoaderReady is true for them).
+        // Mods need their loader installed first (resource packs/shaders don't - IsActiveLoaderReady is true for them).
         if (!IsActiveLoaderReady)
         {
             _bus.Publish(new ToastMessage("Loader not installed", LoaderGateMessage, ToastKind.Warning));
@@ -412,7 +412,7 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
     /// <summary>A concrete install target (selected version, else newest installed); null when nothing is installed.</summary>
     private GameVersion? ResolveTargetVersion() => ActiveProfile.Target(_settings.Current, _inventory);
 
-    // Mods install even for a version that isn't set up yet (the user may be pre-staging) — but say so.
+    // Mods install even for a version that isn't set up yet (the user may be pre-staging) - but say so.
     private void WarnIfVersionNotInstalled(GameVersion target)
     {
         if (!_inventory.IsVersionInstalled(target))

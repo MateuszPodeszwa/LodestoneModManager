@@ -83,7 +83,7 @@ public sealed partial class LibraryViewModel : ObservableObject
             _ = LoadAsync();
             RaiseLoaderGate(); // a loader may have just been installed/removed
         }));
-        // Changing the Default mod loader in Settings must switch My Content to that loader's profile —
+        // Changing the Default mod loader in Settings must switch My Content to that loader's profile -
         // re-key the selection to follow it, reload, and refresh the gate (mirrors Browse, issue #17).
         settings.Changed += (_, _) => _ui.Post(FollowDefaultLoader);
     }
@@ -96,7 +96,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     /// which are loader-independent and stay visible.</summary>
     public bool ShowLoaderGate => _libTab == "mods" && !ActiveProfile.IsLoaderReady(_settings.Current, _inventory, usesLoader: true);
 
-    /// <summary>The banner text shown when <see cref="ShowLoaderGate"/> is true — same wording as Browse.</summary>
+    /// <summary>The banner text shown when <see cref="ShowLoaderGate"/> is true - same wording as Browse.</summary>
     public string LoaderGateMessage => ActiveProfile.LoaderGateMessage(_settings.Current, _inventory);
 
     private void RaiseLoaderGate()
@@ -106,7 +106,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     }
 
     // Reacts to a Settings change: re-key the selected profile so My Content follows the chosen Default
-    // loader (showing e.g. "26.2 · Forge" the instant it's picked — even before Forge is installed — which
+    // loader (showing e.g. "26.2 · Forge" the instant it's picked - even before Forge is installed - which
     // fixes the stale-label bug), reload the list, and refresh the gate. Guarded against the transient
     // selection churn that RefreshProfileOptions/ApplyProfileAsync drive so the two don't fight.
     private void FollowDefaultLoader()
@@ -119,7 +119,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         string desired = KeyForDefaultLoader();
         if (!desired.Equals(SelectedProfileKey, StringComparison.OrdinalIgnoreCase))
         {
-            // Re-point the selection without triggering an on-disk profile switch — only the view follows
+            // Re-point the selection without triggering an on-disk profile switch - only the view follows
             // the loader the user chose (an explicit profile pick still goes through ApplyProfileAsync).
             _suppressSwitch = true;
             try
@@ -137,7 +137,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     }
 
     // The profile key that follows the chosen Default loader against the active target version, so the
-    // label tracks the loader the moment it's selected — even when that loader isn't installed yet (the
+    // label tracks the loader the moment it's selected - even when that loader isn't installed yet (the
     // gate then clears the mods list). Stays on "All profiles" only when there's no concrete version to
     // pin to or no loader is selected.
     private string KeyForDefaultLoader()
@@ -174,7 +174,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     /// <summary>True when the list is laid out as category sections (<see cref="Sections"/>) rather than the flat <see cref="Items"/>.</summary>
     [ObservableProperty] private bool _isGrouped;
 
-    /// <summary>The category filter is only useful once at least one item carries a category — otherwise hidden.</summary>
+    /// <summary>The category filter is only useful once at least one item carries a category - otherwise hidden.</summary>
     [ObservableProperty] private bool _showCategoryFilter;
 
     partial void OnLibTabChanged(string value)
@@ -199,7 +199,7 @@ public sealed partial class LibraryViewModel : ObservableObject
 
     partial void OnSelectedProfileKeyChanged(string value)
     {
-        // A transient null/empty can arrive while the dropdown's ItemsSource is rebuilt — ignore it.
+        // A transient null/empty can arrive while the dropdown's ItemsSource is rebuilt - ignore it.
         if (string.IsNullOrEmpty(value) || _suppressSwitch)
         {
             return;
@@ -214,7 +214,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     {
         if (key == UnknownKey)
         {
-            // A view-only bucket for unattributed content — never changes the active profile or touches disk.
+            // A view-only bucket for unattributed content - never changes the active profile or touches disk.
             Rebuild();
             return;
         }
@@ -298,7 +298,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         });
     }
 
-    // Rebuilds the selector from the installed profiles and repairs a stale stored selection — so the
+    // Rebuilds the selector from the installed profiles and repairs a stale stored selection - so the
     // list only ever offers profiles the user actually has a loader installed for.
     private void RefreshProfileOptions()
     {
@@ -311,7 +311,7 @@ public sealed partial class LibraryViewModel : ObservableObject
 
         // The profile that follows the chosen Default loader, even when that loader isn't installed yet:
         // offering it keeps My Content pointed at it (label "26.2 · Forge") while the gate clears the mods
-        // list — instead of snapping the selector back to "All profiles" (issue #17, BUG 2).
+        // list - instead of snapping the selector back to "All profiles" (issue #17, BUG 2).
         string pending = KeyForDefaultLoader();
         if (pending != AllKey && !desired.Any(o => o.Key.Equals(pending, StringComparison.OrdinalIgnoreCase)))
         {
@@ -319,7 +319,7 @@ public sealed partial class LibraryViewModel : ObservableObject
             desired.Add(new ProfileOption(pending, $"{pendingVersion} · {pendingLoader.ToDisplayName()}"));
         }
 
-        // A bucket for adopted mods Lodestone couldn't attribute to a version — only shown when some exist.
+        // A bucket for adopted mods Lodestone couldn't attribute to a version - only shown when some exist.
         if (_all.Any(i => i.Type.UsesLoader() && i.GameVersions.Count == 0))
         {
             desired.Add(new ProfileOption(UnknownKey, "Unknown (needs sorting)"));
@@ -374,7 +374,7 @@ public sealed partial class LibraryViewModel : ObservableObject
             return;
         }
 
-        // The set in scope for this profile + tab, before the search and category facets are applied —
+        // The set in scope for this profile + tab, before the search and category facets are applied -
         // it's what both the category dropdown and the visible list are derived from.
         bool allProfiles;
         IReadOnlyList<InstalledContent> baseSet;
@@ -412,7 +412,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         }
 
         // On "All categories", lay the list out as labelled category sections (issue #5) instead of one flat
-        // list — but only when there's a category to group by and the split yields more than one section
+        // list - but only when there's a category to group by and the split yields more than one section
         // (a single section would just be the flat list under a redundant header).
         IReadOnlyList<CategoryGroup> groups = SelectedCategoryKey is AllKey or "" && ShowCategoryFilter
             ? LibraryGrouping.ByPrimaryCategory(filtered)
@@ -450,7 +450,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         IsEmpty = filtered.Count == 0;
     }
 
-    // The uppercase, greyed section header for a category key — the same label the dropdown shows (so the two
+    // The uppercase, greyed section header for a category key - the same label the dropdown shows (so the two
     // stay in sync, per issue #5), upper-cased for the section-title aesthetic.
     private static string HeaderFor(string key)
         => (key == UncategorizedKey ? "Uncategorized" : Prettify(key)).ToUpperInvariant();
@@ -484,7 +484,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     };
 
     // Builds the category dropdown from the categories actually present on the base set. The filter is
-    // hidden entirely when nothing is categorized (everything would read "uncategorized"), per the design:
+    // hidden entirely when nothing is categorized (everything would read "uncategorized"), by design:
     // the ability only appears once it can do something. Repairs a now-absent selection back to "All".
     private void RefreshCategoryOptions(IReadOnlyList<InstalledContent> baseSet)
     {

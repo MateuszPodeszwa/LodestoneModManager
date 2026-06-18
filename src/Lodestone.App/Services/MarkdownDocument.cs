@@ -6,7 +6,7 @@ namespace Lodestone.App.Services;
 /// Converts a Modrinth/CurseForge description (Markdown that may embed raw HTML) into a complete,
 /// dark-themed HTML document for <see cref="Lodestone.App.Controls.MarkdownWebView"/>. The document
 /// is rendered with JavaScript disabled and a strict Content-Security-Policy, so untrusted markup
-/// can only paint text, styles and images — never execute script or load active content. The CSS
+/// can only paint text, styles and images - never execute script or load active content. The CSS
 /// mirrors the app theme and constrains media to the column width so nothing spills off the edge.
 /// </summary>
 public static class MarkdownDocument

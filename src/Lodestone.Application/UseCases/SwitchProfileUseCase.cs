@@ -12,7 +12,7 @@ public sealed record ProfileSwitch(int Enabled, int Disabled);
 /// Activates a (game version + loader) profile by swapping the shared <c>mods/</c> folder so only that
 /// profile's mods are live: every mod that supports the target version on the target loader is enabled,
 /// and every other mod is disabled. Enable/disable just toggles the file's <c>.disabled</c> suffix, so
-/// the swap is fully reversible and nothing is ever deleted — switching back re-enables the previous
+/// the swap is fully reversible and nothing is ever deleted - switching back re-enables the previous
 /// set in seconds. Resource packs and shaders are loader-agnostic and chosen in-game, so they're left
 /// exactly as the user set them.
 /// </summary>
@@ -48,18 +48,18 @@ public sealed class SwitchProfileUseCase
         {
             if (!item.Type.UsesLoader())
             {
-                continue; // resource packs / shaders aren't loader-bound — leave them as the user set them
+                continue; // resource packs / shaders aren't loader-bound - leave them as the user set them
             }
 
             bool belongs = item.Loader == loader && item.SupportsVersion(version);
 
-            // A mod the user deliberately turned off stays off, even inside the profile it belongs to —
+            // A mod the user deliberately turned off stays off, even inside the profile it belongs to -
             // otherwise switching away and back would silently re-enable it (issue #40). Only mods set
             // aside for a different loader/version are the switch's to flip.
             bool desiredEnabled = belongs && !item.UserDisabled;
             if (item.Enabled == desiredEnabled)
             {
-                continue; // already in the desired state — don't churn the disk or the repo
+                continue; // already in the desired state - don't churn the disk or the repo
             }
 
             if (!string.IsNullOrWhiteSpace(item.FileName))
@@ -69,7 +69,7 @@ public sealed class SwitchProfileUseCase
                     .ConfigureAwait(false);
                 if (changed.IsFailure)
                 {
-                    // An orphaned record whose file is no longer on disk has nothing to flip — skip it and
+                    // An orphaned record whose file is no longer on disk has nothing to flip - skip it and
                     // keep swapping the rest instead of aborting the whole switch (issue #42). Its record is
                     // left as-is for a later reconcile/uninstall to resolve. Any other failure (e.g. the file
                     // is locked because Minecraft is running) is a real, fixable stop and still aborts.

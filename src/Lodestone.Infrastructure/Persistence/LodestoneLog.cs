@@ -4,7 +4,7 @@ namespace Lodestone.Infrastructure.Persistence;
 
 /// <summary>
 /// Tiny append-only file logger to <c>%AppData%/Lodestone/logs</c>. Deliberately dependency-free and
-/// best-effort (never throws) so it can be called from anywhere — including the global crash handler —
+/// best-effort (never throws) so it can be called from anywhere - including the global crash handler -
 /// without becoming a failure source itself.
 /// </summary>
 public static class LodestoneLog
@@ -19,7 +19,7 @@ public static class LodestoneLog
         => Write("ERROR", exception is null ? message : $"{message}{Environment.NewLine}{exception}");
 
     /// <summary>The most recently written log file, or <c>null</c> when none exist yet. Lets the UI reveal
-    /// the newest log — the one most likely needed for a bug report — instead of just the folder.</summary>
+    /// the newest log - the one most likely needed for a bug report - instead of just the folder.</summary>
     public static string? LatestLogFile() => LatestLogFile(LodestonePaths.LogsDirectory);
 
     /// <summary>Finds the newest <c>lodestone-*.log</c> in <paramref name="directory"/>. Exposed as an

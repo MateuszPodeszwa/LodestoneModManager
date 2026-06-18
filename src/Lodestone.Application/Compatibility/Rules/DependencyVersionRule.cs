@@ -9,7 +9,7 @@ namespace Lodestone.Application.Compatibility.Rules;
 /// declared constraint (e.g. "requires Fabric API &gt;=0.100.0, but 0.95.0 is installed"). It is
 /// intentionally cautious: it only acts when the constraint is one we fully understand (see
 /// <see cref="VersionConstraint"/>) and warns only when <em>every</em> enabled provider definitively
-/// fails it — an absent or disabled dependency is left to the other rules, and an unverifiable
+/// fails it - an absent or disabled dependency is left to the other rules, and an unverifiable
 /// constraint produces nothing. The result is a warning, never a hard error.
 /// </summary>
 public sealed class DependencyVersionRule : ICompatibilityRule
@@ -33,7 +33,7 @@ public sealed class DependencyVersionRule : ICompatibilityRule
                 .ToList();
             if (providers.Count == 0)
             {
-                continue; // missing or disabled — handled by the dedicated rules
+                continue; // missing or disabled - handled by the dedicated rules
             }
 
             // Give the benefit of the doubt: only warn when no enabled provider satisfies the

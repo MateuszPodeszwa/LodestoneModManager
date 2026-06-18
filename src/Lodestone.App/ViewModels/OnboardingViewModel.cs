@@ -107,7 +107,7 @@ public sealed partial class OnboardingViewModel : ObservableObject
             s.GameDirectory = GameDir;
         }
 
-        // Awaited so the "onboarding completed" flag is durably written before we dismiss the overlay —
+        // Awaited so the "onboarding completed" flag is durably written before we dismiss the overlay -
         // this is what guarantees onboarding only ever runs once.
         await _settings.SaveAsync(s).ConfigureAwait(true);
         Completed?.Invoke();

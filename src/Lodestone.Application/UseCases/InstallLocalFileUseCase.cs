@@ -80,7 +80,7 @@ public sealed class InstallLocalFileUseCase
             : Loader.None;
 
         // The item supports whatever it declares, plus the profile version the user dropped it onto
-        // (when there is one — with no game version installed yet, we keep only what the file declares).
+        // (when there is one - with no game version installed yet, we keep only what the file declares).
         var versions = meta.GameVersionsOrEmpty.ToList();
         if (targetVersion is not null && !versions.Any(v => v.Equals(targetVersion)))
         {

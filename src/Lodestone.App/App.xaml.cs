@@ -19,7 +19,7 @@ namespace Lodestone.App;
 /// <summary>
 /// WPF composition root. Builds the service provider (core + infrastructure + UI), loads persisted
 /// state before any view model is constructed, then shows the shell. There is no background host or
-/// timer — everything is request/refresh driven.
+/// timer - everything is request/refresh driven.
 /// </summary>
 public partial class App : System.Windows.Application
 {
@@ -116,7 +116,7 @@ public partial class App : System.Windows.Application
     }
 
     // One-time banner with the essentials for a bug report: app version, OS, runtime, and whether a valid
-    // Minecraft folder is configured. Best-effort — diagnostics must never break startup.
+    // Minecraft folder is configured. Best-effort - diagnostics must never break startup.
     private void LogStartupBanner(ISettingsStore settings)
     {
         ServiceProvider provider = _provider!; // non-null here: the banner is only logged after the provider is built

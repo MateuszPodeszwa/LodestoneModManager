@@ -32,7 +32,7 @@ const entries = computed(() => {
   return []
 })
 
-// Release codenames (e.g. "Spawn Point") are editorial — they live in app.config.ts.
+// Release codenames (e.g. "Spawn Point") are editorial - they live in app.config.ts.
 const codenames = computed<Record<string, string>>(() => (app.releases?.names ?? {}) as Record<string, string>)
 const codenameFor = (version: string) => codenames.value[version] || null
 

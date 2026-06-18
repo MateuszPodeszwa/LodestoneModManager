@@ -60,7 +60,7 @@ internal sealed class FabricModParser : IArchiveFormatParser
         }
         catch (JsonException)
         {
-            return null; // malformed fabric.mod.json — let other parsers / fallback try
+            return null; // malformed fabric.mod.json - let other parsers / fallback try
         }
     }
 
@@ -79,7 +79,7 @@ internal sealed class FabricModParser : IArchiveFormatParser
             }
 
             // The value is a version range ("*", ">=0.100.0") or an array of them; only a single
-            // string is captured for enforcement — arrays/objects are left unconstrained (safe default).
+            // string is captured for enforcement - arrays/objects are left unconstrained (safe default).
             string? range = entry.Value.ValueKind == JsonValueKind.String ? entry.Value.GetString() : null;
             into.Add(new Dependency(entry.Name, kind, VersionRange: range));
         }

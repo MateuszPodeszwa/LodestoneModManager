@@ -2,7 +2,7 @@ namespace Lodestone.Domain;
 
 /// <summary>
 /// A project as returned by a mod source's search/browse (Modrinth, CurseForge). This is the
-/// "card" data shown on the Browse screen and in the detail modal — not yet a concrete downloadable
+/// "card" data shown on the Browse screen and in the detail modal - not yet a concrete downloadable
 /// file (see <see cref="ProjectVersion"/>).
 /// </summary>
 public sealed record CatalogProject(
