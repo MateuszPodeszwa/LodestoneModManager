@@ -39,6 +39,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     private readonly ToggleContentUseCase _toggle;
     private readonly UninstallContentUseCase _uninstall;
     private readonly SwitchProfileUseCase _switch;
+    private readonly ResolveDependencyNamesUseCase _resolveNames;
     private readonly ISettingsStore _settings;
     private readonly IMessageBus _bus;
     private readonly IUiDispatcher _ui;
@@ -50,6 +51,7 @@ public sealed partial class LibraryViewModel : ObservableObject
     private IReadOnlyDictionary<string, CompatibilityReport> _reports = new Dictionary<string, CompatibilityReport>();
     private bool _suppressSwitch;
     private bool _suppressCategory;
+    private bool _resolvedDependencyNames; // one network backfill of dependency display names per session
 
     public LibraryViewModel(
         IInstalledContentRepository repository,
@@ -57,6 +59,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         ToggleContentUseCase toggle,
         UninstallContentUseCase uninstall,
         SwitchProfileUseCase switchProfile,
+        ResolveDependencyNamesUseCase resolveNames,
         ISettingsStore settings,
         IMessageBus bus,
         IUiDispatcher ui,
@@ -68,6 +71,7 @@ public sealed partial class LibraryViewModel : ObservableObject
         _toggle = toggle;
         _uninstall = uninstall;
         _switch = switchProfile;
+        _resolveNames = resolveNames;
         _settings = settings;
         _bus = bus;
         _ui = ui;
@@ -261,6 +265,37 @@ public sealed partial class LibraryViewModel : ObservableObject
             InstalledGameVersions = _installedVersions,
         });
         Rebuild();
+
+        TryBackfillDependencyNames();
+    }
+
+    // Once per session, resolve any dependency display names still missing from older/imported installs
+    // (Modrinth only stored project ids) so the compatibility badges read "Requires Cloth Config" rather
+    // than "Requires 9s6osm5g". Best-effort and off the UI thread; a change re-publishes LibraryChanged so
+    // the list re-renders with the names. The guard stops it re-running (and re-hitting the network) on the
+    // reload it triggers, and on every subsequent LibraryChanged.
+    private void TryBackfillDependencyNames()
+    {
+        if (_resolvedDependencyNames)
+        {
+            return;
+        }
+
+        _resolvedDependencyNames = true;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                if (await _resolveNames.ExecuteAsync().ConfigureAwait(false) > 0)
+                {
+                    _ui.Post(() => _bus.Publish(new LibraryChanged()));
+                }
+            }
+            catch (Exception)
+            {
+                // Enriching dependency names is cosmetic; never let a lookup failure disrupt My Content.
+            }
+        });
     }
 
     // Rebuilds the selector from the installed profiles and repairs a stale stored selection — so the
