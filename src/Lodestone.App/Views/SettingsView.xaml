@@ -169,8 +169,36 @@
             <StackPanel>
                 <Grid Margin="18,16">
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Use CurseForge as fallback" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBodyBrush}" />
-                        <TextBlock Text="Modrinth is searched first; fall back to CurseForge when needed." FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0" />
+                        <TextBlock FontSize="14" FontWeight="SemiBold" Margin="0,0,0,3">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="Use CurseForge as fallback" />
+                                    <Setter Property="Foreground" Value="{StaticResource TextBodyBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsCurseForgeAvailable}" Value="False">
+                                            <Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock FontSize="12" Margin="0,3,0,0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="Modrinth is searched first; fall back to CurseForge when needed." />
+                                    <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsCurseForgeAvailable}" Value="False">
+                                            <Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <!-- Shown only while CurseForge has no API key configured; hides automatically once available. -->
+                        <TextBlock Text="Coming soon — CurseForge isn't available yet."
+                                   FontSize="11.5" Foreground="{StaticResource TextFaintBrush}" Margin="0,4,0,0"
+                                   Visibility="{Binding IsCurseForgeAvailable, Converter={StaticResource InvBoolToVis}}" />
                     </StackPanel>
                     <ToggleButton Style="{StaticResource ToggleSwitch}" HorizontalAlignment="Right" IsChecked="{Binding CurseFallback, Mode=TwoWay}"
                                   IsEnabled="{Binding IsCurseForgeAvailable}" ToolTipService.ShowOnDisabled="True"

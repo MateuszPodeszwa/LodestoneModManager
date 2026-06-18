@@ -18,6 +18,10 @@
                             <Setter TargetName="knob" Property="HorizontalAlignment" Value="Right" />
                             <Setter TargetName="knob" Property="Margin" Value="0,0,3,0" />
                         </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="track" Property="Opacity" Value="0.4" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
