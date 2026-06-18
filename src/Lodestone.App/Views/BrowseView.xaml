@@ -23,6 +23,46 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Pager page button: a SecondaryButton that fills with the accent when it is the active page. -->
+        <Style x:Key="PagerPageButton" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{StaticResource TextBodyBrush}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="MinWidth" Value="36" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Padding" Value="8,7" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="#0AFFFFFF" CornerRadius="8" Padding="{TemplateBinding Padding}"
+                                BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{StaticResource HoverOverlayStrongBrush}" />
+                            </Trigger>
+                            <!-- Highlight the button whose page number matches the view-model's CurrentPage. -->
+                            <DataTrigger Value="True">
+                                <DataTrigger.Binding>
+                                    <MultiBinding Converter="{StaticResource EqualsMulti}">
+                                        <Binding />
+                                        <Binding Path="DataContext.CurrentPage" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                    </MultiBinding>
+                                </DataTrigger.Binding>
+                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource AccentBrush}" />
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                                <Setter Property="Cursor" Value="Arrow" />
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <StackPanel Margin="36,30">
@@ -196,7 +236,7 @@
                 <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Button Content="{Binding}" MinWidth="36" Margin="2,0" Padding="8,7" Style="{StaticResource SecondaryButton}"
+                        <Button Content="{Binding}" Style="{StaticResource PagerPageButton}"
                                 Command="{Binding DataContext.GoToPageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                 CommandParameter="{Binding}" />
                     </DataTemplate>

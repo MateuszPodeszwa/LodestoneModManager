@@ -13,6 +13,7 @@
 
             <!-- Converters -->
             <conv:EqualsConverter x:Key="Equals" />
+            <conv:EqualsMultiConverter x:Key="EqualsMulti" />
             <conv:InverseBoolConverter x:Key="InvBool" />
             <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
             <conv:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />

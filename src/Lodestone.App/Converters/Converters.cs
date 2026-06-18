@@ -15,6 +15,16 @@ public sealed class EqualsConverter : IValueConverter
         => value is true ? parameter ?? Binding.DoNothing : Binding.DoNothing;
 }
 
+/// <summary>True when the two bound values are equal; used to flag the active page in the Browse pager.</summary>
+public sealed class EqualsMultiConverter : IMultiValueConverter
+{
+    public object Convert(object?[] values, Type targetType, object? parameter, CultureInfo culture)
+        => values.Length > 1 && string.Equals(values[0]?.ToString(), values[1]?.ToString(), StringComparison.Ordinal);
+
+    public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
 /// <summary>Negates a boolean, so a binding can show UI when a flag is <c>false</c>.</summary>
 public sealed class InverseBoolConverter : IValueConverter
 {
