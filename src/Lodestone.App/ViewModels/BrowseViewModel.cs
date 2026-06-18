@@ -264,7 +264,10 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
 
                 foreach (CatalogProject project in result.Value.Items)
                 {
-                    Results.Add(new CatalogItemViewModel(project, installed.Contains(project.Id), InstallAsync, p => OpenDetailRequested?.Invoke(p)));
+                    (bool compatible, string? reason) = CatalogCompatibility.Evaluate(project, activeTarget, activeLoader);
+                    Results.Add(new CatalogItemViewModel(
+                        project, installed.Contains(project.Id), compatible, reason,
+                        InstallAsync, p => OpenDetailRequested?.Invoke(p)));
                 }
 
                 int total = result.Value.TotalCount;

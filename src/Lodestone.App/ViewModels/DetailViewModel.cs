@@ -17,6 +17,8 @@ public sealed partial class DetailViewModel : ObservableObject
     public DetailViewModel(
         CatalogProject project,
         bool installed,
+        bool compatible,
+        string? incompatibilityReason,
         Func<DetailViewModel, Task> install,
         Action close,
         Action openExternal)
@@ -26,6 +28,8 @@ public sealed partial class DetailViewModel : ObservableObject
         _close = close;
         _openExternal = openExternal;
         _installed = installed;
+        IsCompatible = compatible;
+        IncompatibilityReason = incompatibilityReason ?? string.Empty;
         Chips = new ObservableCollection<string>(project.Categories);
     }
 
@@ -79,11 +83,26 @@ public sealed partial class DetailViewModel : ObservableObject
     [ObservableProperty]
     private int _installPercent;
 
-    public bool CanInstall => !Installed && !Installing;
+    /// <summary>Whether this project has a build for the active loader + version (see
+    /// <see cref="CatalogCompatibility"/>); when false the modal blocks install and explains why.</summary>
+    public bool IsCompatible { get; }
+
+    /// <summary>Show the incompatible notice in place of the install button: unsupported and not
+    /// already installed.</summary>
+    public bool IsIncompatible => !IsCompatible && !Installed;
+
+    /// <summary>The reason this project can't be installed for the active version.</summary>
+    public string IncompatibilityReason { get; }
+
+    public bool CanInstall => !Installed && !Installing && IsCompatible;
 
     public string InstallPercentLabel => $"{InstallPercent}%";
 
-    partial void OnInstalledChanged(bool value) => OnPropertyChanged(nameof(CanInstall));
+    partial void OnInstalledChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanInstall));
+        OnPropertyChanged(nameof(IsIncompatible));
+    }
 
     partial void OnInstallingChanged(bool value) => OnPropertyChanged(nameof(CanInstall));
 
