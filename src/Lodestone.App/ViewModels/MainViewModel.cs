@@ -211,7 +211,12 @@ public sealed partial class MainViewModel : ObservableObject
 
     private async void OpenDetail(CatalogProject project)
     {
-        bool installed = await _repository.FindAsync(project.Id).ConfigureAwait(true) is not null;
+        Loader activeLoader = _settings.Current.DefaultLoader;
+        GameVersion? activeTarget = ResolveTarget();
+        bool installed = (await _repository.GetAllAsync().ConfigureAwait(true)).Any(i =>
+            (string.Equals(i.ProjectId, project.Id, StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(i.Id, project.Id, StringComparison.OrdinalIgnoreCase))
+            && i.ServesProfile(activeLoader, activeTarget));
         var detail = new DetailViewModel(project, installed, InstallFromDetailAsync, () => CurrentDetail = null, () => _dialog.OpenUrl(BuildProjectUrl(project)));
         CurrentDetail = detail;
 

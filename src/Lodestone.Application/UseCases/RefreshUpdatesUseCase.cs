@@ -78,7 +78,13 @@ public sealed class RefreshUpdatesUseCase
                 continue; // one source hiccup must not fail the whole refresh
             }
 
-            GameVersion? checkVersion = activeVersion ?? item.GameVersions.OrderByDescending(v => v).FirstOrDefault();
+            // Check each build against a version it actually supports: the active one when this build serves
+            // it, otherwise the build's own newest version. The same mod can be installed for several
+            // profiles (issue #44), so a build set aside for another version mustn't be checked against — and
+            // updated to — the active profile's version.
+            GameVersion? checkVersion = activeVersion is not null && item.SupportsVersion(activeVersion)
+                ? activeVersion
+                : item.GameVersions.OrderByDescending(v => v).FirstOrDefault() ?? activeVersion;
             if (checkVersion is null)
             {
                 continue;

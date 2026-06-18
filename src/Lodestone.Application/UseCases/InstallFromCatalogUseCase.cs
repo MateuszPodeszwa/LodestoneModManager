@@ -53,13 +53,14 @@ public sealed class InstallFromCatalogUseCase
         IProgress<TransferProgress>? progress = null,
         CancellationToken ct = default)
     {
-        // "Already installed" is profile-aware: a mod installed for a *different* loader isn't installed for
-        // the profile being targeted, so allow re-installing it for this loader instead of blocking. A
-        // same-loader mod, or a loader-independent pack/shader that's already present, is a genuine duplicate.
-        InstalledContent? existing = await _repository.FindAsync(project.Id, ct).ConfigureAwait(false);
-        if (existing is not null && existing.MatchesLoaderProfile(loader))
+        // "Already installed" is profile-scoped: the same mod can live in several profiles at once (its own
+        // build per profile), so it's a duplicate only when an existing build serves *this* (loader + version)
+        // profile. A build for a different version or loader is a separate profile — it's installed alongside
+        // rather than blocked or overwritten. Packs/shaders are loader-agnostic, so any present copy counts.
+        IReadOnlyList<InstalledContent> existing = await _repository.GetAllAsync(ct).ConfigureAwait(false);
+        if (existing.Any(i => IsSameProject(i, project.Id) && i.ServesProfile(loader, targetVersion)))
         {
-            return Result.Failure<CatalogInstall>("install.duplicate", $"{project.Name} is already installed.");
+            return Result.Failure<CatalogInstall>("install.duplicate", AlreadyInstalledMessage(project, targetVersion, loader));
         }
 
         // A mod can't load without its loader actually installed for the target version, so block the
@@ -81,14 +82,6 @@ public sealed class InstallFromCatalogUseCase
         }
 
         IModSource source = _registry.Find(project.Source) ?? _registry.Primary;
-
-        // Re-targeting a mod to a different loader (existing is non-null only in that case here — a
-        // same-loader duplicate returned above): drop the old build first so the switch doesn't orphan a
-        // file on disk. The removal is a soft-delete to trash, so it stays recoverable.
-        if (existing is not null && !string.IsNullOrWhiteSpace(existing.FileName))
-        {
-            await _installer.RemoveAsync(existing.Type, existing.FileName!, ct).ConfigureAwait(false);
-        }
 
         Result<InstalledContent> primary = await InstallOneAsync(source, project, targetVersion, loader, progress, ct).ConfigureAwait(false);
         if (primary.IsFailure)
@@ -154,9 +147,10 @@ public sealed class InstallFromCatalogUseCase
             // already-installed or unbuildable dependencies still resolve to a readable label.
             resolvedNames[identifier] = project.Value.Name;
 
-            if (await _repository.FindAsync(identifier, ct).ConfigureAwait(false) is not null)
+            IReadOnlyList<InstalledContent> have = await _repository.GetAllAsync(ct).ConfigureAwait(false);
+            if (have.Any(i => i.Provides(identifier) && i.ServesProfile(loader, targetVersion)))
             {
-                continue; // the user already has it
+                continue; // the user already has it for this profile (a build for another profile doesn't count)
             }
 
             Result<InstalledContent> installedDependency =
@@ -272,7 +266,8 @@ public sealed class InstallFromCatalogUseCase
                 : chosen.Loaders.Count > 0 ? chosen.Loaders[0] : _settings.Current.DefaultLoader;
         }
 
-        var content = new InstalledContent(project.Id, project.Name, project.Type)
+        string recordId = await ResolveRecordIdAsync(project.Id, contentLoader, targetVersion, ct).ConfigureAwait(false);
+        var content = new InstalledContent(recordId, project.Name, project.Type)
         {
             Author = project.Author,
             IconUrl = project.IconUrl,
@@ -294,4 +289,24 @@ public sealed class InstallFromCatalogUseCase
         await _repository.UpsertAsync(content, ct).ConfigureAwait(false);
         return content;
     }
+
+    // The record id for a freshly installed build. The first build of a project keeps the bare project id
+    // (so existing libraries are unchanged); any later build — the same mod for another profile — gets a
+    // profile-scoped id so it's a distinct record with its own file instead of overwriting the first. The
+    // caller has already ruled out a build that serves this exact profile, so we never clobber a live one.
+    private async Task<string> ResolveRecordIdAsync(string projectId, Loader loader, GameVersion version, CancellationToken ct)
+        => await _repository.FindAsync(projectId, ct).ConfigureAwait(false) is null
+            ? projectId
+            : $"{projectId}@{loader.ToSlug()}-{version.Value}";
+
+    // A library record represents the given catalog project when either its id or its project id matches —
+    // coexisting builds share the project id while taking distinct record ids.
+    private static bool IsSameProject(InstalledContent item, string projectId)
+        => string.Equals(item.ProjectId, projectId, StringComparison.OrdinalIgnoreCase)
+           || string.Equals(item.Id, projectId, StringComparison.OrdinalIgnoreCase);
+
+    private static string AlreadyInstalledMessage(CatalogProject project, GameVersion version, Loader loader)
+        => project.Type.UsesLoader()
+            ? $"{project.Name} is already installed for {version} · {loader.ToDisplayName()}."
+            : $"{project.Name} is already installed.";
 }
