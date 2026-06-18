@@ -132,6 +132,8 @@ public class InstallFromCatalogUseCaseTests
 
         var repo = Substitute.For<IInstalledContentRepository>();
         repo.FindAsync("sodium", Arg.Any<CancellationToken>()).Returns(existing);
+        IReadOnlyList<InstalledContent> all = existing is null ? [] : [existing];
+        repo.GetAllAsync(Arg.Any<CancellationToken>()).Returns(all);
 
         var settings = Substitute.For<ISettingsStore>();
         settings.Current.Returns(new LodestoneSettings());
@@ -160,15 +162,35 @@ public class InstallFromCatalogUseCaseTests
     }
 
     [Fact]
-    public async Task Refuses_to_install_what_is_already_installed()
+    public async Task Refuses_to_install_what_is_already_installed_for_the_same_profile()
     {
-        (InstallFromCatalogUseCase useCase, _) = Build([SodiumBuild()], existing: Make.Mod("sodium"));
+        // Already installed for 1.21.4 Fabric — re-installing for that exact profile is a genuine duplicate.
+        (InstallFromCatalogUseCase useCase, _) = Build([SodiumBuild()], existing: Make.Mod("sodium", versions: ["1.21.4"]));
 
         Result<CatalogInstall> result =
             await useCase.ExecuteAsync(Sodium(), GameVersion.Parse("1.21.4"), Loader.Fabric);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.Code.ShouldBe("install.duplicate");
+    }
+
+    [Fact]
+    public async Task Installs_the_same_mod_for_a_second_version_profile()
+    {
+        // Sodium is installed for 1.20.1 Fabric; installing it for 1.21.4 Fabric is a different profile, so it
+        // coexists as its own build rather than being blocked or overwriting the first (issue #44).
+        InstalledContent existing = Make.Mod("sodium", loader: Loader.Fabric, versions: ["1.20.1"]);
+        existing.FileName = "sodium-1.20.1.jar";
+        (InstallFromCatalogUseCase useCase, IInstalledContentRepository repo) = Build([SodiumBuild()], existing: existing);
+
+        Result<CatalogInstall> result =
+            await useCase.ExecuteAsync(Sodium(), GameVersion.Parse("1.21.4"), Loader.Fabric);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Item.Id.ShouldBe("sodium@fabric-1.21.4"); // a distinct, profile-scoped record
+        result.Value.Item.ProjectId.ShouldBe("sodium");        // …that still shares the catalog project id
+        result.Value.Item.Loader.ShouldBe(Loader.Fabric);
+        await repo.Received(1).UpsertAsync(Arg.Is<InstalledContent>(i => i.Id == "sodium@fabric-1.21.4"), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -197,10 +219,10 @@ public class InstallFromCatalogUseCaseTests
     }
 
     [Fact]
-    public async Task Reinstalls_for_a_different_loader_removing_the_stale_build()
+    public async Task Installs_alongside_a_build_for_a_different_loader_keeping_the_old_one()
     {
-        // Sodium is already installed for Quilt; installing for Fabric is NOT a duplicate (it's a different
-        // profile) — it should re-target and drop the old Quilt build so it doesn't orphan a file on disk.
+        // Sodium is already installed for Quilt; installing for Fabric is a different profile, so it coexists
+        // as its own build — the Quilt build is kept, not removed (issue #44).
         var source = Substitute.For<IModSource>();
         source.IsConfigured.Returns(true);
         source.GetVersionsAsync("sodium", Arg.Any<CancellationToken>()).Returns(Result.Success<IReadOnlyList<ProjectVersion>>([SodiumBuild(Loader.Fabric)]));
@@ -218,10 +240,12 @@ public class InstallFromCatalogUseCaseTests
             .Returns(Result.Success(new PlaceResult("sodium-fabric-0.5.8.jar", 1_200_000, false)));
         installer.RemoveAsync(Arg.Any<ContentType>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
 
-        InstalledContent existing = Make.Mod("sodium", loader: Loader.Quilt);
+        InstalledContent existing = Make.Mod("sodium", loader: Loader.Quilt, versions: ["1.21.4"]);
         existing.FileName = "sodium-quilt-0.5.8.jar";
         var repo = Substitute.For<IInstalledContentRepository>();
         repo.FindAsync("sodium", Arg.Any<CancellationToken>()).Returns(existing);
+        IReadOnlyList<InstalledContent> all = [existing];
+        repo.GetAllAsync(Arg.Any<CancellationToken>()).Returns(all);
 
         var settings = Substitute.For<ISettingsStore>();
         settings.Current.Returns(new LodestoneSettings());
@@ -234,8 +258,9 @@ public class InstallFromCatalogUseCaseTests
         Result<CatalogInstall> result = await useCase.ExecuteAsync(Sodium(), GameVersion.Parse("1.21.4"), Loader.Fabric);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Item.Loader.ShouldBe(Loader.Fabric); // re-targeted to the active loader
-        await installer.Received(1).RemoveAsync(ContentType.Mod, "sodium-quilt-0.5.8.jar", Arg.Any<CancellationToken>());
+        result.Value.Item.Loader.ShouldBe(Loader.Fabric);
+        result.Value.Item.Id.ShouldBe("sodium@fabric-1.21.4"); // a distinct record, not the Quilt build's id
+        await installer.DidNotReceive().RemoveAsync(ContentType.Mod, "sodium-quilt-0.5.8.jar", Arg.Any<CancellationToken>());
         await repo.Received().UpsertAsync(Arg.Any<InstalledContent>(), Arg.Any<CancellationToken>());
     }
 
@@ -284,6 +309,7 @@ public class InstallFromCatalogUseCaseTests
 
         var repo = Substitute.For<IInstalledContentRepository>();
         repo.FindAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((InstalledContent?)null);
+        repo.GetAllAsync(Arg.Any<CancellationToken>()).Returns((IReadOnlyList<InstalledContent>)[]);
 
         var settings = Substitute.For<ISettingsStore>();
         settings.Current.Returns(new LodestoneSettings());
@@ -348,6 +374,7 @@ public class InstallFromCatalogUseCaseTests
 
         var repo = Substitute.For<IInstalledContentRepository>();
         repo.FindAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((InstalledContent?)null);
+        repo.GetAllAsync(Arg.Any<CancellationToken>()).Returns((IReadOnlyList<InstalledContent>)[]);
 
         var settings = Substitute.For<ISettingsStore>();
         settings.Current.Returns(new LodestoneSettings());
@@ -414,6 +441,7 @@ public class InstallFromCatalogUseCaseTests
 
         var repo = Substitute.For<IInstalledContentRepository>();
         repo.FindAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((InstalledContent?)null);
+        repo.GetAllAsync(Arg.Any<CancellationToken>()).Returns((IReadOnlyList<InstalledContent>)[]);
 
         var settings = Substitute.For<ISettingsStore>();
         settings.Current.Returns(new LodestoneSettings());
@@ -682,6 +710,46 @@ public class RefreshUpdatesUseCaseTests
 
         result.Value.Updated.ShouldBe(1);
         await update.Received(1).ApplyAsync(Arg.Any<InstalledContent>(), Arg.Any<ProjectVersion>(), Arg.Any<IProgress<TransferProgress>?>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Does_not_offer_a_build_set_aside_for_another_version_an_update_to_the_active_version()
+    {
+        // Iris is installed for 1.21.4 (set aside while 1.21.9 is the active profile). The only catalog build
+        // is for 1.21.9 — it must NOT be flagged as an update to the 1.21.4 build (issue #44): a build is only
+        // checked against a version it actually supports.
+        var item = Make.Mod("iris", projectId: "iris", versions: ["1.21.4"]);
+        item.Version = "1.8.0";
+        item.Source = "modrinth";
+        item.IconUrl = "https://cdn/iris/icon.png"; // already set, so the refresh skips the icon backfill lookup
+
+        var repo = Substitute.For<IInstalledContentRepository>();
+        IReadOnlyList<InstalledContent> all = [item];
+        repo.GetAllAsync(Arg.Any<CancellationToken>()).Returns(all);
+
+        var onlyForAnotherVersion = new ProjectVersion(
+            "v2", "iris", "2.0.0", ContentType.Mod,
+            [GameVersion.Parse("1.21.9")], [Loader.Fabric], [], "iris-2.0.0.jar", "https://cdn/iris", "hash", 3.1);
+
+        var source = Substitute.For<IModSource>();
+        source.IsConfigured.Returns(true);
+        source.GetVersionsAsync("iris", Arg.Any<CancellationToken>())
+            .Returns(Result.Success<IReadOnlyList<ProjectVersion>>([onlyForAnotherVersion]));
+
+        var registry = Substitute.For<IModSourceRegistry>();
+        registry.Find("modrinth").Returns(source);
+
+        var update = Substitute.For<IUpdateContentUseCase>();
+        var settings = Substitute.For<ISettingsStore>();
+        settings.Current.Returns(new LodestoneSettings { AutoUpdate = false });
+
+        var useCase = new RefreshUpdatesUseCase(repo, registry, new VersionResolver(), update, settings);
+
+        Result<UpdateSummary> result = await useCase.ExecuteAsync(GameVersion.Parse("1.21.9"));
+
+        result.Value.UpdatesAvailable.ShouldBe(0);
+        item.UpdateAvailable.ShouldBeFalse();
+        await update.DidNotReceive().ApplyAsync(Arg.Any<InstalledContent>(), Arg.Any<ProjectVersion>(), Arg.Any<IProgress<TransferProgress>?>(), Arg.Any<CancellationToken>());
     }
 }
 

@@ -256,9 +256,10 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
             if (result.IsSuccess)
             {
                 Loader activeLoader = _settings.Current.DefaultLoader;
+                GameVersion? activeTarget = ResolveTargetVersion();
                 HashSet<string> installed = (await _repository.GetAllAsync(ct).ConfigureAwait(true))
-                    .Where(i => i.MatchesLoaderProfile(activeLoader)) // installed *for the active profile*, not globally
-                    .Select(i => i.Id)
+                    .Where(i => i.ServesProfile(activeLoader, activeTarget)) // installed *for the active profile*, not globally
+                    .Select(i => i.ProjectId ?? i.Id) // coexisting builds share the project id
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
                 foreach (CatalogProject project in result.Value.Items)
@@ -393,9 +394,10 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
     private async void MarkInstalledFromLibrary()
     {
         Loader activeLoader = _settings.Current.DefaultLoader;
+        GameVersion? activeTarget = ResolveTargetVersion();
         HashSet<string> installed = (await _repository.GetAllAsync().ConfigureAwait(true))
-            .Where(i => i.MatchesLoaderProfile(activeLoader)) // installed *for the active profile*, not globally
-            .Select(i => i.Id)
+            .Where(i => i.ServesProfile(activeLoader, activeTarget)) // installed *for the active profile*, not globally
+            .Select(i => i.ProjectId ?? i.Id) // coexisting builds share the project id
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         foreach (CatalogItemViewModel item in Results)

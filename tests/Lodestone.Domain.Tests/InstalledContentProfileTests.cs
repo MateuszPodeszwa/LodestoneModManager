@@ -28,4 +28,28 @@ public class InstalledContentProfileTests
         pack.MatchesLoaderProfile(activeLoader).ShouldBeTrue();
         shader.MatchesLoaderProfile(activeLoader).ShouldBeTrue();
     }
+
+    [Fact]
+    public void A_mod_serves_a_profile_only_on_a_matching_loader_and_version()
+    {
+        var mod = new InstalledContent("dynamic-lights", "Dynamic Lights", ContentType.Mod)
+        {
+            Loader = Loader.Fabric,
+            GameVersions = [GameVersion.Parse("26.2")],
+        };
+
+        mod.ServesProfile(Loader.Fabric, GameVersion.Parse("26.2")).ShouldBeTrue();   // its own profile
+        mod.ServesProfile(Loader.Fabric, GameVersion.Parse("1.21.9")).ShouldBeFalse(); // same loader, other version
+        mod.ServesProfile(Loader.Forge, GameVersion.Parse("26.2")).ShouldBeFalse();    // other loader
+        mod.ServesProfile(Loader.Fabric, null).ShouldBeTrue();                          // no concrete version → loader only
+    }
+
+    [Fact]
+    public void Loader_independent_content_serves_any_profile_regardless_of_version()
+    {
+        var pack = new InstalledContent("faithful", "Faithful", ContentType.ResourcePack) { Loader = Loader.None };
+
+        pack.ServesProfile(Loader.Fabric, GameVersion.Parse("1.21.9")).ShouldBeTrue();
+        pack.ServesProfile(Loader.None, null).ShouldBeTrue();
+    }
 }

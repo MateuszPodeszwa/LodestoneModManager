@@ -86,6 +86,16 @@ public sealed class InstalledContent
     /// </summary>
     public bool MatchesLoaderProfile(Loader activeLoader) => !Type.UsesLoader() || Loader == activeLoader;
 
+    /// <summary>
+    /// True when this content is installed for the given (loader + version) profile — the same mod can be
+    /// installed for several profiles at once, each its own build, so "installed" is profile-scoped, not
+    /// global. A mod matches only when its loader is the profile's and it supports that version; loader-
+    /// independent content (resource packs, shaders) matches on presence alone. A null <paramref name="version"/>
+    /// means "no concrete profile version yet", so the check degrades to <see cref="MatchesLoaderProfile"/>.
+    /// </summary>
+    public bool ServesProfile(Loader loader, GameVersion? version)
+        => MatchesLoaderProfile(loader) && (version is null || !Type.UsesLoader() || SupportsVersion(version));
+
     /// <summary>Whether any identifier (id, project id or provided id) matches <paramref name="identifier"/>.</summary>
     public bool Provides(string identifier)
     {
