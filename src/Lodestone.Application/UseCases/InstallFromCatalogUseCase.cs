@@ -87,13 +87,28 @@ public sealed class InstallFromCatalogUseCase
         // Pull in required dependencies (e.g. Fabric API) so the mod can actually load.
         var installedDependencies = new List<string>();
         var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { project.Id };
+
+        // Modrinth version metadata only carries each dependency's project id, so the Dependency
+        // records on the primary mod (and on each installed dependency) have no human DisplayName.
+        // Capture id -> human name for every dependency we resolve a CatalogProject for, then backfill
+        // the recorded items so the compatibility badge reads "Requires Fabric API", not the raw id.
+        var resolvedNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var installedItems = new List<InstalledContent> { primary.Value };
         await InstallRequiredDependenciesAsync(
-            source, primary.Value.Dependencies, targetVersion, loader, installedDependencies, visited, ct).ConfigureAwait(false);
+            source, primary.Value.Dependencies, targetVersion, loader,
+            installedDependencies, visited, resolvedNames, installedItems, ct).ConfigureAwait(false);
+
+        await BackfillDependencyNamesAsync(installedItems, resolvedNames, ct).ConfigureAwait(false);
 
         return new CatalogInstall(primary.Value, installedDependencies);
     }
 
     /// <summary>Breadth-first install of every still-missing required dependency, transitively.</summary>
+    /// <param name="resolvedNames">Accumulates <c>identifier -&gt; human project name</c> for every
+    /// dependency a project was resolved for — including ones already installed or that failed to
+    /// install — so the caller can backfill missing dependency display names.</param>
+    /// <param name="installedItems">Accumulates each item newly written to the repository in this run,
+    /// so the caller can re-persist them once dependency names are known.</param>
     private async Task InstallRequiredDependenciesAsync(
         IModSource source,
         IReadOnlyList<Dependency> dependencies,
@@ -101,6 +116,8 @@ public sealed class InstallFromCatalogUseCase
         Loader loader,
         List<string> installed,
         HashSet<string> visited,
+        Dictionary<string, string> resolvedNames,
+        List<InstalledContent> installedItems,
         CancellationToken ct)
     {
         var queue = new Queue<Dependency>(dependencies.Where(IsRequired));
@@ -115,15 +132,19 @@ public sealed class InstallFromCatalogUseCase
                 continue; // already handled this project in this run (also breaks dependency cycles)
             }
 
-            if (await _repository.FindAsync(identifier, ct).ConfigureAwait(false) is not null)
-            {
-                continue; // the user already has it
-            }
-
             Result<CatalogProject> project = await source.GetProjectAsync(identifier, ct).ConfigureAwait(false);
             if (project.IsFailure)
             {
                 continue; // can't resolve metadata — the compatibility engine will flag it as missing
+            }
+
+            // Record the human name as soon as we have it, before any skip below, so even
+            // already-installed or unbuildable dependencies still resolve to a readable label.
+            resolvedNames[identifier] = project.Value.Name;
+
+            if (await _repository.FindAsync(identifier, ct).ConfigureAwait(false) is not null)
+            {
+                continue; // the user already has it
             }
 
             Result<InstalledContent> installedDependency =
@@ -134,6 +155,7 @@ public sealed class InstallFromCatalogUseCase
             }
 
             installed.Add(project.Value.Name);
+            installedItems.Add(installedDependency.Value);
 
             foreach (Dependency next in installedDependency.Value.Dependencies.Where(IsRequired))
             {
@@ -142,6 +164,50 @@ public sealed class InstallFromCatalogUseCase
         }
 
         static bool IsRequired(Dependency d) => d.Kind == DependencyKind.Required && !string.IsNullOrWhiteSpace(d.Identifier);
+    }
+
+    /// <summary>
+    /// Rewrites each installed item's <see cref="Dependency"/> records to set a human
+    /// <see cref="Dependency.DisplayName"/> from <paramref name="resolvedNames"/> wherever it's still
+    /// null, then re-persists the items whose dependencies changed. Modrinth only gives us project ids
+    /// at install time, so this second pass is what turns "Requires 9s6osm5g" into "Requires Cloth
+    /// Config" in My Content. Items with nothing to fill in are left untouched (no redundant writes).
+    /// </summary>
+    private async Task BackfillDependencyNamesAsync(
+        IReadOnlyList<InstalledContent> items,
+        Dictionary<string, string> resolvedNames,
+        CancellationToken ct)
+    {
+        if (resolvedNames.Count == 0)
+        {
+            return;
+        }
+
+        foreach (InstalledContent item in items)
+        {
+            var rewritten = new List<Dependency>(item.Dependencies.Count);
+            bool changed = false;
+
+            foreach (Dependency dep in item.Dependencies)
+            {
+                if (string.IsNullOrWhiteSpace(dep.DisplayName) &&
+                    resolvedNames.TryGetValue(dep.Identifier, out string? name))
+                {
+                    rewritten.Add(dep with { DisplayName = name });
+                    changed = true;
+                }
+                else
+                {
+                    rewritten.Add(dep);
+                }
+            }
+
+            if (changed)
+            {
+                item.Dependencies = rewritten;
+                await _repository.UpsertAsync(item, ct).ConfigureAwait(false);
+            }
+        }
     }
 
     /// <summary>Resolves, downloads, verifies, places and records a single project. No duplicate check —

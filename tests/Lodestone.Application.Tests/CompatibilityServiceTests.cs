@@ -26,6 +26,34 @@ public class CompatibilityServiceTests
     }
 
     [Fact]
+    public void Missing_dependency_known_only_by_id_renders_as_the_raw_identifier()
+    {
+        var iris = Make.Mod("iris", deps: [Make.Requires("9s6osm5g")], versions: ["1.21.4"]);
+
+        var report = Analyze("iris", iris);
+
+        var issue = report.Issues.Single(i => i.Kind == CompatibilityKind.MissingDependency);
+        issue.ShortLabel.ShouldBe("Requires 9s6osm5g");
+    }
+
+    [Fact]
+    public void Missing_dependency_borrows_a_display_name_from_another_item_that_declares_it()
+    {
+        // iris knows the dependency only by its Modrinth id, but sodium declares the same id with a
+        // human name — the rule borrows it offline so the badge reads "Requires Cloth Config".
+        var iris = Make.Mod("iris", deps: [Make.Requires("9s6osm5g")], versions: ["1.21.4"]);
+        var sodium = Make.Mod(
+            "sodium",
+            deps: [new Dependency("9s6osm5g", DependencyKind.Required, DisplayName: "Cloth Config")],
+            versions: ["1.21.4"]);
+
+        var report = Analyze("iris", iris, sodium);
+
+        var issue = report.Issues.Single(i => i.Kind == CompatibilityKind.MissingDependency);
+        issue.ShortLabel.ShouldBe("Requires Cloth Config");
+    }
+
+    [Fact]
     public void Satisfied_required_dependency_produces_no_issue()
     {
         var iris = Make.Mod("iris", deps: [Make.Requires("fabric-api")], versions: ["1.21.4"]);

@@ -256,8 +256,137 @@ public class InstallFromCatalogUseCaseTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.Item.ProjectId.ShouldBe("sodium");
         result.Value.InstalledDependencies.ShouldContain("Fabric API");
-        await repo.Received(1).UpsertAsync(Arg.Is<InstalledContent>(c => c.Id == "sodium"), Arg.Any<CancellationToken>());
+        await repo.Received().UpsertAsync(Arg.Is<InstalledContent>(c => c.Id == "sodium"), Arg.Any<CancellationToken>());
         await repo.Received(1).UpsertAsync(Arg.Is<InstalledContent>(c => c.Id == "fabric-api"), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Backfills_dependency_display_names_from_the_resolved_project()
+    {
+        var source = Substitute.For<IModSource>();
+        source.IsConfigured.Returns(true);
+
+        // Sodium declares a required dependency known only by its Modrinth project id.
+        IReadOnlyList<ProjectVersion> sodiumVersions =
+        [
+            new ProjectVersion(
+                "v1", "sodium", "0.5.8", ContentType.Mod,
+                [GameVersion.Parse("1.21.4")], [Loader.Fabric],
+                [new Dependency("9s6osm5g", DependencyKind.Required)],
+                "sodium-0.5.8.jar", "https://cdn/sodium", "deadbeef", 1.2),
+        ];
+        source.GetVersionsAsync("sodium", Arg.Any<CancellationToken>()).Returns(Result.Success(sodiumVersions));
+
+        var clothConfig = new CatalogProject(
+            "9s6osm5g", "cloth-config", "Cloth Config", "shedaniel", ContentType.Mod, "Config lib",
+            8_000_000, 12_000, ["library"], [Loader.Fabric], [GameVersion.Parse("1.21.4")], "modrinth");
+        source.GetProjectAsync("9s6osm5g", Arg.Any<CancellationToken>()).Returns(Result.Success(clothConfig));
+
+        IReadOnlyList<ProjectVersion> clothVersions =
+        [
+            new ProjectVersion(
+                "cv1", "9s6osm5g", "11.0.0", ContentType.Mod,
+                [GameVersion.Parse("1.21.4")], [Loader.Fabric], [],
+                "cloth-config-11.0.0.jar", "https://cdn/cloth", "cafebabe", 2.0),
+        ];
+        source.GetVersionsAsync("9s6osm5g", Arg.Any<CancellationToken>()).Returns(Result.Success(clothVersions));
+
+        var registry = Substitute.For<IModSourceRegistry>();
+        registry.Find("modrinth").Returns(source);
+        registry.Primary.Returns(source);
+
+        var downloader = Substitute.For<IDownloader>();
+        downloader.DownloadAsync(Arg.Any<DownloadRequest>(), Arg.Any<IProgress<TransferProgress>?>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success(new DownloadedFile(@"C:\tmp\dep.jar", 1_000_000, "filehash")));
+
+        var installer = Substitute.For<IContentInstaller>();
+        installer.PlaceAsync(Arg.Any<string>(), ContentType.Mod, Arg.Any<DuplicateResolution>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success(new PlaceResult("placed.jar", 1_000_000, false)));
+
+        var repo = Substitute.For<IInstalledContentRepository>();
+        repo.FindAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((InstalledContent?)null);
+
+        var settings = Substitute.For<ISettingsStore>();
+        settings.Current.Returns(new LodestoneSettings());
+
+        var inventory = Substitute.For<IGameInventory>();
+        inventory.IsLoaderInstalled(Arg.Any<Loader>(), Arg.Any<GameVersion>()).Returns(true);
+
+        var useCase = new InstallFromCatalogUseCase(registry, new VersionResolver(), downloader, installer, repo, settings, inventory);
+
+        Result<CatalogInstall> result =
+            await useCase.ExecuteAsync(Sodium(), GameVersion.Parse("1.21.4"), Loader.Fabric);
+
+        result.IsSuccess.ShouldBeTrue();
+
+        // The parent mod's stored dependency carries the human name, not the raw project id, so the
+        // compatibility badge reads "Requires Cloth Config".
+        Dependency stored = result.Value.Item.Dependencies.Single(d => d.Identifier == "9s6osm5g");
+        stored.DisplayName.ShouldBe("Cloth Config");
+        stored.Label.ShouldBe("Cloth Config");
+
+        var issue = Lodestone.Domain.Compatibility.CompatibilityIssue.Error(
+            Lodestone.Domain.Compatibility.CompatibilityKind.MissingDependency,
+            $"Requires {stored.Label}, which isn't installed.", stored.Label);
+        issue.ShortLabel.ShouldBe("Requires Cloth Config");
+
+        // The parent was re-persisted with the backfilled name.
+        await repo.Received().UpsertAsync(
+            Arg.Is<InstalledContent>(c => c.Id == "sodium" &&
+                c.Dependencies.Any(d => d.Identifier == "9s6osm5g" && d.DisplayName == "Cloth Config")),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Falls_back_to_the_identifier_when_the_dependency_name_is_unknown()
+    {
+        // The dependency's project can't be resolved (deleted/unknown id), so no name is captured and
+        // the badge must keep showing the raw identifier rather than crash or blank out.
+        var source = Substitute.For<IModSource>();
+        source.IsConfigured.Returns(true);
+
+        IReadOnlyList<ProjectVersion> sodiumVersions =
+        [
+            new ProjectVersion(
+                "v1", "sodium", "0.5.8", ContentType.Mod,
+                [GameVersion.Parse("1.21.4")], [Loader.Fabric],
+                [new Dependency("9s6osm5g", DependencyKind.Required)],
+                "sodium-0.5.8.jar", "https://cdn/sodium", "deadbeef", 1.2),
+        ];
+        source.GetVersionsAsync("sodium", Arg.Any<CancellationToken>()).Returns(Result.Success(sodiumVersions));
+        source.GetProjectAsync("9s6osm5g", Arg.Any<CancellationToken>())
+            .Returns(Result.Failure<CatalogProject>("source.not_found", "No such project."));
+
+        var registry = Substitute.For<IModSourceRegistry>();
+        registry.Find("modrinth").Returns(source);
+        registry.Primary.Returns(source);
+
+        var downloader = Substitute.For<IDownloader>();
+        downloader.DownloadAsync(Arg.Any<DownloadRequest>(), Arg.Any<IProgress<TransferProgress>?>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success(new DownloadedFile(@"C:\tmp\sodium.jar", 1_200_000, "deadbeef")));
+
+        var installer = Substitute.For<IContentInstaller>();
+        installer.PlaceAsync(Arg.Any<string>(), ContentType.Mod, Arg.Any<DuplicateResolution>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success(new PlaceResult("sodium-0.5.8.jar", 1_200_000, false)));
+
+        var repo = Substitute.For<IInstalledContentRepository>();
+        repo.FindAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((InstalledContent?)null);
+
+        var settings = Substitute.For<ISettingsStore>();
+        settings.Current.Returns(new LodestoneSettings());
+
+        var inventory = Substitute.For<IGameInventory>();
+        inventory.IsLoaderInstalled(Arg.Any<Loader>(), Arg.Any<GameVersion>()).Returns(true);
+
+        var useCase = new InstallFromCatalogUseCase(registry, new VersionResolver(), downloader, installer, repo, settings, inventory);
+
+        Result<CatalogInstall> result =
+            await useCase.ExecuteAsync(Sodium(), GameVersion.Parse("1.21.4"), Loader.Fabric);
+
+        result.IsSuccess.ShouldBeTrue();
+        Dependency stored = result.Value.Item.Dependencies.Single(d => d.Identifier == "9s6osm5g");
+        stored.DisplayName.ShouldBeNull();
+        stored.Label.ShouldBe("9s6osm5g"); // graceful fallback to the raw id
     }
 }
 
