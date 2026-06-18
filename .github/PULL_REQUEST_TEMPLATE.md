@@ -1,4 +1,4 @@
-<!-- Thanks for contributing! Keep PRs focused on one logical change. -->
+<!-- Thanks for contributing. Keep PRs focused on one logical change. -->
 
 ## Summary
 
@@ -6,17 +6,17 @@
 
 ## Type of change
 
-- [ ] `feat` — new feature
-- [ ] `fix` — bug fix
-- [ ] `docs` — documentation only
-- [ ] `refactor` / `chore` / `test` — internal change, no behaviour difference
+- [ ] `feat`: new feature
+- [ ] `fix`: bug fix
+- [ ] `docs`: documentation only
+- [ ] `refactor` / `chore` / `test`: internal change, no behaviour difference
 
 ## Checklist
 
 - [ ] `dotnet build` succeeds with no new warnings
 - [ ] `dotnet test` passes
-- [ ] Public types/members are documented with XML `<summary>` where appropriate
-- [ ] Changes are in the correct architectural layer (no inward → outward dependencies)
+- [ ] Public types and members are documented with XML `<summary>` where appropriate
+- [ ] Changes are in the correct architectural layer (no inward to outward dependencies)
 - [ ] Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/)
 - [ ] I have read the [Contributing guide](../CONTRIBUTING.md)
 

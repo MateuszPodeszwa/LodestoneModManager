@@ -19,14 +19,13 @@ TestResults/
 # ----- IDE / OS -----
 .vs/
 .idea/
-.claude/
 *.DotSettings.user
 .vscode/*
 !.vscode/extensions.json
 Thumbs.db
 .DS_Store
 
-# ----- Local design assets (not published) -----
+# ----- Design assets (local, not published) -----
 /design/
 
 # ----- Local secrets / signing material (NEVER commit) -----

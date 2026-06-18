@@ -1,10 +1,10 @@
 # Deploying Lodestone (a first-timer's guide)
 
-This explains, in plain terms, how Lodestone gets onto other people's PCs and how it **updates itself**
-after you make a change — no re-emailing, no "please reinstall."
+This explains, in plain terms, how Lodestone gets onto other people's PCs and how it updates itself
+after you make a change. No re-emailing, no "please reinstall".
 
-If you only read one thing: **to ship a new version, you push a git tag like `v0.1.1`. That's it.**
-GitHub builds it, packages it, and every installed copy picks it up on its next launch.
+If you read one thing: to ship a new version you push a git tag like `v0.1.1`, and that is it. GitHub
+builds it, packages it, and every installed copy picks it up on its next launch.
 
 ---
 
@@ -23,30 +23,30 @@ Three moving parts, all already wired up in this repo:
 
 | Part | What it is | Where |
 |------|------------|-------|
-| **Velopack** | The library that builds the installer, the update feed, and does the in‑app updating. | `src/Lodestone.App` (`Program.cs`, `Services/VelopackAppUpdater.cs`) |
-| **Release workflow** | The GitHub Actions job that builds + publishes when you push a `v*` tag. | `.github/workflows/release.yml` |
-| **The feed** | A **GitHub Release** on this (public) repo. Clients read it anonymously. | `https://github.com/MateuszPodeszwa/LodestoneModManager/releases` |
+| Velopack | The library that builds the installer, the update feed, and does the in-app updating. | `src/Lodestone.App` (`Program.cs`, `Services/VelopackAppUpdater.cs`) |
+| Release workflow | The GitHub Actions job that builds and publishes when you push a `v*` tag. | `.github/workflows/release.yml` |
+| The feed | A GitHub Release on this (public) repo. Clients read it anonymously. | `https://github.com/MateuszPodeszwa/LodestoneModManager/releases` |
 
-> **Why the repo must be public:** end users' PCs fetch the update files from GitHub **without logging
-> in**. A private repo refuses anonymous downloads, so both the download links *and* auto‑update would
-> silently fail. This repo is public for exactly that reason. (The source is MIT‑licensed and the only
-> embedded key is the **public** supporter key — nothing secret is exposed.)
+> Why the repo has to be public: end users' PCs fetch the update files from GitHub without logging in.
+> A private repo refuses anonymous downloads, so both the download links and auto-update would silently
+> fail. This repo is public for exactly that reason. (The source is MIT-licensed and the only embedded
+> key is the public supporter key, so nothing secret is exposed.)
 
 ---
 
 ## 2. What your users download
 
-Each release publishes two files. Both are **self‑contained** — the user does **not** need to install
-.NET 10 or anything else.
+Each release publishes two files. Both are self-contained, so the user does not need to install .NET
+10 or anything else.
 
 | File | What it is | Best for |
 |------|-----------|----------|
-| **`Lodestone-win-Setup.exe`** | A proper Windows installer. Installs to `%LocalAppData%\Lodestone`, adds a Start‑menu shortcut, and **registers for auto‑update**. | **Almost everyone.** This is the one that updates itself. |
-| **`Lodestone-win-Portable.zip`** | A standalone folder — unzip and run `Lodestone.exe`. No install, leaves no traces. | USB sticks, locked‑down PCs, "I don't want to install anything." |
+| `Lodestone-win-Setup.exe` | A proper Windows installer. Installs to `%LocalAppData%\Lodestone`, adds a Start-menu shortcut, and registers for auto-update. | Almost everyone. This is the one that updates itself. |
+| `Lodestone-win-Portable.zip` | A standalone folder; unzip and run `Lodestone.exe`. No install, leaves no traces. | USB sticks, locked-down PCs, "I don't want to install anything". |
 
-**Important nuance about auto‑update:** the **installer** version is the one that updates itself
-automatically. The **portable zip** is a frozen snapshot — to update it, the user downloads the newer
-zip and replaces the folder. So tell most people to grab the **Setup.exe**.
+One nuance about auto-update: the installer version is the one that updates itself automatically. The
+portable zip is a frozen snapshot, so to update it the user downloads the newer zip and replaces the
+folder. Point most people at the Setup.exe.
 
 The permanent "always points at the newest version" download link to share is:
 
@@ -58,11 +58,11 @@ https://github.com/MateuszPodeszwa/LodestoneModManager/releases/latest
 
 ## 3. Cutting a release (the whole process)
 
-### One‑time setup
-Already done — nothing to configure. The workflow uses GitHub's built‑in token, so there are no secrets
-to add for basic releases. (Optional code‑signing is covered in §5.)
+### One-time setup
+Already done, nothing to configure. The workflow uses GitHub's built-in token, so there are no secrets
+to add for basic releases. (Optional code-signing is covered in section 5.)
 
-### Every release — 3 commands
+### Every release, 3 commands
 From the repo root, with your change already committed and pushed to `main`:
 
 ```powershell
@@ -73,83 +73,83 @@ From the repo root, with your change already committed and pushed to `main`:
 # 2. tag the commit you want to release
 git tag v0.1.1
 
-# 3. push the tag — THIS is what triggers the release
+# 3. push the tag; this is what triggers the release
 git push origin v0.1.1
 ```
 
-> The website **changelog notes are generated from the commits** in each release (the GitHub
-> release body itself is left empty), grouped into NEW / IMPROVED / FIXED from your
-> conventional-commit subjects. So clear `feat:` / `fix:` messages = a clean public changelog.
+> The website changelog notes are generated from the commits in each release (the GitHub release body
+> itself is left empty), grouped into NEW / IMPROVED / FIXED from your conventional-commit subjects. So
+> clear `feat:` and `fix:` messages give a clean public changelog.
 
 Then watch it build:
 
 ```powershell
-gh run watch          # live view of the GitHub Actions release job (~3–6 min)
+gh run watch          # live view of the GitHub Actions release job (~3-6 min)
 ```
 
 When it finishes, a new release appears at `…/releases`, with the `Setup.exe`, the `Portable.zip`, and
 the update feed files attached. Installed clients will offer the update the next time they open the app.
 
-> You can also trigger a build from the GitHub website (**Actions → Release → Run workflow**) and type a
-> version — handy if you'd rather not tag from the command line.
+> You can also trigger a build from the GitHub website (Actions → Release → Run workflow) and type a
+> version, which is handy if you'd rather not tag from the command line.
 
-### Cutting a beta (patrons‑first early access)
+### Cutting a beta (patrons-first early access)
 
-To ship a build to supporters first, tag a **pre‑release** version — anything with a semver suffix
-(`-beta.1`, `-rc.1`, …):
+To ship a build to supporters first, tag a pre-release version, meaning anything with a semver suffix
+(`-beta.1`, `-rc.1`, and so on):
 
 ```powershell
 git tag v0.2.0-beta.1
 git push origin v0.2.0-beta.1
 ```
 
-`release.yml` detects the `-` suffix and publishes it as a GitHub **pre‑release** (it adds `--pre` to
-the Velopack upload). Only supporters receive it — in the app via **Settings → Mods & updates →
-Early access** (the Beta update channel), and on the website via the **Download beta** button on the
-Supporter page. Stable users never see it. When you're ready for everyone, cut a normal release
-(`v0.2.0`); stable clients pick it up on next launch and beta users roll onto it cleanly. The full
-mechanics and gating caveats are in **[SUPPORTERS.md](SUPPORTERS.md#early-access-beta-builds)**.
+`release.yml` detects the `-` suffix and publishes it as a GitHub pre-release (it adds `--pre` to the
+Velopack upload). Only supporters receive it: in the app via Settings → Mods & updates → Early access
+(the Beta update channel), and on the website via the Download beta button on the Supporter page.
+Stable users never see it. When you are ready for everyone, cut a normal release (`v0.2.0`); stable
+clients pick it up on next launch and beta users roll onto it cleanly. The full mechanics and gating
+caveats are in [SUPPORTERS.md](SUPPORTERS.md#early-access-beta-builds).
 
 ---
 
-## 4. How "make a change → it auto‑updates" actually works
+## 4. How "make a change, it auto-updates" actually works
 
-This is the part you asked about. Once a user has installed Lodestone via `Setup.exe`:
+Once a user has installed Lodestone via `Setup.exe`:
 
-1. **You ship `v0.1.1`** with the 3 commands above.
-2. When the user **opens Lodestone**, the app asks GitHub "is there a release newer than mine?"
-   (It also re‑checks when they hit the in‑app **Check for updates** button on Home / in Settings.)
-   There is **no background service** — the check happens on launch and on demand only, by design.
-3. If a newer release exists, Velopack **downloads only the difference** (a small delta, not the whole
-   60 MB) in the background, then Lodestone asks **"restart now to finish updating?"** — choosing *No*
-   applies it automatically the next time the app is closed. Early‑access (pre‑release) builds are only
-   offered to supporters who have early access on, and are clearly labelled as such when offered.
-4. The user never visits GitHub, never re‑downloads manually, and you never email anyone.
+1. You ship `v0.1.1` with the 3 commands above.
+2. When the user opens Lodestone, the app asks GitHub whether there is a release newer than its own. It
+   also re-checks when they hit the in-app Check for updates button on Home or in Settings. There is no
+   background service; the check happens on launch and on demand only, by design.
+3. If a newer release exists, Velopack downloads only the difference (a small delta, not the whole
+   60 MB) in the background, then Lodestone asks "restart now to finish updating?". Choosing No applies
+   it automatically the next time the app is closed. Early-access (pre-release) builds are only offered
+   to supporters who have early access on, and are clearly labelled when offered.
+4. The user never visits GitHub, never re-downloads manually, and you never email anyone.
 
-So your release cadence is simply: *change code → `git tag` → `git push`*. Everything after that is
+So your release cadence is simply: change code, `git tag`, `git push`. Everything after that is
 automatic for installed users.
 
-**Versioning** follows [SemVer](https://semver.org): `MAJOR.MINOR.PATCH`.
-- Bug fix → bump PATCH (`0.1.0` → `0.1.1`)
-- New feature, nothing broken → bump MINOR (`0.1.1` → `0.2.0`)
-- Breaking change → bump MAJOR (`0.x` → `1.0.0`)
+Versioning follows [SemVer](https://semver.org): `MAJOR.MINOR.PATCH`.
+- Bug fix: bump PATCH (`0.1.0` to `0.1.1`)
+- New feature, nothing broken: bump MINOR (`0.1.1` to `0.2.0`)
+- Breaking change: bump MAJOR (`0.x` to `1.0.0`)
 
-The tag (`vX.Y.Z`) is the single source of truth — the app's reported version comes straight from it.
+The tag (`vX.Y.Z`) is the single source of truth; the app's reported version comes straight from it.
 
 ---
 
 ## 5. The SmartScreen warning (and code signing)
 
-Because the build is **not code‑signed**, the very first time someone runs `Setup.exe` Windows may show
-a blue **"Windows protected your PC"** SmartScreen dialog. It is **not an error** — the user clicks
-**More info → Run anyway** once, and it never asks again on that machine. Worth a one‑line note on your
-download page so people aren't scared off.
+Because the build is not code-signed, the very first time someone runs `Setup.exe` Windows may show a
+blue "Windows protected your PC" SmartScreen dialog. It is not an error; the user clicks More info,
+then Run anyway once, and it never asks again on that machine. Worth a one-line note on your download
+page so people are not scared off.
 
-To remove the warning entirely you need a CA‑trusted **code‑signing certificate**. Because Lodestone is
-open source, you can get one **free** from **SignPath Foundation** — the full plan, the required public
-signing policy, and the ready‑to‑apply workflow steps are in **[CODE-SIGNING.md](CODE-SIGNING.md)**.
-(A self‑signed cert does **not** work — Windows treats it as unsigned.) Until signing is switched on,
-unsigned releases work fine; SmartScreen reputation also improves on its own as more people install.
+To remove the warning entirely you need a CA-trusted code-signing certificate. Because Lodestone is
+open source, you can get one free from SignPath Foundation. The full plan, the required public signing
+policy, and the ready-to-apply workflow steps are in [CODE-SIGNING.md](CODE-SIGNING.md). (A self-signed
+cert does not work; Windows treats it as unsigned.) Until signing is switched on, unsigned releases
+work fine, and SmartScreen reputation improves on its own as more people install.
 
 ---
 
@@ -157,11 +157,11 @@ unsigned releases work fine; SmartScreen reputation also improves on its own as 
 
 | Symptom | Likely cause / fix |
 |---------|--------------------|
-| Release workflow didn't start | The tag must match `v*` (e.g. `v0.1.1`) **and** be pushed (`git push origin v0.1.1`). Pushing the commit alone does nothing. |
-| Workflow failed on "Restore & test" | A test broke. Run `dotnet test Lodestone.slnx -c Release` locally, fix, re‑tag (see below). |
-| "Check for updates" finds nothing on a dev build | Expected. Auto‑update only works on a copy installed via `Setup.exe`, not on `dotnet run` or the portable zip. |
-| Need to redo a release | Delete the bad tag + release, then re‑tag: `git push --delete origin v0.1.1 && gh release delete v0.1.1 -y` then tag again. Avoid re‑using a version number that real users already installed. |
-| User on the portable zip didn't get the update | Portable = manual. Point them at `…/releases/latest` to re‑download, or to `Setup.exe` for auto‑updates going forward. |
+| Release workflow didn't start | The tag must match `v*` (e.g. `v0.1.1`) and be pushed (`git push origin v0.1.1`). Pushing the commit alone does nothing. |
+| Workflow failed on "Restore & test" | A test broke. Run `dotnet test Lodestone.slnx -c Release` locally, fix, re-tag (see below). |
+| "Check for updates" finds nothing on a dev build | Expected. Auto-update only works on a copy installed via `Setup.exe`, not on `dotnet run` or the portable zip. |
+| Need to redo a release | Delete the bad tag and release, then re-tag: `git push --delete origin v0.1.1 && gh release delete v0.1.1 -y` then tag again. Avoid re-using a version number that real users already installed. |
+| User on the portable zip didn't get the update | Portable is manual. Point them at `…/releases/latest` to re-download, or to `Setup.exe` for auto-updates going forward. |
 
 ---
 
@@ -188,4 +188,4 @@ vpk pack --packId Lodestone --packVersion 0.1.1 --packDir publish --mainExe Lode
 # → artifacts land in ./Releases  (Setup.exe, Portable.zip, *-full.nupkg)
 ```
 
-See also **[HANDOFF.md](HANDOFF.md)** for maintainer setup (Patreon, supporter keys, CurseForge, signing).
+See also [HANDOFF.md](HANDOFF.md) for maintainer setup (Patreon, supporter keys, CurseForge, signing).

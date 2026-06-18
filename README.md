@@ -1,9 +1,9 @@
 <div align="center">
 
-# 🧭 Lodestone — Minecraft Mod Manager
+# Lodestone: Minecraft Mod Manager
 
-**The simplest way to install and manage Minecraft mods, resource packs and shaders.**
-No profiles. No config files. No fuss.
+Install and manage Minecraft mods, resource packs and shaders without the busywork.
+No profiles to wrangle, no config files to hand-edit.
 
 [![CI](https://github.com/MateuszPodeszwa/LodestoneModManager/actions/workflows/ci.yml/badge.svg)](https://github.com/MateuszPodeszwa/LodestoneModManager/actions/workflows/ci.yml)
 &nbsp;·&nbsp; Windows · .NET 10 · WPF · MIT
@@ -12,79 +12,81 @@ No profiles. No config files. No fuss.
 
 ---
 
-Lodestone is a fast, lightweight native Windows app for Minecraft (Java Edition). Drag a `.jar`
-onto the window and it is installed instantly into the right place for your selected game version.
-Browse thousands of mods from Modrinth, see at a glance which mods have a missing dependency or a
-conflict, and keep everything up to date — all without ever touching a config file.
+Lodestone is a native Windows app for Minecraft (Java Edition). Drop a `.jar` on the window and it
+goes straight into the right folder for whatever game version you have selected. You can search
+thousands of mods on Modrinth, see at a glance when something is missing a dependency or clashes
+with another mod, and keep the whole set current. None of it involves opening a config file.
 
-> Lodestone is **free, and always will be**. Every feature is available to everyone; supporters get
-> a few cosmetic perks and our thanks. See [Supporters](#-supporters).
+It is free, and it stays that way. Every feature is there for everyone; supporters pick up a few
+cosmetic extras and my thanks. More on that under [Supporters](#supporters).
 
-## ⬇️ Download & install
+## Download and install
 
-**[⬇ Get the latest release →](https://github.com/MateuszPodeszwa/LodestoneModManager/releases/latest)**
+**[Get the latest release →](https://github.com/MateuszPodeszwa/LodestoneModManager/releases/latest)**
 
-Pick one — both are self-contained, so there's **nothing else to install** (no .NET, no runtimes):
+Either build is self-contained, so there is nothing else to install (no .NET, no separate runtimes):
 
-- **`Lodestone-win-Setup.exe`** — recommended installer; **updates itself automatically** from then on.
-- **`Lodestone-win-Portable.zip`** — standalone, no install (to update, just download the newer zip).
+- **`Lodestone-win-Setup.exe`** is the one I would recommend. It updates itself from then on.
+- **`Lodestone-win-Portable.zip`** runs without installing. To update, download the newer zip.
 
-### How to install (Setup.exe)
+### Installing the Setup.exe
 
-1. Download **`Lodestone-win-Setup.exe`** from the [latest release](https://github.com/MateuszPodeszwa/LodestoneModManager/releases/latest).
-2. Run it. Windows may show a blue **"Windows protected your PC"** screen — this is expected because the
-   app isn't code-signed yet, **not** a virus warning. Click **More info → Run anyway** (just once).
-3. Lodestone installs and launches itself. You're done — there's no setup wizard to click through.
+1. Grab `Lodestone-win-Setup.exe` from the [latest release](https://github.com/MateuszPodeszwa/LodestoneModManager/releases/latest).
+2. Run it. Windows might show a blue "Windows protected your PC" screen. That happens because the app
+   is not code-signed yet, and it is not a virus warning. Choose **More info**, then **Run anyway**.
+   You only do this once.
+3. Lodestone installs and opens by itself. There is no wizard to click through.
 
-From then on it **keeps itself up to date**: when a new version is released, Lodestone downloads and
-applies it on the next launch. You'll never need to reinstall.
+After that it keeps itself current: when a new version ships, it downloads and applies on the next
+launch, so you will not reinstall.
 
-> **Prefer not to install?** Download **`Lodestone-win-Portable.zip`**, unzip it anywhere (e.g. a USB
-> stick), and run `Lodestone.exe`. The portable version doesn't auto-update — grab the newer zip when
-> you want the latest.
+> Rather not install anything? Take `Lodestone-win-Portable.zip`, unzip it wherever you like (a USB
+> stick works fine), and run `Lodestone.exe`. The portable build does not auto-update, so grab a
+> newer zip when you want one.
 
-Maintainers: how releases and auto-update work is documented in **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+Maintainers: how releases and auto-update work is written up in **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 
-## ✨ Features
+## What it does
 
-- **Drag & drop install** — drop `.jar` / `.zip` / `.litemod` / `.mcpack` anywhere on the window;
-  the type (mod / resource pack / shader) is auto-detected and the file lands in the correct folder
-  for the **currently selected game version**.
-- **Browse mods** — search Modrinth (CurseForge pluggable), filter by category, sort by downloads /
-  followers, and install with one click.
-- **My Content** — per-version "profiles", filter your mods by category, enable/disable without
-  deleting, uninstall, search.
-- **Compatibility & dependency checks** — every item in the list is scanned; a clear symbol appears
-  next to its name when it **requires a missing library**, **conflicts with another mod**, is
-  **built for a different game version/loader**, or is **duplicated**. Hover for the full reason.
-- **Updates on your terms** — Lodestone checks for mod updates **on start and when you refresh**
-  (never with a background daemon). Optional auto-update keeps enabled mods current.
-- **Settings that do something** — game directory, default loader, concurrent downloads, update &
-  notification behaviour, CurseForge fallback, close-to-tray. Every toggle is wired to real logic.
-- **App auto-update** — ships with [Velopack](https://velopack.io); new releases install themselves.
-- **Lightweight by design** — no always-on services; the process ends when you close the window
-  (unless you opt into the tray). Your `.minecraft` is only ever changed by an action you take.
+- **Drag and drop to install.** Drop a `.jar`, `.zip`, `.litemod` or `.mcpack` anywhere on the
+  window. Lodestone works out whether it is a mod, resource pack or shader and puts it in the
+  correct folder for the game version you currently have selected.
+- **Browse mods.** Search Modrinth (CurseForge is pluggable), filter by category, sort by downloads
+  or followers, and install in a click.
+- **My Content.** Per-version "profiles", category filters, enable or disable without deleting,
+  uninstall, and search.
+- **Compatibility and dependency checks.** Everything in the list gets scanned, and a symbol shows
+  up next to anything that needs a missing library, conflicts with another mod, was built for a
+  different game version or loader, or is duplicated. Hover to read the reason.
+- **Updates when you ask for them.** Lodestone checks for mod updates on launch and when you hit
+  refresh; there is no background daemon. Optional auto-update keeps enabled mods current.
+- **Settings that actually do something.** Game directory, default loader, concurrent downloads,
+  update and notification behaviour, CurseForge fallback, close-to-tray. Each one is wired to real
+  logic.
+- **App auto-update** via [Velopack](https://velopack.io); new releases install themselves.
+- **Light footprint.** Nothing runs in the background, and closing the window ends the process
+  (unless you opt into the tray). Your `.minecraft` only changes when you do something to it.
 
-## 🏗️ Architecture (at a glance)
+## Architecture in brief
 
-Clean / Onion layering with MVVM at the edge. Dependencies always point inward, so the core logic
-is fully unit-testable and a future macOS port only needs to swap the UI layer.
+Clean/Onion layering with MVVM at the edge. Dependencies always point inward, which keeps the core
+logic unit-testable and means a future macOS port mostly comes down to swapping the UI layer.
 
 ```
-Lodestone.Domain          pure entities, value objects, rules — no dependencies
+Lodestone.Domain          pure entities, value objects, rules (no dependencies)
 Lodestone.Application     ports (interfaces) + use-cases + the compatibility engine
 Lodestone.Infrastructure  adapters: Modrinth API, archive readers, file system, settings, updater
 Lodestone.App  (WPF)      views + viewmodels + DI composition root
 Lodestone.Cli             headless surface (handy for scripting and integration tests)
 ```
 
-The codebase intentionally demonstrates a broad set of patterns beyond Dependency Inversion —
-Strategy, Factory, Chain-of-Responsibility, Specification, Decorator, Adapter, Repository,
-Result/Railway, Options, Observer, Null-Object, Template-Method, Command and a light Mediator.
-See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full tour and
-**[docs/RISK-ANALYSIS.md](docs/RISK-ANALYSIS.md)** for the per-feature failure-mode analysis.
+Beyond Dependency Inversion, the code leans on a fair range of patterns: Strategy, Factory,
+Chain-of-Responsibility, Specification, Decorator, Adapter, Repository, Result/Railway, Options,
+Observer, Null-Object, Template-Method, Command and a light Mediator.
+**[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** walks through them, and
+**[docs/RISK-ANALYSIS.md](docs/RISK-ANALYSIS.md)** covers the per-feature failure modes.
 
-## 🚀 Getting started (developers)
+## Getting started (developers)
 
 ```powershell
 # Requires the .NET 10 SDK (see global.json)
@@ -94,26 +96,25 @@ dotnet test                                   # runs the full unit-test suite
 dotnet run --project src/Lodestone.App        # launches the app
 ```
 
-## 📦 Releases & auto-update
+## Releases and auto-update
 
-Tagging a commit `v*` triggers the release workflow, which packages a Velopack installer and
-publishes it to GitHub Releases. Installed clients update themselves from that feed. Tagging a
-**pre-release** version (e.g. `v1.3.0-beta.1`) ships a **patrons-first beta** — published as a GitHub
-pre-release that only the supporter Early-access channel receives until you cut the stable `vX.Y.Z`.
-A plain-English, first-timer's walkthrough — cutting a release, betas, how auto-update works,
-SmartScreen, troubleshooting — is in **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+Tag a commit `v*` and the release workflow builds a Velopack installer and publishes it to GitHub
+Releases. Installed clients update from that feed. A pre-release tag (say `v1.3.0-beta.1`) ships a
+patrons-first beta: it goes out as a GitHub pre-release that only the supporter early-access channel
+sees, until you cut the stable `vX.Y.Z`. There is a plain-English walkthrough (cutting a release,
+betas, how auto-update behaves, SmartScreen, troubleshooting) in **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 
-**Maintainer setup** (Patreon link, supporter keys, CurseForge key, signing, cutting a release):
-see **[docs/HANDOFF.md](docs/HANDOFF.md)**.
+Maintainer setup (Patreon link, supporter keys, CurseForge key, signing, cutting a release) lives in
+**[docs/HANDOFF.md](docs/HANDOFF.md)**.
 
-## 💚 Supporters
+## Supporters
 
-Donations are handled through Patreon and are **entirely optional**. After pledging on any paid tier,
-**active patrons** receive a redeemable code that unlocks **cosmetic-only** perks (a supporter badge,
-extra accent themes and an opt-in beta update channel). No payment processing happens inside the app,
-and **no functionality is ever gated** behind a donation. See [docs/SUPPORTERS.md](docs/SUPPORTERS.md).
+Donations go through Patreon and are completely optional. Pledge on any paid tier and, while that
+pledge is active, you get a redeemable code that switches on cosmetic extras: a supporter badge, a
+few extra accent themes, and an opt-in beta update channel. No payment happens inside the app, and
+nothing about how the app works is ever locked behind a donation. Details in
+[docs/SUPPORTERS.md](docs/SUPPORTERS.md).
 
-## ⚖️ License
+## License
 
 [MIT](LICENSE). Not affiliated with Mojang, Microsoft, Modrinth or CurseForge.
-The original UI design lives under [`design/`](design/) for provenance.

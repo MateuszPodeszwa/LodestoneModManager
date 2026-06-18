@@ -1,69 +1,70 @@
-# Supporters & donations
+# Supporters and donations
 
-Lodestone is **free, and always will be**. Donations are optional and **never gate functionality** —
-supporters get cosmetic/convenience perks and our thanks. There is **no payment processor and no backend
-in the app**: pledging happens on Patreon, a website verifies the pledge and mints a short-lived code,
-and that code unlocks the perks **offline**.
+Lodestone is free and always will be. Donations are optional and never gate functionality;
+supporters get cosmetic and convenience perks plus my thanks. There is no payment processor and no
+backend inside the app. Pledging happens on Patreon, a website verifies the pledge and mints a
+short-lived code, and that code unlocks the perks offline.
 
 ## How it works (for users)
 
-1. **Join on Patreon** on any **paid** tier — you must be an **active** patron (former/declined
-   patrons and free followers don't qualify).
-2. **Open our website** and sign in with Patreon to verify your pledge.
-3. The site **generates a code** that is valid for **one hour**.
-4. Paste it into **Support → "Redeem your supporter code"**. The app verifies it offline and unlocks
-   your perks **permanently** (until you remove the code or uninstall).
+1. Join on Patreon on any paid tier. You need to be an active patron (former or declined patrons and
+   free followers don't qualify).
+2. Open the website and sign in with Patreon to verify your pledge.
+3. The site generates a code that is valid for one hour.
+4. Paste it into Support → "Redeem your supporter code". The app verifies it offline and unlocks your
+   perks permanently (until you remove the code or uninstall).
 
 ### What a code unlocks (cosmetic / convenience only)
 
-- A **Supporter badge** in the title bar.
-- **Exclusive accent themes** (Settings → Appearance; entitlement: `SupporterService.CanUseExtraThemes`).
-- **Early access** to beta builds (Settings → Mods & updates; entitlement: `SupporterService.CanUseBetaChannel`).
-- **Priority support** (a link to the support channel).
+- A supporter badge in the title bar.
+- Extra accent themes (Settings → Appearance; entitlement: `SupporterService.CanUseExtraThemes`).
+- Early access to beta builds (Settings → Mods & updates; entitlement: `SupporterService.CanUseBetaChannel`).
+- Priority support (a link to the support channel).
 
-Core mod-managing — install, update, compatibility checks, everything — is always free.
+The core of managing mods, meaning install, update, compatibility checks and everything else, is
+always free.
 
 ## Early access (beta builds)
 
-Beta builds let supporters try updates before everyone else. It runs off the **same GitHub
-Releases feed**, split by whether a release is marked a *pre-release*:
+Beta builds let supporters try updates before everyone else. They run off the same GitHub Releases
+feed, split by whether a release is marked a pre-release:
 
-- **Cutting a beta:** tag a pre-release version (e.g. `v1.3.0-beta.1`). `release.yml` sees the
-  `-` suffix and publishes it as a GitHub **pre-release** (it passes `--pre` to Velopack). Promote
-  it to everyone later by cutting a normal `v1.3.0` release — stable clients roll onto it then.
-- **In the app:** a supporter turns on **Settings → Mods & updates → Early access**
+- Cutting a beta: tag a pre-release version (for example `v1.3.0-beta.1`). `release.yml` sees the `-`
+  suffix and publishes it as a GitHub pre-release (it passes `--pre` to Velopack). Promote it to
+  everyone later by cutting a normal `v1.3.0` release, and stable clients roll onto it then.
+- In the app: a supporter turns on Settings → Mods & updates → Early access
   (`SupporterService.CanUseBetaChannel`). Velopack's feed then includes pre-releases
   (`GithubSource(prerelease: true)`); everyone else stays on stable and never sees the beta.
-- **On the website:** the Supporter page shows a **Download beta** button to entitled patrons,
-  resolving to the latest pre-release installer via `/api/download/beta`.
+- On the website: the Supporter page shows a Download beta button to entitled patrons, resolving to
+  the latest pre-release installer via `/api/download/beta`.
 
-Beta access is for **any active patron** — the same bar as a supporter code (there are no pledge
-tiers), consistent across the app and the website.
+Beta access is open to any active patron, the same bar as a supporter code (there are no pledge
+tiers), and it stays consistent across the app and the website.
 
-> **One caveat worth knowing — it's soft-gated, not secret.** Because the repo is public, a
-> pre-release is still downloadable straight from the GitHub Releases page. The gates stop the normal
-> in-app and website paths, not a determined manual download. For true privacy you'd serve beta
-> packages from an authenticated endpoint instead of public GitHub.
+> Worth knowing: this is soft-gated, not secret. Because the repo is public, a pre-release is still
+> downloadable straight from the GitHub Releases page. The gates stop the normal in-app and website
+> paths, not a determined manual download. For real privacy you would serve beta packages from an
+> authenticated endpoint instead of public GitHub.
 
 ## Security model (offline, no backend)
 
-Codes are signed tokens: `base64url(payload).base64url(signature)`, where the payload is
-`{"v":1,"k":"supporter","h":<holder>,"iat":<unix-seconds-UTC>}`, signed with **ECDSA P-256 / SHA-256**.
-The app verifies them with an **embedded public key** (`SupporterKeys.DefaultPublicKey`); only the public
-key ships, the private key stays with the maintainer/website.
+Codes are signed tokens of the form `base64url(payload).base64url(signature)`, where the payload is
+`{"v":1,"k":"supporter","h":<holder>,"iat":<unix-seconds-UTC>}`, signed with ECDSA P-256 / SHA-256.
+The app verifies them with an embedded public key (`SupporterKeys.DefaultPublicKey`); only the public
+key ships, and the private key stays with the maintainer and the website.
 
-- **1-hour activation window.** The app accepts a code only within one hour of its `iat`. The policy lives
-  app-side (`SupporterService.ActivationWindow`), so a leaked code can't extend its own life — and a short
-  window means a shared code dies quickly.
-- **Permanent after activation.** Once redeemed, status is granted with no recurring expiry.
-- **Tamper-resistant at rest.** The app stores the *signed code itself* and **re-verifies its signature on
-  every load** — editing `entitlements.json` (or flipping a flag) can't fake supporter status without a
-  genuinely signed code. (Binary-patching the client is unpreventable in any offline scheme; signing
-  defeats the realistic threat, which is data tampering.)
-- **Uninstall clears it.** A Velopack uninstall hook deletes the token, so a reinstall requires a fresh code.
+- One-hour activation window. The app accepts a code only within an hour of its `iat`. That policy
+  lives app-side (`SupporterService.ActivationWindow`), so a leaked code can't extend its own life,
+  and a short window means a shared code dies quickly.
+- Permanent after activation. Once redeemed, status is granted with no recurring expiry.
+- Tamper-resistant at rest. The app stores the signed code itself and re-verifies its signature on
+  every load, so editing `entitlements.json` (or flipping a flag) can't fake supporter status without
+  a genuinely signed code. Binary-patching the client can't be prevented in any offline scheme;
+  signing defeats the realistic threat, which is data tampering.
+- Uninstall clears it. A Velopack uninstall hook deletes the token, so a reinstall needs a fresh code.
 
-> The website must sign exactly the payload shape above with the private key matching the embedded public
-> key. Until the website exists, the `lodestone` CLI mints codes the same way (below).
+> The website has to sign exactly the payload shape above with the private key matching the embedded
+> public key. Until the website exists, the `lodestone` CLI mints codes the same way (below).
 
 ## Maintainer tooling (CLI)
 
@@ -72,7 +73,7 @@ key ships, the private key stays with the maintainer/website.
 ```powershell
 # Generate a key pair (do this once)
 dotnet run --project src/Lodestone.Cli -- keygen
-#  → PRIVATE=...   (keep secret — save under keys/, which is git-ignored)
+#  → PRIVATE=...   (keep secret; save under keys/, which is git-ignored)
 #  → PUBLIC=...    (paste into src/Lodestone.Infrastructure/Supporter/SupporterKeys.cs)
 ```
 
@@ -88,8 +89,8 @@ dotnet run --project src/Lodestone.Cli -- issue `
 dotnet run --project src/Lodestone.Cli -- verify --pub "@keys/supporter.public.b64" --code <code>
 ```
 
-> ⚠️ **Never commit the private key.** `keys/` is git-ignored. If it ever leaks, run `keygen` again,
-> replace `SupporterKeys.DefaultPublicKey`, and ship an update — old codes simply stop verifying.
+> Never commit the private key. `keys/` is git-ignored. If it ever leaks, run `keygen` again, replace
+> `SupporterKeys.DefaultPublicKey`, and ship an update; old codes simply stop verifying.
 
 ## Configuring the links
 
@@ -99,5 +100,5 @@ The links live in `DonateViewModel` (`src/Lodestone.App/ViewModels/DonateViewMod
 - `WebsiteUrl` → `https://lodestonemc.net/supporter` (Patreon login + code generation)
 - `PrioritySupportUrl` → `https://lodestonemc.net/support`
 
-The two `lodestonemc.net` paths assume that site is live — the domain is registered but not yet
-deployed, so those pages must exist before the supporter flow works end to end.
+Both `lodestonemc.net` paths assume that site is live. The domain is registered but not yet deployed,
+so those pages need to exist before the supporter flow works end to end.
