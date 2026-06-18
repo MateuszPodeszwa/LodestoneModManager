@@ -353,7 +353,7 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
             return;
         }
 
-        bool ran = await _gate.RunAsync($"Installing {item.Name}…", async () =>
+        await _gate.RunInstallAsync($"Installing {item.Name}…", async () =>
         {
             item.Installing = true;
             try
@@ -379,11 +379,6 @@ public sealed partial class BrowseViewModel : ObservableObject, IDisposable
                 item.Installing = false;
             }
         }).ConfigureAwait(true);
-
-        if (!ran)
-        {
-            _bus.Publish(new ToastMessage("Please wait", "Another install is still running — try again in a moment.", ToastKind.Info));
-        }
     }
 
     private static string DescribeInstall(string name, CatalogInstall install)

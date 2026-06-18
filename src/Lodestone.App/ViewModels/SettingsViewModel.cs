@@ -392,17 +392,25 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
 
         LodestoneLog.Info("Resetting Minecraft to a clean state…");
-        Result<ResetSummary> result = await _reset.ExecuteAsync().ConfigureAwait(true);
-        if (result.IsFailure)
+        bool ran = await _gate.RunExclusiveAsync("Resetting Minecraft…", async () =>
         {
-            _bus.Publish(new ToastMessage("Couldn't reset", result.Error.Message, ToastKind.Error));
-            return;
-        }
+            Result<ResetSummary> result = await _reset.ExecuteAsync().ConfigureAwait(true);
+            if (result.IsFailure)
+            {
+                _bus.Publish(new ToastMessage("Couldn't reset", result.Error.Message, ToastKind.Error));
+                return;
+            }
 
-        ReloadFromSettings();
-        _bus.Publish(new LibraryChanged());
-        _bus.Publish(new ToastMessage("Reset complete",
-            $"Removed {result.Value.ContentRemoved} item(s) and {result.Value.LoadersRemoved} loader(s). Minecraft is back to vanilla."));
+            ReloadFromSettings();
+            _bus.Publish(new LibraryChanged());
+            _bus.Publish(new ToastMessage("Reset complete",
+                $"Removed {result.Value.ContentRemoved} item(s) and {result.Value.LoadersRemoved} loader(s). Minecraft is back to vanilla."));
+        }).ConfigureAwait(true);
+
+        if (!ran)
+        {
+            _bus.Publish(new ToastMessage("Please wait", "Another operation is still running — try again in a moment.", ToastKind.Info));
+        }
     }
 
     [RelayCommand]
@@ -480,7 +488,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
 
         LodestoneLog.Info($"Installing {loader.ToDisplayName()} for Minecraft {version}…");
-        bool ran = await _gate.RunAsync($"Setting up {loader.ToDisplayName()}…", async () =>
+        bool ran = await _gate.RunExclusiveAsync($"Setting up {loader.ToDisplayName()}…", async () =>
         {
             IsUpdatingLoader = true;
             try
@@ -534,7 +542,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
 
         LodestoneLog.Info($"Installing {loader.ToDisplayName()} for Minecraft {version} via its official installer…");
-        bool ran = await _gate.RunAsync($"Setting up {loader.ToDisplayName()}…", async () =>
+        bool ran = await _gate.RunExclusiveAsync($"Setting up {loader.ToDisplayName()}…", async () =>
         {
             IsUpdatingLoader = true;
             try
